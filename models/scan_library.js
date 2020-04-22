@@ -1,5 +1,6 @@
 const fs = require('fs');
 const config = require('../config');
+const Filter = require('./filter');
 
 const libraryDir = config.libraryDir;
 
@@ -57,6 +58,10 @@ function getMangaSummary(id) {
     metadata.title = id;
   }
 
+  if (!metadata.tags) {
+    metadata.tags = [];
+  }
+
   if (fs.existsSync(`${libraryDir}/${id}/thumb.jpg`)) {
     metadata.thumb = 'thumb.jpg';
   } else if (fs.existsSync(`${libraryDir}/${id}/thumb.jpeg`)) {
@@ -75,14 +80,24 @@ function scanLibrary() {
 const mangaList = scanLibrary();
 
 // models
-function getMangaList(lastId, limit) {
+function getMangaList(lastId, limit, filterString) {
   if (mangaList.length == 0) return [];
 
   let start = lastId ? mangaList.findIndex((x) => x.id > lastId) : 0;
   if (start == -1) return [];
-  let end = Math.min(mangaList.length, start + limit);
 
-  return mangaList.slice(start, end).map((x) => {
+  let result = [];
+  const filter = new Filter(filterString);
+
+  for (let i = start; i < mangaList.length; i++) {
+    const m = mangaList[i];
+    if (filter.check(m.title, m.tags)) {
+      result.push(mangaList[i]);
+      if (result.length >= limit) break;
+    }
+  }
+
+  return result.map((x) => {
     return { id: x.id, title: x.title, thumb: x.thumb };
   });
 }
