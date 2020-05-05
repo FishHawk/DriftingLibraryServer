@@ -7,10 +7,11 @@ let expressProcess = undefined;
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 500,
-    height: 300,
+    height: 220,
     webPreferences: {
       nodeIntegration: true,
     },
+    resizable: false,
   });
 
   mainWindow.loadFile('index.html');
