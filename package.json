@@ -1,16 +1,17 @@
 {
   "name": "drifting-library",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A server to build remote manga library",
   "scripts": {
-    "start": "node index.js",
+    "start": "electron ./client/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": "https://github.com/FishHawk/DriftingLibraryServer",
   "author": "FishHawk",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "electron": "^8.2.5"
   },
   "devDependencies": {}
 }

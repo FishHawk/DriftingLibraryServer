@@ -18,10 +18,6 @@ if (!(fs.existsSync(libraryDir) && fs.lstatSync(libraryDir).isDirectory())) {
   process.exit(1);
 }
 
-// module.exports = {
-//   port: 8080,
-//   libraryDir: '/home/wh/Projects/DriftingLibrary/test-short-10000/',
-// };
 module.exports = {
   port: port,
   libraryDir: libraryDir
