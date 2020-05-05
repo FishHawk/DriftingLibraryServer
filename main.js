@@ -14,7 +14,7 @@ function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
   mainWindow.on('close', () => {
     if (expressProcess != undefined) {
       expressProcess.kill('SIGINT');
@@ -26,7 +26,7 @@ const ipcMain = require('electron').ipcMain;
 ipcMain.on('start-server', (event, arg) => {
   if (expressProcess == undefined) {
     expressProcess = proc.spawn('node', [
-      './server/index.js',
+      './resources/app/server/index.js',
       arg.port,
       arg.address,
     ]);
