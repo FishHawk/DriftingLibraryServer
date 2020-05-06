@@ -1,4 +1,5 @@
 const { ipcRenderer } = require('electron');
+const app = require('electron').remote.app;
 const fs = require('fs');
 const proc = require('child_process');
 
@@ -37,7 +38,9 @@ function redirectOutput(x) {
 
 function startServer(port, address) {
   if (expressProcess == undefined) {
-    expressProcess = proc.spawn('node', ['./server/index.js', port, address]);
+    expressProcess = proc.spawn('node', ['./server/index.js', port, address], {
+      cwd: app.getAppPath(),
+    });
     redirectOutput(expressProcess.stdout);
     redirectOutput(expressProcess.stderr);
   }
