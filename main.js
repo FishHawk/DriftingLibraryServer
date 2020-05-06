@@ -1,39 +1,20 @@
 const { app, BrowserWindow } = require('electron');
-const proc = require('child_process');
-const path = require('path');
-
-let expressProcess = undefined;
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 500,
-    height: 220,
+    height: 800,
     webPreferences: {
       nodeIntegration: true,
-    },
-    resizable: false,
+    }
   });
 
   mainWindow.loadFile('index.html');
   // mainWindow.webContents.openDevTools();
   mainWindow.on('close', () => {
-    if (expressProcess != undefined) {
-      expressProcess.kill('SIGINT');
-    }
+    mainWindow.webContents.send("stop-server");
   });
 }
-
-const ipcMain = require('electron').ipcMain;
-ipcMain.on('start-server', (event, arg) => {
-  if (expressProcess == undefined) {
-    expressProcess = proc.spawn('node', [
-      './resources/app/server/index.js',
-      arg.port,
-      arg.address,
-    ]);
-  }
-  event.sender.send('notify', '服务器已启动');
-});
 
 app.whenReady().then(createWindow);
 

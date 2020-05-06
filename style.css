@@ -1,0 +1,51 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+/* flex: flex-grow, flex-shrink, flex-basis */
+.box {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+.box .row.header {
+  flex: 0 1 auto;
+  text-align: center;
+}
+.box .row.content {
+  flex: 1 1 auto;
+}
+
+/* components */
+form {
+  position: relative;
+  width: 100%;
+  display: table;
+}
+div.row {
+  display: table-row;
+}
+label {
+  width: 20%;
+  display: table-cell;
+  margin: 5px;
+}
+input {
+  width: 80%;
+  display: table-cell;
+  margin: 5px;
+}
+button {
+  width: 100px;
+  margin: 5px;
+}
+textarea {
+  border: 0 none;
+  outline: 0 none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
