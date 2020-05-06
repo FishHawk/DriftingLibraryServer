@@ -38,7 +38,7 @@ function redirectOutput(x) {
 
 function startServer(port, address) {
   if (expressProcess == undefined) {
-    expressProcess = proc.spawn('node', ['./server/index.js', port, address], {
+    expressProcess = proc.spawn('./node_modules/node/bin/node', ['./server/index.js', port, address], {
       cwd: app.getAppPath(),
     });
     redirectOutput(expressProcess.stdout);

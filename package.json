@@ -12,7 +12,8 @@
   "author": "FishHawk",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "node": "^14.2.0"
   },
   "devDependencies": {
     "electron": "^8.2.5",
