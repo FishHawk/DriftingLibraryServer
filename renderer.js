@@ -1,7 +1,7 @@
-const { ipcRenderer } = require('electron');
+const ipcRenderer = require('electron').ipcRenderer;
 const app = require('electron').remote.app;
-const fs = require('fs');
 const proc = require('child_process');
+const fs = require('fs');
 
 let expressProcess = undefined;
 
