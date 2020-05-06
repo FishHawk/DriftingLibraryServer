@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const config = require('../config');
 const Filter = require('./filter');
 
@@ -49,9 +50,14 @@ function naturalCompare(a, b) {
 
 // scan library
 function getMangaSummary(id) {
-  let metadata = JSON.parse(
-    fs.readFileSync(`${libraryDir}/${id}/metadata.json`, 'utf8')
-  );
+  let metadata;
+  if (!fs.existsSync(`${libraryDir}/${id}/metadata.json`)) {
+    metadata = {};
+  } else {
+    metadata = JSON.parse(
+      fs.readFileSync(`${libraryDir}/${id}/metadata.json`, 'utf8')
+    );
+  }
 
   metadata.id = id;
   if (!metadata.title) {
@@ -68,6 +74,8 @@ function getMangaSummary(id) {
     metadata.thumb = 'thumb.jpeg';
   } else if (fs.existsSync(`${libraryDir}/${id}/thumb.png`)) {
     metadata.thumb = 'thumb.png';
+  } else {
+    metadata.thumb = '';
   }
 
   return metadata;
@@ -134,8 +142,14 @@ function getMangaDetail(id) {
 
 function getChapterContent(id, collectionTitle, chapterTitle) {
   const dir = `${libraryDir}/${id}/${collectionTitle}/${chapterTitle}`;
+  const allowedFileExtension = ['.jpg', '.jpeg', '.png'];
   if (!fs.existsSync(dir)) return undefined;
-  return getFileNaturalOrder(dir);
+  return getFileNaturalOrder(dir).filter(function (file) {
+    return (
+      allowedFileExtension.includes(path.extname(file).toLowerCase()) &&
+      file.substr(0, file.lastIndexOf('.')) != 'thumb'
+    );
+  });
 }
 
 module.exports = {
