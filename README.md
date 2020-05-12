@@ -4,7 +4,9 @@
 
 ## 如何运行
 
-运行`drifting-library.exe`，进入启动器并填写参数。
+### GUI
+
+对于Windows 8.1及以上的用户，可以使用启动器来启动服务器。运行`drifting-library.exe`，进入启动器并填写参数。
 
 - `端口`：服务器端口，端口号应当在1024到65535之间（比如8080）。
 - `库目录`：存放漫画的文件夹路径（比如E:\library），文件夹必须存在。
@@ -15,13 +17,19 @@
 
 <img src="https://raw.githubusercontent.com/wiki/FishHawk/DriftingLibraryServer/Home.assets/screenshot.png" alt="screenshot" style="zoom:67%;" />
 
-### 进阶
+### 命令行
 
-服务器可以直接启动，指令格式为`node server/index.js [port] [address]`，port是端口号，address是库文件夹，文件夹必须存在。
+按以下步骤启动服务器。
 
-举例：`node server/index.js 8080 /home/xx/Projects/DriftingLibrary/default`。
+1. 安装[nodejs](https://nodejs.org/zh-cn/)。
 
+2. 下载本项目，进入项目文件夹，打开命令行。（对于Windows用户，在项目文件夹，按住shift并点击右键，选择打开cmd或者打开powershell即可）
 
+3. 运行指令`npm install`。（国内一般需要从镜像安装electron。如果使用的是cmd，需要先执行`set ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/ `，如果使用的是powershell，需要先执行`$env:ELECTRON_MIRROR="https://npm.taobao.org/mirrors/electron/" `）
+
+4. 运行指令`node server/index.js [port] [address]`，port是端口号，address是库文件夹，文件夹必须存在。例如：`node server/index.js 8080 E:\library`。
+
+   
 
 ## 如何建立漫画库
 
