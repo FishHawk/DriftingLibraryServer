@@ -1,5 +1,5 @@
 {
-  "name": "drifting-library",
+  "name": "drifting-library-server",
   "version": "1.0.0",
   "description": "A server to build remote manga library",
   "main": "main.js",
