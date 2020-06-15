@@ -1,12 +1,21 @@
 {
   "name": "drifting-library-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "A server to build remote manga library",
   "main": "main.js",
   "repository": "https://github.com/FishHawk/DriftingLibraryServer",
   "author": "FishHawk",
   "license": "GPL-3.0-or-later",
+  "scripts": {
+    "test": "mocha"
+  },
   "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
     "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "mocha": "^8.0.1"
   }
 }
