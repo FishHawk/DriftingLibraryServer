@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 if (process.argv.length != 4) {
   console.log(`错误的参数个数。`);
   process.exit(1);
@@ -11,14 +13,10 @@ if (!(port > 1023 && port <= 65535)) {
 }
 
 const libraryDir = process.argv[3];
-const fs = require('fs');
 console.log(`库文件夹：${libraryDir}`);
 if (!(fs.existsSync(libraryDir) && fs.lstatSync(libraryDir).isDirectory())) {
   console.log(`错误！ 库文件夹不存在。`);
   process.exit(1);
 }
 
-module.exports = {
-  port: port,
-  libraryDir: libraryDir
-};
+export default { port, libraryDir };

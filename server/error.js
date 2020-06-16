@@ -19,8 +19,4 @@ function errorHandler(err, req, res, next) {
   else res.status(500).send(err);
 }
 
-module.exports = {
-  ApplicationError,
-  errorWarp,
-  errorHandler,
-};
+export { ApplicationError, errorWarp, errorHandler };

@@ -1,6 +1,6 @@
-const express = require('express');
-const { getMangaDetail } = require('../models/scan_library');
-const { ApplicationError, errorWarp } = require('../error');
+import express from 'express';
+import { getMangaDetail } from '../library/scan_library.js';
+import { ApplicationError, errorWarp } from '../error.js';
 
 const router = express.Router();
 
@@ -14,4 +14,4 @@ async function get(req, res) {
 
 router.get('/manga/:id', errorWarp(get));
 
-module.exports = router;
+export default router;

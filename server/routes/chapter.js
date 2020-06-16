@@ -1,6 +1,6 @@
-const express = require('express');
-const { getChapterContent } = require('../models/scan_library');
-const { ApplicationError, errorWarp } = require('../error');
+import express from 'express';
+import { getChapterContent } from '../library/scan_library.js';
+import { ApplicationError, errorWarp } from '../error.js';
 
 const router = express.Router();
 
@@ -16,4 +16,4 @@ async function get(req, res) {
 
 router.get('/chapter/:id', errorWarp(get));
 
-module.exports = router;
+export default router;

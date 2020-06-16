@@ -1,7 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const config = require('../config');
-const Filter = require('./filter');
+import fs from 'fs';
+import path from 'path';
+
+import config from '../config.js';
+import Filter from './filter.js';
 
 const libraryDir = config.libraryDir;
 
@@ -152,8 +153,4 @@ function getChapterContent(id, collectionTitle, chapterTitle) {
   });
 }
 
-module.exports = {
-  getMangaList,
-  getMangaDetail,
-  getChapterContent,
-};
+export { getMangaList, getMangaDetail, getChapterContent };
