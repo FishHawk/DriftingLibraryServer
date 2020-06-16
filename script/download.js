@@ -1,5 +1,6 @@
-import { download_manga } from '../server/providers/download.js';
+import download from '../server/download/download.js';
+import provider from '../server/download/providers/manhuadui.js';
 
 const libraryDir = '/home/wh/Projects/DriftingLibrary/default/';
 const mangaId = 'guaiguaishouhushen';
-download_manga(libraryDir, mangaId);
+download.downloadManga(provider, libraryDir, mangaId);
