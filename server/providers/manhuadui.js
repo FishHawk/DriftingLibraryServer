@@ -65,7 +65,6 @@ async function get_detail(manga_id) {
           chapter.id = $(this).attr('href').split('/')[3].slice(0, -5);
           chapter.title = $('a span', el).first().text();
           detail.add_chapter(collection, chapter);
-          console.log(chapter.id);
         });
       });
       return detail;
