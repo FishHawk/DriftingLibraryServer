@@ -1,5 +1,6 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
+import crypto from 'crypto';
 
 import { MangaOutline, MangaDetail, Chapter } from './models/manga.js';
 
@@ -37,22 +38,25 @@ function correct_url(url) {
   return url;
 }
 
-async function get_detail(id) {
+async function get_detail(manga_id) {
   return await instance
-    .get('/manhua/' + id + '/')
+    .get(`/manhua/${manga_id}/`)
     .then(function (response) {
       const $ = cheerio.load(response.data);
       let detail = new MangaDetail();
-      detail.id = id;
+      detail.id = manga_id;
       detail.title = $('#comicName').first().text();
       detail.thumb = correct_url($('#Cover img').first().attr('src'));
 
-      const author = $('.Introduct_Sub .sub_r .txtItme').eq(0).contents().eq(2).text();
+      const author = $('.Introduct_Sub .sub_r .txtItme')
+        .eq(0)
+        .contents()
+        .eq(2)
+        .text();
       detail.add_tag('authors', author);
 
       const status = $('.Introduct_Sub .sub_r .txtItme a').eq(3).text();
       detail.add_tag('status', status);
-      console.log($('.Introduct_Sub .sub_r .txtItme').eq(0).contents().text())
 
       $('.chapter-warp ul').each(function (i, el) {
         const collection = i.toString();
@@ -61,6 +65,7 @@ async function get_detail(id) {
           chapter.id = $(this).attr('href').split('/')[3].slice(0, -5);
           chapter.title = $('a span', el).first().text();
           detail.add_chapter(collection, chapter);
+          console.log(chapter.id);
         });
       });
       return detail;
@@ -69,5 +74,46 @@ async function get_detail(id) {
       return;
     });
 }
+function decrypt(ciphertext) {
+  const key = '123456781234567G';
+  const iv = 'ABCDEF1G34123412';
 
-export { search, get_detail };
+  const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+  let plaintext = decipher.update(ciphertext, 'base64');
+  plaintext += decipher.final();
+  return plaintext;
+}
+
+function correct_image_url(key, prefix) {
+  const domain = 'https://mhcdn.manhuazj.com';
+  if (key.match('\\^https?://(images.dmzj.com|imgsmall.dmzj.com)/i') != null) {
+    return domain + '/showImage.php?url=' + Buffer.from(key, 'utf-8');
+  } else if (key.match('\\^[a-z]//i') != null) {
+    return (
+      domain +
+      '/showImage.php?url=' +
+      Buffer.from('https://images.dmzj.com/' + key, 'utf-8')
+    );
+  }
+  if (key.startsWith('http') || key.startsWith('ftp')) return key;
+  return domain + '/' + prefix + key;
+}
+
+async function get_chapter(manga_id, chapter_id) {
+  return await instance
+    .get(`/manhua/${manga_id}/${chapter_id}.html`)
+    .then(function (response) {
+      const $ = cheerio.load(response.data);
+
+      const ciphertext = response.data.match(
+        'var chapterImages =\\s*"(.*?)";'
+      )[1];
+      const plaintext = decrypt(ciphertext);
+      let image_list = JSON.parse(plaintext);
+
+      let prefix = response.data.match('var chapterPath = "([\\s\\S]*?)";');
+      return image_list.map((i) => correct_image_url(i, prefix));
+    });
+}
+
+export { search, get_detail, get_chapter };
