@@ -18,12 +18,12 @@ class MangaDetail {
   tags = {};
   collections = {};
 
-  add_tag(key, value) {
+  addTag(key, value) {
     if (!(key in this.tags)) this.tags[key] = [];
     this.tags[key].push(value);
   }
 
-  add_chapter(collection, chapter) {
+  addChapter(collection, chapter) {
     if (!(collection in this.collections)) this.collections[collection] = [];
     this.collections[collection].push(chapter);
   }

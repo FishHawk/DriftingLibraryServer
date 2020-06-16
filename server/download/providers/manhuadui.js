@@ -2,7 +2,37 @@ import axios from 'axios';
 import cheerio from 'cheerio';
 import crypto from 'crypto';
 
-import { MangaOutline, MangaDetail, Chapter } from './models/manga.js';
+import { MangaOutline, MangaDetail, Chapter } from '../models/manga.js';
+
+function correctUrl(url) {
+  if (url.startsWith('//')) url = 'https:' + url;
+  return url;
+}
+
+function decrypt(ciphertext) {
+  const key = '123456781234567G';
+  const iv = 'ABCDEF1G34123412';
+
+  const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+  let plaintext = decipher.update(ciphertext, 'base64');
+  plaintext += decipher.final();
+  return plaintext;
+}
+
+function correctImageUrl(key, prefix) {
+  const domain = 'https://mhcdn.manhuazj.com';
+  if (key.match('\\^https?://(images.dmzj.com|imgsmall.dmzj.com)/i') != null) {
+    return domain + '/showImage.php?url=' + Buffer.from(key, 'utf-8');
+  } else if (key.match('\\^[a-z]//i') != null) {
+    return (
+      domain +
+      '/showImage.php?url=' +
+      Buffer.from('https://images.dmzj.com/' + key, 'utf-8')
+    );
+  }
+  if (key.startsWith('http') || key.startsWith('ftp')) return key;
+  return domain + '/' + prefix + key;
+}
 
 const instance = axios.create({
   baseURL: 'https://m.manhuadui.com/',
@@ -33,30 +63,25 @@ async function search(keywords, page) {
     });
 }
 
-function correct_url(url) {
-  if (url.startsWith('//')) url = 'https:' + url;
-  return url;
-}
-
-async function get_detail(manga_id) {
+async function getDetail(mangaId) {
   return await instance
-    .get(`/manhua/${manga_id}/`)
+    .get(`/manhua/${mangaId}/`)
     .then(function (response) {
       const $ = cheerio.load(response.data);
       let detail = new MangaDetail();
-      detail.id = manga_id;
+      detail.id = mangaId;
       detail.title = $('#comicName').first().text();
-      detail.thumb = correct_url($('#Cover img').first().attr('src'));
+      detail.thumb = correctUrl($('#Cover img').first().attr('src'));
 
       const author = $('.Introduct_Sub .sub_r .txtItme')
         .eq(0)
         .contents()
         .eq(2)
         .text();
-      detail.add_tag('authors', author);
+      detail.addTag('authors', author);
 
       const status = $('.Introduct_Sub .sub_r .txtItme a').eq(3).text();
-      detail.add_tag('status', status);
+      detail.addTag('status', status);
 
       $('.chapter-warp ul').each(function (i, el) {
         const collection = i.toString();
@@ -64,7 +89,7 @@ async function get_detail(manga_id) {
           let chapter = new Chapter();
           chapter.id = $(this).attr('href').split('/')[3].slice(0, -5);
           chapter.title = $('a span', el).first().text();
-          detail.add_chapter(collection, chapter);
+          detail.addChapter(collection, chapter);
         });
       });
       return detail;
@@ -73,34 +98,10 @@ async function get_detail(manga_id) {
       return;
     });
 }
-function decrypt(ciphertext) {
-  const key = '123456781234567G';
-  const iv = 'ABCDEF1G34123412';
 
-  const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
-  let plaintext = decipher.update(ciphertext, 'base64');
-  plaintext += decipher.final();
-  return plaintext;
-}
-
-function correct_image_url(key, prefix) {
-  const domain = 'https://mhcdn.manhuazj.com';
-  if (key.match('\\^https?://(images.dmzj.com|imgsmall.dmzj.com)/i') != null) {
-    return domain + '/showImage.php?url=' + Buffer.from(key, 'utf-8');
-  } else if (key.match('\\^[a-z]//i') != null) {
-    return (
-      domain +
-      '/showImage.php?url=' +
-      Buffer.from('https://images.dmzj.com/' + key, 'utf-8')
-    );
-  }
-  if (key.startsWith('http') || key.startsWith('ftp')) return key;
-  return domain + '/' + prefix + key;
-}
-
-async function get_chapter(manga_id, chapter_id) {
+async function getChapter(mangaId, chapterId) {
   return await instance
-    .get(`/manhua/${manga_id}/${chapter_id}.html`)
+    .get(`/manhua/${mangaId}/${chapterId}.html`)
     .then(function (response) {
       const $ = cheerio.load(response.data);
 
@@ -108,11 +109,19 @@ async function get_chapter(manga_id, chapter_id) {
         'var chapterImages =\\s*"(.*?)";'
       )[1];
       const plaintext = decrypt(ciphertext);
-      let image_list = JSON.parse(plaintext);
+      let imageList = JSON.parse(plaintext);
 
       let prefix = response.data.match('var chapterPath = "([\\s\\S]*?)";');
-      return image_list.map((i) => correct_image_url(i, prefix));
+      return imageList.map((i) => correctImageUrl(i, prefix));
+    })
+    .catch(function (error) {
+      return [];
     });
 }
 
-export { search, get_detail, get_chapter };
+export default {
+  name: 'manhuadui',
+  search,
+  getDetail,
+  getChapter,
+};
