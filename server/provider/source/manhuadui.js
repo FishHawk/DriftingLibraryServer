@@ -36,7 +36,7 @@ function correctImageUrl(key, prefix) {
 
 const instance = axios.create({
   baseURL: 'https://m.manhuadui.com/',
-  timeout: 1000,
+  timeout: 5000,
   headers: {
     'User-Agent':
       'Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/12.0 Mobile/15A372 Safari/604.1',
@@ -61,6 +61,7 @@ async function search(keywords, page) {
         .toArray();
     })
     .catch(function (error) {
+      console.log(error)
       return [];
     });
 }
@@ -97,6 +98,7 @@ async function getDetail(mangaId) {
       return detail;
     })
     .catch(function (error) {
+      console.log(error)
       return;
     });
 }
@@ -113,10 +115,11 @@ async function getChapter(mangaId, chapterId) {
       const plaintext = decrypt(ciphertext);
       let imageList = JSON.parse(plaintext);
 
-      let prefix = response.data.match('var chapterPath = "([\\s\\S]*?)";');
+      let prefix = response.data.match('var chapterPath = "([\\s\\S]*?)";')[1];
       return imageList.map((i) => correctImageUrl(i, prefix));
     })
     .catch(function (error) {
+      console.log(error)
       return [];
     });
 }

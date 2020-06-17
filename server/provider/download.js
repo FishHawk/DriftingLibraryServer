@@ -9,7 +9,6 @@ async function downloadChapter(source, chapterDir, mangaId, chapterId) {
     const extension = url.split('.').pop();
     const imagePath = path.join(chapterDir, `${i}.${extension}`);
     if (!fs.existsSync(imagePath)) {
-      console.log('??');
       await axios({
         method: 'get',
         url: url,
