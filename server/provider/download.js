@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 
-async function downloadChapter(provider, chapterDir, mangaId, chapterId) {
-  const imageUrls = await provider.getChapter(mangaId, chapterId);
+async function downloadChapter(source, chapterDir, mangaId, chapterId) {
+  const imageUrls = await source.getChapter(mangaId, chapterId);
 
   for (const [i, url] of imageUrls.entries()) {
     const extension = url.split('.').pop();
@@ -26,8 +26,8 @@ async function downloadChapter(provider, chapterDir, mangaId, chapterId) {
   }
 }
 
-async function downloadManga(provider, libraryDir, mangaId) {
-  const detail = await provider.getDetail(mangaId);
+async function downloadManga(source, libraryDir, mangaId) {
+  const detail = await source.getDetail(mangaId);
   const mangaDir = path.join(libraryDir, detail.title);
   if (!fs.existsSync(mangaDir)) fs.mkdirSync(mangaDir);
 
@@ -39,7 +39,7 @@ async function downloadManga(provider, libraryDir, mangaId) {
       const chapterDir = path.join(collectionDir, chapter.title);
       console.log(chapterDir);
       if (!fs.existsSync(chapterDir)) fs.mkdirSync(chapterDir);
-      await downloadChapter(provider, chapterDir, detail.id, chapter.id);
+      await downloadChapter(source, chapterDir, detail.id, chapter.id);
     }
   }
 }
