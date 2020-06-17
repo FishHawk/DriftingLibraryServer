@@ -48,15 +48,17 @@ async function search(keywords, page) {
     .get('/search/', { params: { keywords, page } })
     .then(function (response) {
       const $ = cheerio.load(response.data);
-      return $('div.itemBox').map(function (i, el) {
-        let outline = new MangaOutline();
-        outline.id = $('.itemTxt a', el).first().attr('href').split('/')[4];
-        outline.title = $('.itemTxt a', el).first().text();
-        outline.thumb = $('.itemImg a img', el).first().attr('src');
-        outline.author = $('.txtItme', el).first().text();
-        outline.update = $('.itemTxt .txtItme .date', el).first().text();
-        return outline;
-      });
+      return $('div.itemBox')
+        .map(function (i, el) {
+          let outline = new MangaOutline();
+          outline.id = $('.itemTxt a', el).first().attr('href').split('/')[4];
+          outline.title = $('.itemTxt a', el).first().text();
+          outline.thumb = $('.itemImg a img', el).first().attr('src');
+          outline.author = $('.txtItme', el).first().text();
+          outline.update = $('.itemTxt .txtItme .date', el).first().text();
+          return outline;
+        })
+        .toArray();
     })
     .catch(function (error) {
       return [];
