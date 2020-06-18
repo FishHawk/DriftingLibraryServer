@@ -2,7 +2,13 @@ import axios from 'axios';
 import cheerio from 'cheerio';
 import crypto from 'crypto';
 
-import { MangaOutline, MangaDetail, Chapter } from '../models/manga.js';
+import {
+  MangaOutline,
+  MangaDetail,
+  Chapter,
+  Collection,
+  Tag,
+} from '../models/manga.js';
 
 function correctUrl(url) {
   if (url.startsWith('//')) url = 'https:' + url;
@@ -61,7 +67,7 @@ async function search(keywords, page) {
         .toArray();
     })
     .catch(function (error) {
-      console.log(error)
+      console.log(error);
       return [];
     });
 }
@@ -81,24 +87,29 @@ async function getDetail(mangaId) {
         .contents()
         .eq(2)
         .text();
-      detail.addTag('authors', author);
+      let authorTag = Tag('authors');
+      authorTag.value.push(author);
+      detail.tags.push(authorTag);
 
       const status = $('.Introduct_Sub .sub_r .txtItme a').eq(3).text();
-      detail.addTag('status', status);
+      let statusTag = Tag('authors');
+      statusTag.value.push(status);
+      detail.tags.push(statusTag);
 
       $('.chapter-warp ul').each(function (i, el) {
-        const collection = i.toString();
+        let collection = new Collection(i.toString());
         $('li a', el).each(function (i, el) {
           let chapter = new Chapter();
           chapter.id = $(this).attr('href').split('/')[3].slice(0, -5);
           chapter.title = $('a span', el).first().text();
-          detail.addChapter(collection, chapter);
+          collection.chapters.push(chapter);
         });
+        detail.collections.push(collection);
       });
       return detail;
     })
     .catch(function (error) {
-      console.log(error)
+      console.log(error);
       return;
     });
 }
@@ -119,7 +130,7 @@ async function getChapter(mangaId, chapterId) {
       return imageList.map((i) => correctImageUrl(i, prefix));
     })
     .catch(function (error) {
-      console.log(error)
+      console.log(error);
       return [];
     });
 }

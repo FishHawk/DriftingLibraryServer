@@ -33,11 +33,11 @@ async function downloadManga(source, sourceMangaId, targetMangaId = null) {
   const mangaDir = path.join(libraryDir, targetMangaId);
   if (!fs.existsSync(mangaDir)) fs.mkdirSync(mangaDir);
 
-  for (const [title, collection] of Object.entries(detail.collections)) {
-    const collectionDir = path.join(mangaDir, title);
+  for (const collection of detail.collections) {
+    const collectionDir = path.join(mangaDir, collection.title);
     if (!fs.existsSync(collectionDir)) fs.mkdirSync(collectionDir);
 
-    for (const chapter of collection) {
+    for (const chapter of collection.chapters) {
       const chapterDir = path.join(collectionDir, chapter.title);
       console.log(chapterDir);
       if (!fs.existsSync(chapterDir)) fs.mkdirSync(chapterDir);

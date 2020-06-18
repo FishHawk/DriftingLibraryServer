@@ -11,22 +11,28 @@ class Chapter {
   title;
 }
 
+class Tag {
+  key;
+  value = [];
+  constructor(key) {
+    this.key = key;
+  }
+}
+
+class Collection {
+  title;
+  chapters = [];
+  constructor(title) {
+    this.title = title;
+  }
+}
+
 class MangaDetail {
   id;
   title;
   thumb;
-  tags = {};
-  collections = {};
-
-  addTag(key, value) {
-    if (!(key in this.tags)) this.tags[key] = [];
-    this.tags[key].push(value);
-  }
-
-  addChapter(collection, chapter) {
-    if (!(collection in this.collections)) this.collections[collection] = [];
-    this.collections[collection].push(chapter);
-  }
+  tags = [];
+  collections = [];
 }
 
-export { MangaOutline, MangaDetail, Chapter };
+export { MangaOutline, MangaDetail, Chapter, Collection, Tag };

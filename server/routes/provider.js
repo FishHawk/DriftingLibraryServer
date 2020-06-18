@@ -77,6 +77,28 @@ async function patchOrder(req, res) {
   return res.sendStatus(200);
 }
 
+async function getManga(req, res) {
+  const sourceName = req.params.source;
+  const id = req.params.id;
+
+  const source = factory.getSource(sourceName);
+  if (source == null) throw new ApplicationError(500, 'Source not support.');
+
+  const detail = await source.getMangaDetail(id);
+  return res.json(detail);
+}
+
+async function getChapter(req, res) {
+  const sourceName = req.params.source;
+  const id = req.params.id;
+
+  const source = factory.getSource(sourceName);
+  if (source == null) throw new ApplicationError(500, 'Source not support.');
+
+  const imageList = await source.getChapter(id);
+  return res.json(imageList);
+}
+
 router.get('/provider/sources', errorWarp(getSources));
 router.get('/provider/search', errorWarp(search));
 
@@ -84,5 +106,8 @@ router.get('/provider/orders', errorWarp(getOrders));
 router.post('/provider/order', errorWarp(postOrder));
 router.delete('/provider/order/:id', errorWarp(deleteOrder));
 router.patch('/provider/order/:id', errorWarp(patchOrder));
+
+router.get('/provider/manga/:source/:id', errorWarp(getManga));
+router.get('/provider/chapter/:source/:id', errorWarp(getChapter));
 
 export default router;
