@@ -1,19 +1,25 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import router from './routes/index.js';
-import sequelize from './model/db.js';
-import { errorHandler } from './error.js';
 import config from './config.js';
+import { errorHandler } from './error.js';
+import sequelize from './model/db.js';
+import router from './routes/index.js';
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-sequelize.sync({ alter: true }).then(() => {
-  console.log('test');
-});
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+    sequelize.sync();
+  })
+  .catch(() => {
+    console.error('Unable to connect to the database:', error);
+  });
 
 app.use('/', router);
 

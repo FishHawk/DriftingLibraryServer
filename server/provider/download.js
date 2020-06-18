@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import { libraryDir } from '../config.js';
+import config from '../config.js';
 
 async function downloadChapter(source, chapterDir, mangaId, chapterId) {
   const imageUrls = await source.getChapter(mangaId, chapterId);
@@ -30,7 +30,7 @@ async function downloadManga(source, sourceMangaId, targetMangaId = null) {
   const detail = await source.getDetail(sourceMangaId);
   if (targetMangaId == null) targetMangaId = detail.title;
 
-  const mangaDir = path.join(libraryDir, targetMangaId);
+  const mangaDir = path.join(config.libraryDir, targetMangaId);
   if (!fs.existsSync(mangaDir)) fs.mkdirSync(mangaDir);
 
   for (const collection of detail.collections) {

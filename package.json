@@ -1,7 +1,6 @@
 {
   "name": "drifting-library-server",
   "version": "1.0.0",
-  "type": "module",
   "description": "A server to build remote manga library",
   "main": "main.js",
   "repository": "https://github.com/FishHawk/DriftingLibraryServer",
@@ -13,6 +12,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
+    "esm": "^3.2.25",
     "express": "^4.17.1",
     "sequelize": "^5.21.13",
     "sqlite3": "^4.2.0"
