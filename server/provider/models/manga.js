@@ -2,6 +2,7 @@ class MangaOutline {
   id;
   title;
   thumb;
+  source;
   author;
   update;
 }
@@ -31,6 +32,7 @@ class MangaDetail {
   id;
   title;
   thumb;
+  source;
   tags = [];
   collections = [];
 }

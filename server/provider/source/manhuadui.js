@@ -2,13 +2,9 @@ import axios from 'axios';
 import cheerio from 'cheerio';
 import crypto from 'crypto';
 
-import {
-  MangaOutline,
-  MangaDetail,
-  Chapter,
-  Collection,
-  Tag,
-} from '../models/manga.js';
+import { MangaOutline, MangaDetail, Chapter, Collection, Tag } from '../models/manga.js';
+
+const source = 'manhuadui';
 
 function correctUrl(url) {
   if (url.startsWith('//')) url = 'https:' + url;
@@ -27,14 +23,10 @@ function decrypt(ciphertext) {
 
 function correctImageUrl(key, prefix) {
   const domain = 'https://mhcdn.manhuazj.com';
-  if (key.match('\\^https?://(images.dmzj.com|imgsmall.dmzj.com)/i') != null) {
+  if (key.match('^https?://(images.dmzj.com|imgsmall.dmzj.com)') != null) {
     return domain + '/showImage.php?url=' + Buffer.from(key, 'utf-8');
-  } else if (key.match('\\^[a-z]//i') != null) {
-    return (
-      domain +
-      '/showImage.php?url=' +
-      Buffer.from('https://images.dmzj.com/' + key, 'utf-8')
-    );
+  } else if (key.match('^[a-z]/') != null) {
+    return domain + '/showImage.php?url=' + Buffer.from('https://images.dmzj.com/' + key, 'utf-8');
   }
   if (key.startsWith('http') || key.startsWith('ftp')) return key;
   return domain + '/' + prefix + key;
@@ -60,6 +52,7 @@ async function search(keywords, page) {
           outline.id = $('.itemTxt a', el).first().attr('href').split('/')[4];
           outline.title = $('.itemTxt a', el).first().text();
           outline.thumb = $('.itemImg a img', el).first().attr('src');
+          outline.source = source;
           outline.author = $('.txtItme', el).first().text();
           outline.update = $('.itemTxt .txtItme .date', el).first().text();
           return outline;
@@ -81,18 +74,15 @@ async function getDetail(mangaId) {
       detail.id = mangaId;
       detail.title = $('#comicName').first().text();
       detail.thumb = correctUrl($('#Cover img').first().attr('src'));
+      detail.source = source;
 
-      const author = $('.Introduct_Sub .sub_r .txtItme')
-        .eq(0)
-        .contents()
-        .eq(2)
-        .text();
-      let authorTag = Tag('authors');
+      const author = $('.Introduct_Sub .sub_r .txtItme').eq(0).contents().eq(2).text();
+      let authorTag = new Tag('authors');
       authorTag.value.push(author);
       detail.tags.push(authorTag);
 
       const status = $('.Introduct_Sub .sub_r .txtItme a').eq(3).text();
-      let statusTag = Tag('authors');
+      let statusTag = new Tag('authors');
       statusTag.value.push(status);
       detail.tags.push(statusTag);
 
@@ -120,9 +110,7 @@ async function getChapter(mangaId, chapterId) {
     .then(function (response) {
       const $ = cheerio.load(response.data);
 
-      const ciphertext = response.data.match(
-        'var chapterImages =\\s*"(.*?)";'
-      )[1];
+      const ciphertext = response.data.match('var chapterImages =\\s*"(.*?)";')[1];
       const plaintext = decrypt(ciphertext);
       let imageList = JSON.parse(plaintext);
 

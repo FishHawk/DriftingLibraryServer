@@ -84,18 +84,20 @@ async function getManga(req, res) {
   const source = factory.getSource(sourceName);
   if (source == null) throw new ApplicationError(500, 'Source not support.');
 
-  const detail = await source.getMangaDetail(id);
+  const detail = await source.getDetail(id);
   return res.json(detail);
 }
 
 async function getChapter(req, res) {
   const sourceName = req.params.source;
-  const id = req.params.id;
+  const mangaId = req.params.mangaId;
+  const chapterId = req.params.chapterId;
 
   const source = factory.getSource(sourceName);
   if (source == null) throw new ApplicationError(500, 'Source not support.');
 
-  const imageList = await source.getChapter(id);
+  const imageList = await source.getChapter(mangaId, chapterId);
+  console.log(imageList);
   return res.json(imageList);
 }
 
@@ -108,6 +110,6 @@ router.delete('/provider/order/:id', errorWarp(deleteOrder));
 router.patch('/provider/order/:id', errorWarp(patchOrder));
 
 router.get('/provider/manga/:source/:id', errorWarp(getManga));
-router.get('/provider/chapter/:source/:id', errorWarp(getChapter));
+router.get('/provider/chapter/:source/:mangaId/:chapterId', errorWarp(getChapter));
 
 export default router;
