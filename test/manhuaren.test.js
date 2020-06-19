@@ -10,13 +10,13 @@ describe('Source test: manhuaren', function () {
   });
 
   it('test request popular mangas', () => {
-    return source.requestPopularMangas(1).then((result) => {
+    return source.requestPopular(1).then((result) => {
       assert.equal(result.length, 20);
     });
   });
 
   it('test request latest update', () => {
-    return source.requestLatestUpdate(1).then((result) => {
+    return source.requestLatest(1).then((result) => {
       assert.equal(result.length, 20);
     });
   });

@@ -163,7 +163,7 @@ async function search(page, keywords) {
     });
 }
 
-async function requestPopularMangas(page) {
+async function requestPopular(page) {
   return await instance
     .get('/v2/manga/getCategoryMangas', {
       params: addExtraParam({
@@ -183,7 +183,7 @@ async function requestPopularMangas(page) {
     });
 }
 
-async function requestLatestUpdate(page) {
+async function requestLatest(page) {
   return await instance
     .get('/v2/manga/getCategoryMangas', {
       params: addExtraParam({
@@ -244,8 +244,8 @@ export default {
   supportsLatest,
 
   search,
-  requestPopularMangas,
-  requestLatestUpdate,
+  requestPopular,
+  requestLatest,
   requestMangaDetail,
   requestChapterContent,
 };
