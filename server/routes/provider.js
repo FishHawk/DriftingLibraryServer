@@ -2,7 +2,7 @@ import express from 'express';
 
 import { ApplicationError, errorWarp } from '../error.js';
 import Order from '../model/order.js';
-import factory from '../provider/source_factory.js';
+import factory from '../provider/sources.js';
 import downloadJobQueue from '../provider/download_job_queue.js';
 
 const router = express.Router();

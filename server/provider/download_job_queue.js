@@ -2,7 +2,7 @@ import events from 'events';
 
 import Order from '../model/order.js';
 import download from './download.js';
-import factory from './source_factory.js';
+import factory from './sources.js';
 
 class DownloadJobQueue {
   #isRunning;
