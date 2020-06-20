@@ -6,7 +6,6 @@
   "repository": "https://github.com/FishHawk/DriftingLibraryServer",
   "author": "FishHawk",
   "license": "GPL-3.0-or-later",
-  "type": "module",
   "scripts": {
     "test": "mocha"
   },

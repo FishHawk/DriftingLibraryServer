@@ -24,7 +24,7 @@ async function getPopular(req, res) {
   if (source == undefined) throw new ApplicationError(500, 'Source not support.');
 
   const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
-  const mangaList = await source.getPopular(page);
+  const mangaList = await source.requestPopular(page);
   return res.json(mangaList);
 }
 
@@ -33,7 +33,7 @@ async function getLatest(req, res) {
   if (source == undefined) throw new ApplicationError(500, 'Source not support.');
 
   const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
-  const mangaList = await source.getLatest(page);
+  const mangaList = await source.requestLatest(page);
   return res.json(mangaList);
 }
 
@@ -42,7 +42,7 @@ async function getManga(req, res) {
   if (source == undefined) throw new ApplicationError(500, 'Source not support.');
 
   const id = req.params.id;
-  const detail = await source.getMangaDetail(id);
+  const detail = await source.requestMangaDetail(id);
   return res.json(detail);
 }
 
@@ -51,8 +51,18 @@ async function getChapter(req, res) {
   if (source == undefined) throw new ApplicationError(500, 'Source not support.');
 
   const id = req.params.id;
-  const imageList = await source.getChapterContent(id);
+  const imageList = await source.requestChapterContent(id);
+  console.log(imageList);
   return res.json(imageList);
+}
+
+async function getImage(req, res) {
+  const source = sources.getSource(req.params.source);
+  if (source == undefined) throw new ApplicationError(500, 'Source not support.');
+
+  const url = req.params.url;
+  console.log(url);
+  await source.requestImage(url, res);
 }
 
 router.get('/sources', errorWarp(getSources));
@@ -61,5 +71,6 @@ router.get('/source/:source/popular', errorWarp(getPopular));
 router.get('/source/:source/latest', errorWarp(getLatest));
 router.get('/source/:source/manga/:id', errorWarp(getManga));
 router.get('/source/:source/chapter/:id', errorWarp(getChapter));
+router.get('/source/:source/image/:url', errorWarp(getImage));
 
 export default router;

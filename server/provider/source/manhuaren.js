@@ -75,7 +75,7 @@ function parseChapter(jsonChapter) {
   if (jsonChapter.isMustPay === 1) name = '[锁] ' + name;
 
   return new Chapter({
-    id: jsonChapter.sectionId,
+    id: jsonChapter.sectionId.toString(),
     name: name,
     title: jsonChapter.sectionTitle,
   });
@@ -93,7 +93,7 @@ function parseMangaDetail(jsonManga) {
 
   let detail = new MangaDetail({
     source: name,
-    id: jsonManga.mangaId,
+    id: jsonManga.mangaId.toString(),
     title: jsonManga.mangaName,
     thumb: thumb,
     author: jsonManga.mangaAuthors,
@@ -122,7 +122,10 @@ function parseMangaDetail(jsonManga) {
 function parseChapterContent(jsonImageList) {
   const host = jsonImageList.hostList[0];
   const query = jsonImageList.query;
-  return jsonImageList.mangaSectionImages.map((it) => `${host}${it}${query}`);
+  return jsonImageList.mangaSectionImages.map((it) => {
+    const origin = `${host}${it}${query}`;
+    return `source/${encodeURIComponent(name)}/image/${encodeURIComponent(origin)}`;
+  });
 }
 
 /*
@@ -238,6 +241,20 @@ async function requestChapterContent(id) {
     });
 }
 
+async function requestImage(url, res) {
+  await instance({
+    method: 'get',
+    url: url,
+    responseType: 'stream',
+  })
+    .then(function (response) {
+      response.data.pipe(res);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
+
 export default {
   lang,
   name,
@@ -248,4 +265,5 @@ export default {
   requestLatest,
   requestMangaDetail,
   requestChapterContent,
+  requestImage,
 };
