@@ -3,6 +3,7 @@ import path from 'path';
 
 import config from '../config.js';
 import Filter from './filter.js';
+import { MangaOutline, Chapter } from '../data/manga.js';
 
 const libraryDir = config.libraryDir;
 
@@ -55,9 +56,7 @@ function getMangaSummary(id) {
   if (!fs.existsSync(`${libraryDir}/${id}/metadata.json`)) {
     metadata = {};
   } else {
-    metadata = JSON.parse(
-      fs.readFileSync(`${libraryDir}/${id}/metadata.json`, 'utf8')
-    );
+    metadata = JSON.parse(fs.readFileSync(`${libraryDir}/${id}/metadata.json`, 'utf8'));
   }
 
   metadata.id = id;
@@ -107,7 +106,11 @@ function getMangaList(lastId, limit, filterString) {
   }
 
   return result.map((x) => {
-    return { id: x.id, title: x.title, thumb: x.thumb };
+    return new MangaOutline({
+      id: x.id,
+      title: x.title,
+      thumb: x.thumb,
+    });
   });
 }
 
@@ -129,15 +132,21 @@ function getMangaDetail(id) {
       for (let folder of folderLevel1) {
         detail.collections.push({
           title: folder,
-          chapters: getDirNaturalOrder(`${libraryDir}/${id}/${folder}`),
+          chapters: getDirNaturalOrder(`${libraryDir}/${id}/${folder}`).map(
+            (x) => new Chapter({ id: x, name: x, title: x })
+          ),
         });
       }
     } else {
-      detail.collections = [{ title: '', chapters: folderLevel1 }];
+      const chapters = folderLevel1.map((x) => new Chapter({ id: x, name: x, title: x }));
+      detail.collections = [{ title: '', chapters }];
     }
   } else {
+    const chapters = [new Chapter({ id: '', name: '', title: '' })];
     detail.collections = [{ title: '', chapters: [''] }];
   }
+
+  detail.author = []
   return detail;
 }
 

@@ -52,7 +52,6 @@ async function getChapter(req, res) {
 
   const id = req.params.id;
   const imageList = await source.requestChapterContent(id);
-  console.log(imageList);
   return res.json(imageList);
 }
 

@@ -9,6 +9,7 @@ async function get(req, res) {
   const mangaDetail = getMangaDetail(id);
 
   if (!mangaDetail) throw new ApplicationError(404, 'Manga not found.');
+  console.log(mangaDetail)
   return res.json(mangaDetail);
 }
 

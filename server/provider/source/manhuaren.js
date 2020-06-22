@@ -2,11 +2,11 @@ import axios from 'axios';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { Status, MangaOutline, MangaDetail, Collection, Chapter } from '../data/manga.js';
+import { Status, MangaOutline, MangaDetail, Collection, Chapter } from '../../data/manga.js';
 
 const lang = 'zh';
 const name = '漫画人';
-const supportsLatest = true;
+const isLatestSupport = true;
 
 /*
  *  Helper
@@ -258,7 +258,7 @@ async function requestImage(url, res) {
 export default {
   lang,
   name,
-  supportsLatest,
+  isLatestSupport,
 
   search,
   requestPopular,
