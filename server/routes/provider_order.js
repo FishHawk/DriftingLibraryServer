@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { ApplicationError, errorWarp } from '../error.js';
-import Order from '../model/order.js';
+import { Order, OrderMode } from '../model/order.js';
 import downloadJobQueue from '../provider/download_job_queue.js';
 
 const router = express.Router();
@@ -18,44 +18,43 @@ async function getOrders(req, res) {
 }
 
 async function postOrder(req, res) {
+  const mode = Number.parseInt(req.body.mode);
+  if (!OrderMode.isLegal(mode)) throw new ApplicationError(400, 'Can not parse mode.');
+
   const order = await Order.create({
     source: req.body.source,
     sourceMangaId: req.body.sourceMangaId,
     targetMangaId: req.body.targetMangaId,
+    mode: mode,
   });
   downloadJobQueue.add(order);
   return res.status(200).json(order);
 }
 
 async function deleteOrder(req, res) {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) throw ApplicationError(400, 'Can not parse id.');
+  const id = Number.parseInt(req.params.id);
+  if (!Number.isInteger(id)) throw new ApplicationError(400, 'Can not parse id.');
 
   const order = await Order.findByPk(id);
-  if (order === null) throw ApplicationError(404, 'Order not found.');
+  if (order === null) throw new ApplicationError(404, 'Order not found.');
 
   await order.destroy();
   return res.status(200).json(order);
 }
 
 async function patchOrder(req, res) {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) throw ApplicationError(400, 'Illegal id.');
+  const id = Number.parseInt(req.params.id);
+  if (!Number.isInteger(id)) throw new ApplicationError(400, 'Illegal id.');
 
-  const isActive = parseBoolean(req.body.isActive);
-  if (isActive === null) throw ApplicationError(400, 'Illegal isActive.');
+  const active = parseBoolean(req.body.active);
+  if (active === null) throw new ApplicationError(400, 'Illegal isActive.');
 
   const order = await Order.findByPk(id);
-  if (order === null) throw ApplicationError(404, 'Order not found.');
+  if (order === null) throw new ApplicationError(404, 'Order not found.');
 
-  if (isActive === true && order.isActive === false) {
-    order.isActive = false;
-    order.status = 'waiting';
-    await order.save();
-    downloadJobQueue.add(order);
-  } else if (isActive === false && order.isActive === true) {
-    // TODO
-  }
+  // TODO
+  return;
+
   return res.sendStatus(200);
 }
 

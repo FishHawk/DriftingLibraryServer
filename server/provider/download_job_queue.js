@@ -1,7 +1,6 @@
 import events from 'events';
 
-import config from '../config.js';
-import Order from '../model/order.js';
+import { OrderStatus } from '../model/order.js';
 import download from './download.js';
 import factory from './sources.js';
 
@@ -20,7 +19,8 @@ class DownloadJobQueue {
   }
 
   add(order) {
-    order.status = 'waiting';
+    order.status = OrderStatus.WAITING;
+    order.errorMessage = '';
     order.save();
     this.#queue.push(order);
     this.#emitter.emit('run');
@@ -29,21 +29,18 @@ class DownloadJobQueue {
   async run() {
     while (this.#queue.length > 0) {
       const order = this.#queue.shift();
-      order.status = 'processing';
+      order.status = OrderStatus.PROCESSING;
       try {
         const source = factory.getSource(order.source);
-        await download.downloadManga(
-          source,
-          order.sourceMangaId,
-          order.targetMangaId
-        );
-        order.destroy();
-        console.log(`complete: ${order.id}`);
-      } catch (error) {
-        console.log(error)
-        order.status = 'failed';
+        await download(source, order.sourceMangaId, order.targetMangaId, order.mode);
+        order.status = OrderStatus.COMPLETED;
         order.save();
-        console.log(`fail: ${order.id}`);
+        console.log('success');
+      } catch (error) {
+        console.log(error);
+        order.status = OrderStatus.ERROR;
+        order.errorMessage = error.message;
+        order.save();
       }
     }
   }

@@ -64,7 +64,6 @@ async function getImage(req, res) {
   if (source == undefined) throw new ApplicationError(500, 'Source not support.');
 
   const url = req.params.url;
-  console.log(url);
   await source.requestImage(url, res);
 }
 

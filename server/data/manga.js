@@ -55,7 +55,6 @@ class MangaDetail {
   update;
 
   description;
-  genre;
 
   tags = [];
   collections = [];
