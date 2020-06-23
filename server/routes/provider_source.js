@@ -47,12 +47,16 @@ async function getManga(req, res) {
 }
 
 async function getChapter(req, res) {
-  const source = sources.getSource(req.params.source);
+  const sourceName = req.params.source;
+  const source = sources.getSource(sourceName);
   if (source == undefined) throw new ApplicationError(500, 'Source not support.');
 
   const id = req.params.id;
-  const imageList = await source.requestChapterContent(id);
-  return res.json(imageList);
+  const imageUrls = await source.requestChapterContent(id);
+  const imageProxyUrls = imageUrls.map((x) => {
+    return `source/${encodeURIComponent(sourceName)}/image/${encodeURIComponent(x)}`;
+  });
+  return res.json(imageProxyUrls);
 }
 
 async function getImage(req, res) {

@@ -60,7 +60,6 @@ function parseStatus(status) {
 function parseMangaList(mangas) {
   return mangas.map((json) => {
     return new MangaOutline({
-      source: name,
       id: json.mangaId,
       title: json.mangaName,
       thumb: json.mangaCoverimageUrl,
@@ -106,7 +105,7 @@ function parseMangaDetail(jsonManga) {
 
   const parseCollection = (title, jsonChapterList) => {
     if (jsonChapterList.length > 0) {
-      const chapters = jsonChapterList.map((jsonChapter) => parseChapter(jsonChapter));
+      const chapters = jsonChapterList.map((jsonChapter) => parseChapter(jsonChapter)).reverse();
       const collecton = new Collection({ title, chapters });
       detail.collections.push(collecton);
     }
@@ -122,10 +121,7 @@ function parseMangaDetail(jsonManga) {
 function parseChapterContent(jsonImageList) {
   const host = jsonImageList.hostList[0];
   const query = jsonImageList.query;
-  return jsonImageList.mangaSectionImages.map((it) => {
-    const origin = `${host}${it}${query}`;
-    return `source/${encodeURIComponent(name)}/image/${encodeURIComponent(origin)}`;
-  });
+  return jsonImageList.mangaSectionImages.map((it) => `${host}${it}${query}`);
 }
 
 /*

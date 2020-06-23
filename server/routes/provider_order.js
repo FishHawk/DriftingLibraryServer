@@ -24,7 +24,7 @@ async function postOrder(req, res) {
     targetMangaId: req.body.targetMangaId,
   });
   downloadJobQueue.add(order);
-  return res.sendStatus(200);
+  return res.status(200).json(order);
 }
 
 async function deleteOrder(req, res) {
@@ -35,7 +35,7 @@ async function deleteOrder(req, res) {
   if (order === null) throw ApplicationError(404, 'Order not found.');
 
   await order.destroy();
-  return res.sendStatus(200);
+  return res.status(200).json(order);
 }
 
 async function patchOrder(req, res) {
@@ -59,9 +59,9 @@ async function patchOrder(req, res) {
   return res.sendStatus(200);
 }
 
-router.get('/provider/orders', errorWarp(getOrders));
-router.post('/provider/order', errorWarp(postOrder));
-router.delete('/provider/order/:id', errorWarp(deleteOrder));
-router.patch('/provider/order/:id', errorWarp(patchOrder));
+router.get('/orders', errorWarp(getOrders));
+router.post('/order', errorWarp(postOrder));
+router.delete('/order/:id', errorWarp(deleteOrder));
+router.patch('/order/:id', errorWarp(patchOrder));
 
 export default router;

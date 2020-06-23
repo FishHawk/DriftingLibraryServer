@@ -1,5 +1,6 @@
 import events from 'events';
 
+import config from '../config.js';
 import Order from '../model/order.js';
 import download from './download.js';
 import factory from './sources.js';
@@ -33,13 +34,13 @@ class DownloadJobQueue {
         const source = factory.getSource(order.source);
         await download.downloadManga(
           source,
-          config.libraryDir,
           order.sourceMangaId,
           order.targetMangaId
         );
         order.destroy();
         console.log(`complete: ${order.id}`);
       } catch (error) {
+        console.log(error)
         order.status = 'failed';
         order.save();
         console.log(`fail: ${order.id}`);

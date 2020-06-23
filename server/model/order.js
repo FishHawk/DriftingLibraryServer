@@ -18,10 +18,12 @@ const Order = sequelize.define('order', {
   isActive: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
+    defaultValue: true,
   },
   status: {
     type: DataTypes.STRING,
     allowNull: false,
+    defaultValue: 'Waiting',
   },
 });
 

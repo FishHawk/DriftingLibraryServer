@@ -33,7 +33,6 @@ class Collection {
 }
 
 class MangaOutline {
-  source;
   id;
   title;
   thumb;

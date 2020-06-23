@@ -3,31 +3,21 @@ import path from 'path';
 import axios from 'axios';
 import config from '../config.js';
 
-async function downloadChapter(source, chapterDir, mangaId, chapterId) {
-  const imageUrls = await source.getChapter(mangaId, chapterId);
+async function downloadChapter(source, chapterDir, chapterId) {
+  const imageUrls = await source.requestChapterContent(chapterId);
 
   for (const [i, url] of imageUrls.entries()) {
     const extension = url.split('.').pop();
     const imagePath = path.join(chapterDir, `${i}.${extension}`);
     if (!fs.existsSync(imagePath)) {
-      await axios({
-        method: 'get',
-        url: url,
-        responseType: 'stream',
-      })
-        .then(function (response) {
-          response.data.pipe(fs.createWriteStream(`${chapterDir}/${i}.jpg`));
-        })
-        .catch(function (error) {
-          console.log(error);
-          return;
-        });
+      const stream = fs.createWriteStream(`${chapterDir}/${i}.jpg`)
+      await source.requestImage(url, stream);
     }
   }
 }
 
 async function downloadManga(source, sourceMangaId, targetMangaId = null) {
-  const detail = await source.getDetail(sourceMangaId);
+  const detail = await source.requestMangaDetail(sourceMangaId);
   if (targetMangaId == null) targetMangaId = detail.title;
 
   const mangaDir = path.join(config.libraryDir, targetMangaId);
@@ -38,10 +28,10 @@ async function downloadManga(source, sourceMangaId, targetMangaId = null) {
     if (!fs.existsSync(collectionDir)) fs.mkdirSync(collectionDir);
 
     for (const chapter of collection.chapters) {
-      const chapterDir = path.join(collectionDir, chapter.title);
+      const chapterDir = path.join(collectionDir, chapter.name);
       console.log(chapterDir);
       if (!fs.existsSync(chapterDir)) fs.mkdirSync(chapterDir);
-      await downloadChapter(source, chapterDir, detail.id, chapter.id);
+      await downloadChapter(source, chapterDir, chapter.id);
     }
   }
 }
