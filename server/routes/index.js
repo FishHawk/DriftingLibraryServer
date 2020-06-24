@@ -6,16 +6,16 @@ import manga_router from './manga.js';
 import chapter_router from './chapter.js';
 import image_router from './image.js';
 
-import order_router from './provider_order.js';
-import source_router from './provider_source.js';
+import source_router from './source.js';
+import download_task_router from './download_task.js';
 
 router.use(library_router);
 router.use(manga_router);
 router.use(chapter_router);
 router.use(image_router);
 
-router.use(order_router);
 router.use(source_router);
+router.use(download_task_router);
 
 router.get('/test', function (req, res) {
   res.send('Hello World!');

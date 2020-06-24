@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 
 import sequelize from './db.js';
 
-const OrderStatus = Object.freeze({
+const DownloadTaskStatus = Object.freeze({
   WAITING: 0,
   PROCESSING: 1,
   COMPLETED: 2,
@@ -10,7 +10,7 @@ const OrderStatus = Object.freeze({
   ERROR: 4,
 });
 
-const OrderMode = Object.freeze({
+const DownloadTaskMode = Object.freeze({
   FORCE: 0,
   PASS_IF_MANGA_EXIST: 1,
   PASS_IF_COLLECTION_EXIST: 2,
@@ -24,7 +24,7 @@ const OrderMode = Object.freeze({
   },
 });
 
-const Order = sequelize.define('order', {
+const DownloadTask = sequelize.define('download_task', {
   source: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -44,7 +44,7 @@ const Order = sequelize.define('order', {
   status: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: OrderStatus.WAITING,
+    defaultValue: DownloadTaskStatus.WAITING,
   },
   errorMessage: {
     type: DataTypes.STRING,
@@ -53,4 +53,4 @@ const Order = sequelize.define('order', {
   },
 });
 
-export { Order, OrderMode, OrderStatus };
+export { DownloadTask, DownloadTaskMode, DownloadTaskStatus };
