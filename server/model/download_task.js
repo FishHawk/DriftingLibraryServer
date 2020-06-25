@@ -38,11 +38,11 @@ const DownloadTask = sequelize.define('download_task', {
     allowNull: false,
   },
   mode: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   status: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: DownloadTaskStatus.WAITING,
   },

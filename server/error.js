@@ -8,6 +8,24 @@ class ApplicationError extends Error {
   }
 }
 
+class BadRequestError extends ApplicationError {
+  constructor(message) {
+    super(400, message);
+  }
+}
+
+class NotFoundError extends ApplicationError {
+  constructor(message) {
+    super(404, message);
+  }
+}
+
+class ConflictError extends ApplicationError {
+  constructor(message) {
+    super(409, message);
+  }
+}
+
 function errorWarp(callback) {
   return function (req, res, next) {
     callback(req, res, next).catch(next);
@@ -19,4 +37,11 @@ function errorHandler(err, req, res, next) {
   else res.status(500).send(err);
 }
 
-export { ApplicationError, errorWarp, errorHandler };
+export default {
+  ApplicationError,
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  errorWarp,
+  errorHandler,
+};

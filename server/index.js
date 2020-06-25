@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 import config from './config.js';
-import { errorHandler } from './error.js';
+import error from './error.js';
 import sequelize from './model/db.js';
 import router from './routes/index.js';
 
@@ -23,9 +23,9 @@ sequelize
 
 app.use('/', router);
 
-app.use('/api', errorHandler);
+app.use('/api', error.errorHandler);
 
 const port = config.port;
 app.listen(port, () => {
-  console.log(`服务器启动：http://localhost:${port}`);
+  console.log(`Server：http://localhost:${port}`);
 });

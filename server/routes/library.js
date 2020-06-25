@@ -1,6 +1,6 @@
 import express from 'express';
 import { getMangaList } from '../library/scan_library.js';
-import { errorWarp } from '../error.js';
+import error from '../error.js';
 
 const router = express.Router();
 
@@ -13,6 +13,6 @@ async function get(req, res) {
   return res.json(mangaList);
 }
 
-router.get('/library', errorWarp(get));
+router.get('/library', error.errorWarp(get));
 
 export default router;

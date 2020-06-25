@@ -3,11 +3,25 @@ import events from 'events';
 import path from 'path';
 
 import config from '../config.js';
-import { DownloadTaskStatus } from '../model/download_task.js';
+import { DownloadTask, DownloadTaskMode, DownloadTaskStatus } from '../model/download_task.js';
 import factory from './sources.js';
 
-async function download(source, sourceMangaId, targetMangaId, mode) {
+async function checkIsTaskProcessing(task) {
+  await task.reload();
+  if (task !== null && task.status === DownloadTaskStatus.PROCESSING) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+async function download(task) {
   // TODO: filter illegal char
+  const source = factory.getSource(task.source);
+  const sourceMangaId = task.sourceMangaId;
+  const targetMangaId = task.targetMangaId;
+  const mode = task.mode;
+
   const detail = await source.requestMangaDetail(sourceMangaId);
 
   const mangaDir = path.join(config.libraryDir, targetMangaId);
@@ -40,6 +54,8 @@ async function download(source, sourceMangaId, targetMangaId, mode) {
       continue;
 
     for (const chapter of collection.chapters) {
+      if (!checkIsTaskProcessing(task)) return;
+
       const chapterDir = path.join(collectionDir, chapter.name);
       if (!fs.existsSync(chapterDir)) fs.mkdirSync(chapterDir);
       else if (chapter.name !== '' && mode === DownloadTaskMode.PASS_IF_CHAPTER_EXIST) continue;
@@ -47,6 +63,8 @@ async function download(source, sourceMangaId, targetMangaId, mode) {
       const imageUrls = await source.requestChapterContent(chapter.id);
 
       for (const [i, url] of imageUrls.entries()) {
+        if (!checkIsTaskProcessing(task)) return;
+
         // TODO: if extension is not jpg ?
         const imagePath = path.join(chapterDir, `${i}.jpg`);
         if (!fs.existsSync(imagePath) || mode === DownloadTaskMode.FORCE) {
@@ -56,11 +74,14 @@ async function download(source, sourceMangaId, targetMangaId, mode) {
       }
     }
   }
+
+  if (!checkIsTaskProcessing(task)) return;
+  task.status = DownloadTaskStatus.COMPLETED;
+  await task.save();
 }
 
-class DownloadTaskQueue {
+class Downloader {
   #isRunning;
-  #queue = [];
   #emitter = new events.EventEmitter();
 
   constructor() {
@@ -72,34 +93,33 @@ class DownloadTaskQueue {
     });
   }
 
-  add(order) {
-    order.status = DownloadTaskStatus.WAITING;
-    order.errorMessage = '';
-    order.save();
-    this.#queue.push(order);
+  start() {
     this.#emitter.emit('run');
   }
 
   async run() {
-    while (this.#queue.length > 0) {
-      const order = this.#queue.shift();
-      order.status = DownloadTaskStatus.PROCESSING;
+    while (true) {
+      const task = await DownloadTask.findOne({
+        where: {
+          status: DownloadTaskStatus.WAITING,
+        },
+        order: [['updatedAt', 'DESC']],
+      });
+
+      if (task === null) break;
+      task.status = DownloadTaskStatus.PROCESSING;
+      await task.save();
       try {
-        const source = factory.getSource(order.source);
-        await download(source, order.sourceMangaId, order.targetMangaId, order.mode);
-        order.status = DownloadTaskStatus.COMPLETED;
-        order.save();
-        console.log('success');
+        await download(task);
       } catch (error) {
-        console.log(error);
-        order.status = DownloadTaskStatus.ERROR;
-        order.errorMessage = error.message;
-        order.save();
+        task.status = DownloadTaskStatus.ERROR;
+        task.errorMessage = error.message;
+        await task.save();
       }
     }
   }
 }
 
-const downloadJobQueue = new DownloadTaskQueue();
+const downloader = new Downloader();
 
-export default downloadJobQueue;
+export default downloader;

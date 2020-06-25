@@ -1,16 +1,10 @@
 import express from 'express';
 
-import { ApplicationError, errorWarp } from '../error.js';
-import { DownloadTask, DownloadTaskMode } from '../model/download_task.js';
-import downloadTaskQueue from '../provider/download.js';
+import error from '../error.js';
+import { DownloadTask, DownloadTaskMode, DownloadTaskStatus } from '../model/download_task.js';
+import downloader from '../provider/download.js';
 
 const router = express.Router();
-
-function parseBoolean(string) {
-  if (string === 'true') return true;
-  else if (string === 'false') return false;
-  else return null;
-}
 
 async function getDownloadTasks(req, res) {
   const orders = await DownloadTask.findAll();
@@ -18,49 +12,84 @@ async function getDownloadTasks(req, res) {
 }
 
 async function postDownloadTask(req, res) {
+  const source = req.body.source;
+  const sourceMangaId = req.body.sourceMangaId;
+  const targetMangaId = req.body.targetMangaId;
   const mode = Number.parseInt(req.body.mode);
-  if (!DownloadTaskMode.isLegal(mode)) throw new ApplicationError(400, 'Can not parse mode.');
 
-  const order = await DownloadTask.create({
-    source: req.body.source,
-    sourceMangaId: req.body.sourceMangaId,
-    targetMangaId: req.body.targetMangaId,
-    mode: mode,
+  if (
+    source === undefined ||
+    sourceMangaId === undefined ||
+    targetMangaId === undefined ||
+    !DownloadTaskMode.isLegal(mode)
+  )
+    throw new error.BadRequestError('Download task arguments are illegal.');
+
+  let task = await DownloadTask.findOne({
+    where: {
+      source,
+      sourceMangaId,
+      targetMangaId,
+      mode,
+    },
   });
-  downloadTaskQueue.add(order);
-  return res.status(200).json(order);
+  if (
+    task !== null &&
+    (task.status === DownloadTaskStatus.WAITING || task.status === DownloadTaskStatus.PROCESSING)
+  )
+    throw new error.ConflictError('Download task already exists.');
+
+  if (task === null) {
+    task = await DownloadTask.create({
+      source,
+      sourceMangaId,
+      targetMangaId,
+      mode,
+    });
+  } else {
+    task.status = DownloadTaskStatus.WAITING;
+    task.errorMessage = '';
+  }
+  await task.save();
+
+  downloader.start();
+  return res.json(task);
 }
 
 async function deleteDownloadTask(req, res) {
   const id = Number.parseInt(req.params.id);
-  if (!Number.isInteger(id)) throw new ApplicationError(400, 'Can not parse id.');
+  if (!Number.isInteger(id))
+    throw new error.BadRequestError('Download task arguments are illegal.');
 
-  const order = await DownloadTask.findByPk(id);
-  if (order === null) throw new ApplicationError(404, 'Task not found.');
+  const task = await DownloadTask.findByPk(id);
+  if (task === null) throw new error.NotFoundError('Task does not exist.');
 
-  await order.destroy();
-  return res.status(200).json(order);
+  await task.destroy();
+  return res.json(task);
 }
 
 async function patchDownloadTask(req, res) {
   const id = Number.parseInt(req.params.id);
-  if (!Number.isInteger(id)) throw new ApplicationError(400, 'Illegal id.');
+  const status = Number.parseInt(req.body.status);
+  if (
+    !Number.isInteger(id) ||
+    (status !== DownloadTaskStatus.WAITING && status !== DownloadTaskStatus.PAUSED)
+  )
+    throw new error.BadRequestError('Download task arguments are illegal.');
 
-  const active = parseBoolean(req.body.active);
-  if (active === null) throw new ApplicationError(400, 'Illegal isActive.');
+  const task = await DownloadTask.findByPk(id);
+  if (task === null) throw new error.NotFoundError('Task does not exist.');
 
-  const order = await DownloadTask.findByPk(id);
-  if (order === null) throw new ApplicationError(404, 'Task not found.');
+  task.status = status;
+  await task.save();
 
-  // TODO
-  return;
-
-  return res.sendStatus(200);
+  downloader.start();
+  return res.json(task);
 }
 
-router.get('/orders', errorWarp(getDownloadTasks));
-router.post('/order', errorWarp(postDownloadTask));
-router.delete('/order/:id', errorWarp(deleteDownloadTask));
-router.patch('/order/:id', errorWarp(patchDownloadTask));
+router.get('/orders', error.errorWarp(getDownloadTasks));
+router.post('/order', error.errorWarp(postDownloadTask));
+router.delete('/order/:id', error.errorWarp(deleteDownloadTask));
+router.patch('/order/:id', error.errorWarp(patchDownloadTask));
 
 export default router;
