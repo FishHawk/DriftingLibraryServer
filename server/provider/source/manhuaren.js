@@ -95,7 +95,7 @@ function parseMangaDetail(jsonManga) {
     id: jsonManga.mangaId.toString(),
     title: jsonManga.mangaName,
     thumb: thumb,
-    author: jsonManga.mangaAuthors,
+    author: jsonManga.mangaAuthor,
     status: parseStatus(jsonManga.mangaIsOver),
     update: jsonManga.mangaNewestTime,
 

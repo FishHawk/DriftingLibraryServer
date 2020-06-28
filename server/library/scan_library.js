@@ -4,6 +4,7 @@ import path from 'path';
 import config from '../config.js';
 import Filter from './filter.js';
 import { MangaOutline, Chapter } from '../data/manga.js';
+import Manga from '../model/manga.js';
 
 const libraryDir = config.libraryDir;
 
@@ -81,41 +82,58 @@ function getMangaSummary(id) {
   return metadata;
 }
 
-function scanLibrary() {
-  return getDir(libraryDir).map(getMangaSummary);
-}
-
-const mangaList = scanLibrary();
-
-// models
-function getMangaList(lastId, limit, filterString) {
-  if (mangaList.length == 0) return [];
-
-  let start = lastId ? mangaList.findIndex((x) => x.id > lastId) : 0;
-  if (start == -1) return [];
-
-  let result = [];
-  const filter = new Filter(filterString);
-
-  for (let i = start; i < mangaList.length; i++) {
-    const m = mangaList[i];
-    if (filter.check(m.title, m.tags)) {
-      result.push(mangaList[i]);
-      if (result.length >= limit) break;
+async function scanLibrary() {
+  const mangaIds = getDir(libraryDir);
+  for (const id of mangaIds) {
+    const manga = await Manga.Model.findOne({
+      where: {
+        id,
+      },
+    });
+    if (manga === null) {
+      const outline = getMangaSummary(id);
+      Manga.Model.create({
+        id: outline.id,
+        title: outline.title,
+        thumb: outline.thumb,
+        author: '',
+        status: Manga.Status.UNKNOWN,
+      });
     }
   }
-
-  return result.map((x) => {
-    return new MangaOutline({
-      id: x.id,
-      title: x.title,
-      thumb: x.thumb,
-    });
-  });
 }
 
+scanLibrary();
+
+// models
+// function getMangaList(lastId, limit, filterString) {
+//   if (mangaList.length == 0) return [];
+
+//   let start = lastId ? mangaList.findIndex((x) => x.id > lastId) : 0;
+//   if (start == -1) return [];
+
+//   let result = [];
+//   const filter = new Filter(filterString);
+
+//   for (let i = start; i < mangaList.length; i++) {
+//     const m = mangaList[i];
+//     if (filter.check(m.title, m.tags)) {
+//       result.push(mangaList[i]);
+//       if (result.length >= limit) break;
+//     }
+//   }
+
+//   return result.map((x) => {
+//     return new MangaOutline({
+//       id: x.id,
+//       title: x.title,
+//       thumb: x.thumb,
+//     });
+//   });
+// }
+
 function getMangaDetail(id) {
-  let detail = mangaList.find((x) => x.id === id);
+  let detail = getMangaSummary(id);
   if (!detail) return detail;
 
   const folderLevel1 = getDirNaturalOrder(`${libraryDir}/${id}`);
@@ -146,7 +164,6 @@ function getMangaDetail(id) {
     detail.collections = [{ title: '', chapters: [''] }];
   }
 
-  detail.author = []
   return detail;
 }
 
@@ -162,4 +179,4 @@ function getChapterContent(id, collectionTitle, chapterTitle) {
   });
 }
 
-export { getMangaList, getMangaDetail, getChapterContent };
+export { getMangaDetail, getChapterContent };

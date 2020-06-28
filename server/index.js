@@ -14,18 +14,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 sequelize
   .authenticate()
   .then(() => {
-    console.log('Connection has been established successfully.');
-    sequelize.sync();
+    console.log('Database connection has been established successfully.');
+    return sequelize.sync();
   })
-  .catch(() => {
-    console.error('Unable to connect to the database:', error);
+  .then(() => {
+    app.use('/', router);
+    app.use('/api', error.errorHandler);
+    app.listen(config.port, () => {
+      console.log(`Server：http://localhost:${config.port}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Error:', error);
   });
-
-app.use('/', router);
-
-app.use('/api', error.errorHandler);
-
-const port = config.port;
-app.listen(port, () => {
-  console.log(`Server：http://localhost:${port}`);
-});

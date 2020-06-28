@@ -5,6 +5,14 @@ import sources from '../provider/sources.js';
 
 const router = express.Router();
 
+router.get('/sources', error.errorWarp(getSources));
+router.get('/source/:source/search', error.errorWarp(search));
+router.get('/source/:source/popular', error.errorWarp(getPopular));
+router.get('/source/:source/latest', error.errorWarp(getLatest));
+router.get('/source/:source/manga/:id', error.errorWarp(getManga));
+router.get('/source/:source/chapter/:id', error.errorWarp(getChapter));
+router.get('/source/:source/image/:url', error.errorWarp(getImage));
+
 async function getSources(req, res) {
   return res.json(sources.getAllSource());
 }
@@ -66,13 +74,5 @@ async function getImage(req, res) {
   const url = req.params.url;
   await source.requestImage(url, res);
 }
-
-router.get('/sources', error.errorWarp(getSources));
-router.get('/source/:source/search', error.errorWarp(search));
-router.get('/source/:source/popular', error.errorWarp(getPopular));
-router.get('/source/:source/latest', error.errorWarp(getLatest));
-router.get('/source/:source/manga/:id', error.errorWarp(getManga));
-router.get('/source/:source/chapter/:id', error.errorWarp(getChapter));
-router.get('/source/:source/image/:url', error.errorWarp(getImage));
 
 export default router;
