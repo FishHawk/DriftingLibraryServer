@@ -52,7 +52,7 @@ async function download(subscription) {
     await downloadMetadata(mangaDir, detail, subscription);
     await downloadContent(mangaDir, detail, subscription);
 
-    if ((subscription.mode = Subscription.Mode.DISPOSABLE)) {
+    if ((subscription.mode == Subscription.Mode.DISPOSABLE)) {
       await Download.Model.destroy({ where: { targetManga: subscription.targetManga } });
       await subscription.destroy();
     } else {

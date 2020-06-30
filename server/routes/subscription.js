@@ -1,4 +1,5 @@
-import express, { json } from 'express';
+import { Sequelize } from 'sequelize';
+import express from 'express';
 
 import error from '../error.js';
 import Download from '../model/download.js';
@@ -6,16 +7,18 @@ import Subscription from '../model/subscription.js';
 import Manga from '../model/manga.js';
 import downloader from '../provider/downloader.js';
 
+const Op = Sequelize.Op;
 const router = express.Router();
 
 router.get('/subscriptions', error.errorWarp(getSubscription));
 router.post('/subscription', error.errorWarp(postSubscription));
 router.delete('/subscription/:id', error.errorWarp(deleteSubscription));
-router.patch('/subscription/:id', error.errorWarp(patchSubscription));
+router.patch('/subscription/:id/enable', error.errorWarp(enableSubscription));
+router.patch('/subscription/:id/disable', error.errorWarp(disableSubscription));
 
 async function getSubscription(req, res) {
   const subscriptions = await Subscription.Model.findAll({
-    where: { mode: { $not: Subscription.Mode.DISPOSABLE } },
+    where: { mode: { [Op.not]: Subscription.Mode.DISPOSABLE } },
   });
   return res.json(subscriptions);
 }
@@ -24,14 +27,8 @@ async function postSubscription(req, res) {
   const source = req.body.source;
   const sourceManga = req.body.sourceManga;
   const targetManga = req.body.targetManga;
-  const mode = Subscription.Mode.parse(req.body.mode);
 
-  if (
-    source === undefined ||
-    sourceManga === undefined ||
-    targetManga === undefined ||
-    mode === null
-  )
+  if (source === undefined || sourceManga === undefined || targetManga === undefined)
     throw new error.BadRequestError('Arguments are illegal.');
 
   const subscriptionInDb = await Subscription.Model.findOne({ where: { targetManga } });
@@ -44,7 +41,7 @@ async function postSubscription(req, res) {
     source,
     sourceManga,
     targetManga,
-    mode,
+    mode: Subscription.Mode.ENABLED,
   });
   downloader.start();
   return res.json(subscription);
@@ -63,24 +60,30 @@ async function deleteSubscription(req, res) {
   return res.json(subscription);
 }
 
-async function patchSubscription(req, res) {
+async function enableSubscription(req, res) {
   const id = Number.parseInt(req.params.id);
-  const mode = Subscription.Mode.parse(req.body.mode);
 
-  if (
-    !Number.isInteger(id) ||
-    (mode !== Subscription.Mode.ENABLED && mode !== Subscription.Mode.DISABLED)
-  )
-    throw new error.BadRequestError('Arguments are illegal.');
+  if (!Number.isInteger(id)) throw new error.BadRequestError('Arguments are illegal.');
 
   const subscription = await Subscription.Model.findByPk(id);
   if (subscription === null) throw new error.NotFoundError('Not found.');
 
-  subscription.mode = mode;
-  await subscription.save();
-
+  await subscription.update({ mode: Subscription.Mode.ENABLED });
   downloader.start();
-  return json(subscription);
+  return res.json(subscription);
+}
+
+async function disableSubscription(req, res) {
+  const id = Number.parseInt(req.params.id);
+
+  if (!Number.isInteger(id)) throw new error.BadRequestError('Arguments are illegal.');
+
+  const subscription = await Subscription.Model.findByPk(id);
+  if (subscription === null) throw new error.NotFoundError('Not found.');
+
+  await subscription.update({ mode: Subscription.Mode.DISABLED });
+  downloader.start();
+  return res.json(subscription);
 }
 
 export default router;
