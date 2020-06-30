@@ -10,13 +10,40 @@ import downloader from '../provider/downloader.js';
 const Op = Sequelize.Op;
 const router = express.Router();
 
-router.get('/subscriptions', error.errorWarp(getSubscription));
+router.get('/subscriptions', error.errorWarp(getAllSubscription));
+router.patch('/subscriptions/enable', error.errorWarp(enableAllSubscription));
+router.patch('/subscriptions/disable', error.errorWarp(disableAllSubscription));
+
 router.post('/subscription', error.errorWarp(postSubscription));
 router.delete('/subscription/:id', error.errorWarp(deleteSubscription));
 router.patch('/subscription/:id/enable', error.errorWarp(enableSubscription));
 router.patch('/subscription/:id/disable', error.errorWarp(disableSubscription));
 
-async function getSubscription(req, res) {
+async function getAllSubscription(req, res) {
+  const subscriptions = await Subscription.Model.findAll({
+    where: { mode: { [Op.not]: Subscription.Mode.DISPOSABLE } },
+  });
+  return res.json(subscriptions);
+}
+
+async function enableAllSubscription(req, res) {
+  await Subscription.Model.update(
+    { mode: Subscription.Mode.ENABLED },
+    { where: { mode: Subscription.Mode.DISABLED } }
+  );
+
+  const subscriptions = await Subscription.Model.findAll({
+    where: { mode: { [Op.not]: Subscription.Mode.DISPOSABLE } },
+  });
+  return res.json(subscriptions);
+}
+
+async function disableAllSubscription(req, res) {
+  await Subscription.Model.update(
+    { mode: Subscription.Mode.DISABLED },
+    { where: { mode: Subscription.Mode.ENABLED } }
+  );
+
   const subscriptions = await Subscription.Model.findAll({
     where: { mode: { [Op.not]: Subscription.Mode.DISPOSABLE } },
   });
