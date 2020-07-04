@@ -13,7 +13,7 @@ const MangaStatus = Object.freeze({
   },
 });
 
-const MangaModel = sequelize.define('manga', {
+const MangaModel = sequelize.define('Manga', {
   id: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -22,14 +22,17 @@ const MangaModel = sequelize.define('manga', {
   title: {
     type: DataTypes.STRING,
     allowNull: false,
+    defaultValue: '',
   },
   thumb: {
     type: DataTypes.STRING,
     allowNull: false,
+    defaultValue: '',
   },
   author: {
     type: DataTypes.STRING,
     allowNull: false,
+    defaultValue: '',
   },
   status: {
     type: DataTypes.STRING,

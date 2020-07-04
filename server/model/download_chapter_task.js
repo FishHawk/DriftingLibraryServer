@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 
 import sequelize from './db.js';
 
-const DownloadModel = sequelize.define('download_task', {
+const DownloadChapterTaskModel = sequelize.define('DownloadChapterTask', {
   source: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -23,11 +23,6 @@ const DownloadModel = sequelize.define('download_task', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  isCompleted: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  },
   pageTotal: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -38,10 +33,11 @@ const DownloadModel = sequelize.define('download_task', {
     allowNull: false,
     defaultValue: 0,
   },
-  errorMessage: {
-    type: DataTypes.STRING,
-    allowNull: true,
+  isCompleted: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
   },
 });
 
-export default { Model: DownloadModel };
+export default { Model: DownloadChapterTaskModel };

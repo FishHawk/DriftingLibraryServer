@@ -2,7 +2,8 @@ import { Sequelize } from 'sequelize';
 import express from 'express';
 
 import error from '../error.js';
-import Download from '../model/download.js';
+import DownloadTask from '../model/download_task.js';
+import DownloadChapterTask from '../model/download_chapter_task.js';
 import Subscription from '../model/subscription.js';
 import Manga from '../model/manga.js';
 import downloader from '../provider/downloader.js';
@@ -20,33 +21,19 @@ router.patch('/subscription/:id/enable', error.errorWarp(enableSubscription));
 router.patch('/subscription/:id/disable', error.errorWarp(disableSubscription));
 
 async function getAllSubscription(req, res) {
-  const subscriptions = await Subscription.Model.findAll({
-    where: { mode: { [Op.not]: Subscription.Mode.DISPOSABLE } },
-  });
+  const subscriptions = await Subscription.Model.findAll();
   return res.json(subscriptions);
 }
 
 async function enableAllSubscription(req, res) {
-  await Subscription.Model.update(
-    { mode: Subscription.Mode.ENABLED },
-    { where: { mode: Subscription.Mode.DISABLED } }
-  );
-
-  const subscriptions = await Subscription.Model.findAll({
-    where: { mode: { [Op.not]: Subscription.Mode.DISPOSABLE } },
-  });
+  await Subscription.Model.update({ isEnabled: true });
+  const subscriptions = await Subscription.Model.findAll();
   return res.json(subscriptions);
 }
 
 async function disableAllSubscription(req, res) {
-  await Subscription.Model.update(
-    { mode: Subscription.Mode.DISABLED },
-    { where: { mode: Subscription.Mode.ENABLED } }
-  );
-
-  const subscriptions = await Subscription.Model.findAll({
-    where: { mode: { [Op.not]: Subscription.Mode.DISPOSABLE } },
-  });
+  await Subscription.Model.update({ isEnabled: false });
+  const subscriptions = await Subscription.Model.findAll();
   return res.json(subscriptions);
 }
 
@@ -58,18 +45,24 @@ async function postSubscription(req, res) {
   if (source === undefined || sourceManga === undefined || targetManga === undefined)
     throw new error.BadRequestError('Arguments are illegal.');
 
-  const subscriptionInDb = await Subscription.Model.findOne({ where: { targetManga } });
-  if (subscriptionInDb !== null) throw new error.ConflictError('Already exists.');
-
-  const manga = await Manga.Model.findOne({ where: { id: targetManga } });
+  const manga = await Manga.Model.findByPk(targetManga);
   if (manga !== null) throw new error.ConflictError('Already exists.');
 
+  await Manga.Model.create({
+    id: targetManga,
+  });
+  await DownloadTask.Model.create({
+    source,
+    sourceManga,
+    targetManga,
+    isCreatedBySubscription: true,
+  });
   const subscription = await Subscription.Model.create({
     source,
     sourceManga,
     targetManga,
-    mode: Subscription.Mode.ENABLED,
   });
+
   downloader.start();
   return res.json(subscription);
 }
@@ -82,7 +75,8 @@ async function deleteSubscription(req, res) {
   const subscription = await Subscription.Model.findByPk(id);
   if (subscription === null) throw new error.NotFoundError('Not found.');
 
-  await Download.Model.destroy({ where: { targetManga: subscription.targetManga } });
+  await DownloadTask.Model.destroy({ where: { targetManga: subscription.targetManga } });
+  await DownloadChapterTask.Model.destroy({ where: { targetManga: subscription.targetManga } });
   await subscription.destroy();
   return res.json(subscription);
 }
@@ -95,8 +89,7 @@ async function enableSubscription(req, res) {
   const subscription = await Subscription.Model.findByPk(id);
   if (subscription === null) throw new error.NotFoundError('Not found.');
 
-  await subscription.update({ mode: Subscription.Mode.ENABLED });
-  downloader.start();
+  await subscription.update({ isEnabled: true });
   return res.json(subscription);
 }
 
@@ -108,8 +101,7 @@ async function disableSubscription(req, res) {
   const subscription = await Subscription.Model.findByPk(id);
   if (subscription === null) throw new error.NotFoundError('Not found.');
 
-  await subscription.update({ mode: Subscription.Mode.DISABLED });
-  downloader.start();
+  await subscription.update({ isEnabled: false });
   return res.json(subscription);
 }
 

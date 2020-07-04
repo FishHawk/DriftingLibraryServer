@@ -1,3 +1,12 @@
+class AsyncTaskCancelError extends Error {
+  constructor(message) {
+    super();
+    Error.captureStackTrace(this, this.constructor);
+    this.name = this.constructor.name;
+    this.message = message || 'Async task is cancelled.';
+  }
+}
+
 class ApplicationError extends Error {
   constructor(status, message) {
     super();
@@ -38,6 +47,7 @@ function errorHandler(err, req, res, next) {
 }
 
 export default {
+  AsyncTaskCancelError,
   ApplicationError,
   BadRequestError,
   NotFoundError,

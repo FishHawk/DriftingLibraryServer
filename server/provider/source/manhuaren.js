@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import moment from 'moment';
 
 import { Status, MangaOutline, MangaDetail, Collection, Chapter } from '../../data/manga.js';
+import { resolve } from 'path';
 
 const lang = 'zh';
 const name = '漫画人';
@@ -237,18 +238,18 @@ async function requestChapterContent(id) {
     });
 }
 
-async function requestImage(url, res) {
+async function requestImage(url, stream) {
   await instance({
     method: 'get',
     url: url,
     responseType: 'stream',
-  })
-    .then(function (response) {
-      response.data.pipe(res);
-    })
-    .catch(function (error) {
-      console.log(error);
+  }).then(function (response) {
+    return new Promise((resolve, reject) => {
+      stream.on('finish', resolve);
+      stream.on('error', reject);
+      response.data.pipe(stream);
     });
+  });
 }
 
 export default {

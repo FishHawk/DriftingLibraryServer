@@ -3,72 +3,79 @@ import fs from 'fs';
 import path from 'path';
 
 import config from '../config.js';
-import Download from '../model/download.js';
-import Subscription from '../model/subscription.js';
+import error from '../error.js';
+import DownloadTask from '../model/download_task.js';
+import DownloadChapterTask from '../model/download_chapter_task.js';
 import Manga from '../model/manga.js';
 import factory from './sources.js';
-import subscription from '../model/subscription.js';
 
 let isRunning = false;
-const emitter = new events.EventEmitter();
-const eventStart = 'start';
-
-emitter.on(eventStart, async () => {
-  if (isRunning) return;
-  isRunning = true;
-  await downloadLoop();
-  isRunning = false;
-});
+let isCancelled = false;
+let currentDownloadManga = null;
 
 function start() {
-  emitter.emit(eventStart);
+  if (isRunning) return;
+  isRunning = true;
+  downloadLoop();
+  isRunning = false;
+}
+
+function cancel() {
+  isCancelled = true;
+}
+
+function cancelIfMangaDownloading(manga) {
+  if (manga === currentDownloadManga) isCancelled = true;
+}
+
+function cancelIfNeed() {
+  if (isCancelled) throw error.AsyncTaskCancelError();
 }
 
 async function downloadLoop() {
   while (true) {
-    const subscription = await Subscription.Model.findOne({
-      where: { status: Subscription.Status.WAITING },
+    const task = await DownloadTask.Model.findOne({
+      where: { status: DownloadTask.Status.WAITING },
       order: [['updatedAt', 'DESC']],
     });
-
-    if (subscription === null) break;
-    subscription.status = Subscription.Status.DOWNLOADING;
-    await subscription.save();
-    await download(subscription);
+    if (task === null) break;
+    await downloadManga(task);
   }
 }
 
-async function download(subscription) {
-  const source = factory.getSource(subscription.source);
-  const sourceManga = subscription.sourceManga;
-  const targetManga = subscription.targetManga;
-
+async function downloadManga(task) {
   try {
-    const detail = await source.requestMangaDetail(sourceManga);
+    currentDownloadManga = task.targetManga;
+    await task.update({ status: DownloadTask.Status.DOWNLOADING });
+    cancelIfNeed();
 
-    const mangaDir = path.join(config.libraryDir, targetManga);
+    const mangaDir = path.join(config.libraryDir, task.targetManga);
     if (!fs.existsSync(mangaDir)) fs.mkdirSync(mangaDir);
 
-    await downloadMetadata(mangaDir, detail, subscription);
-    await downloadContent(mangaDir, detail, subscription);
+    const source = factory.getSource(task.source);
+    const detail = await source.requestMangaDetail(task.sourceManga);
+    cancelIfNeed();
 
-    if ((subscription.mode == Subscription.Mode.DISPOSABLE)) {
-      await Download.Model.destroy({ where: { targetManga: subscription.targetManga } });
-      await subscription.destroy();
-    } else {
-      await subscription.update({ status: Subscription.Status.COMPLETED });
+    await downloadMetadata(mangaDir, detail, task);
+    await downloadContent(mangaDir, detail, task);
+
+    if (!task.isCreatedBySubscription) {
+      await DownloadChapterTask.Model.destroy({ where: { targetManga: task.targetManga } });
     }
+    await task.destroy();
   } catch (error) {
     console.log(error);
-    await subscription.update({ status: Subscription.Status.ERROR });
+    if (error instanceof AsyncTaskCancelError) {
+    } else {
+      await task.update({ status: DownloadTask.Status.ERROR });
+    }
+  } finally {
+    isCancelled = false;
+    currentDownloadManga = null;
   }
 }
 
-async function downloadMetadata(mangaDir, detail, subscription) {
-  await subscription.reload();
-  const source = factory.getSource(subscription.source);
-  const targetManga = subscription.targetManga;
-
+async function downloadMetadata(mangaDir, detail, task) {
   const metadataPath = path.join(mangaDir, 'metadata.json');
   if (!fs.existsSync(metadataPath)) {
     const metadata = {
@@ -83,85 +90,83 @@ async function downloadMetadata(mangaDir, detail, subscription) {
 
   const thumbPath = path.join(mangaDir, 'thumb.jpg');
   if (!fs.existsSync(thumbPath)) {
+    const source = factory.getSource(task.source);
     const stream = fs.createWriteStream(thumbPath);
     await source.requestImage(detail.thumb, stream);
+    cancelIfNeed();
   }
 
-  const manga = await Manga.Model.findByPk(targetManga);
-  if (manga === null) {
-    const a = await Manga.Model.create({
-      id: targetManga,
+  await Manga.Model.update(
+    {
       title: detail.title,
       thumb: 'thumb.jpg',
       author: detail.author,
       status: detail.status,
-    });
-  }
+    },
+    { where: { id: task.targetManga } }
+  );
+  cancelIfNeed();
 }
 
-async function downloadContent(mangaDir, detail, subscription) {
-  await subscription.reload();
-  const targetManga = subscription.targetManga;
-
+async function downloadContent(mangaDir, detail, task) {
   for (const collection of detail.collections) {
     const collectionDir = path.join(mangaDir, collection.title);
     if (!fs.existsSync(collectionDir)) fs.mkdirSync(collectionDir);
 
     for (const chapter of collection.chapters) {
-      let download = await Download.Model.findOne({
+      const [chapterTask, created] = await DownloadChapterTask.Model.findOrCreate({
         where: {
-          targetManga: targetManga,
+          source: task.source,
+          sourceChapter: chapter.id,
+          targetManga: task.targetManga,
           targetCollection: collection.title,
           targetChapter: chapter.name,
         },
       });
-      if (download === null) {
-        download = await Download.Model.create({
-          source: subscription.source,
-          sourceChapter: chapter.id,
-          targetManga: targetManga,
-          targetCollection: collection.title,
-          targetChapter: chapter.name,
-        });
-      }
-      if (!download.isCompleted) {
-        await downloadChapter(subscription, download);
-        await subscription.reload();
-        if (subscription.status !== Subscription.Status.DOWNLOADING) return;
+      cancelIfNeed();
+      if (!chapterTask.isCompleted) {
+        await downloadChapter(chapterTask);
       }
     }
   }
 }
 
-async function downloadChapter(subscription, download) {
-  const source = factory.getSource(download.source);
-  const sourceChapter = download.sourceChapter;
-  const targetManga = download.targetManga;
-  const targetCollection = download.targetCollection;
-  const targetChapter = download.targetChapter;
+async function downloadChapter(chapterTask) {
+  const source = factory.getSource(chapterTask.source);
+  const imageUrls = await source.requestChapterContent(chapterTask.sourceChapter);
+  cancelIfNeed();
+  await chapterTask.update({ pageTotal: imageUrls.length });
 
-  const imageUrls = await source.requestChapterContent(sourceChapter);
-
-  await subscription.reload();
-  if (subscription.status !== Subscription.Status.DOWNLOADING) return;
-  await download.update({ pageTotal: imageUrls.length });
-
-  const chapterDir = path.join(config.libraryDir, targetManga, targetCollection, targetChapter);
+  const chapterDir = path.join(
+    config.libraryDir,
+    chapterTask.targetManga,
+    chapterTask.targetCollection,
+    chapterTask.targetChapter
+  );
   if (!fs.existsSync(chapterDir)) fs.mkdirSync(chapterDir);
 
+  let isChapterError = false;
   for (const [i, url] of imageUrls.entries()) {
     const imagePath = path.join(chapterDir, `${i}.jpg`);
     if (!fs.existsSync(imagePath)) {
+      let isImageError = false;
       const stream = fs.createWriteStream(imagePath);
-      await source.requestImage(url, stream);
-
-      await subscription.reload();
-      if (subscription.status !== Subscription.Status.DOWNLOADING) return;
-      await download.update({ pageDownloaded: i + 1 });
+      source.requestImage(url, stream);
+      try {
+        downloadImage(stream, url);
+      } catch (error) {
+        isImageError = true;
+      }
+      cancelIfNeed();
+      if (isImageError) {
+        isChapterError = true;
+      } else {
+        await chapterTask.update({ pageDownloaded: i + 1 });
+      }
     }
   }
 
-  await download.update({ isCompleted: true });
+  if (!isChapterError) await chapterTask.update({ isCompleted: true });
 }
 
-export default { start };
+export default { start, cancel, cancelIfMangaDownloading };
