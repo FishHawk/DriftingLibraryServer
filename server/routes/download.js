@@ -93,7 +93,7 @@ async function deleteDownloadTask(req, res) {
   }
   await task.destroy();
   downloader.cancelIfMangaDownloading(task.targetManga);
-  return res.json(subscription);
+  return res.json(task);
 }
 
 async function startDownloadTask(req, res) {

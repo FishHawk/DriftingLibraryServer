@@ -29,7 +29,7 @@ function cancelIfMangaDownloading(manga) {
 }
 
 function cancelIfNeed() {
-  if (isCancelled) throw error.AsyncTaskCancelError();
+  if (isCancelled) throw new error.AsyncTaskCancelError();
 }
 
 async function downloadLoop() {
@@ -63,9 +63,9 @@ async function downloadManga(task) {
       await DownloadChapterTask.Model.destroy({ where: { targetManga: task.targetManga } });
     }
     await task.destroy();
-  } catch (error) {
-    console.log(error);
-    if (error instanceof AsyncTaskCancelError) {
+  } catch (e) {
+    if (e instanceof error.AsyncTaskCancelError) {
+      console.log('download task canceled')
     } else {
       await task.update({ status: DownloadTask.Status.ERROR });
     }
