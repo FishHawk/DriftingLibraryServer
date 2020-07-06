@@ -132,6 +132,7 @@ function parseMangaMetadata(id) {
   const filepath = path.join(libraryDir, id, 'metadata.json');
   const metadata = fs.existsSync(filepath) ? JSON.parse(fs.readFileSync(filepath, 'utf8')) : {};
   if (metadata.title === undefined) metadata.title = id;
+  if (metadata.author === undefined) metadata.author = '';
   return metadata;
 }
 
