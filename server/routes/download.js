@@ -2,6 +2,7 @@ import { Sequelize } from 'sequelize';
 import express from 'express';
 
 import { errorWarp, ConflictError, BadRequestError, NotFoundError } from '../error.js';
+import { isMangaExist, createManga } from '../library/library.js';
 import {
   startDownloader,
   cancelCurrentDownload,
@@ -68,12 +69,9 @@ async function postDownloadTask(req, res) {
   if (source === undefined || sourceManga === undefined || targetManga === undefined)
     throw new BadRequestError('Arguments are illegal.');
 
-  const manga = await Manga.Model.findOne({ where: { id: targetManga } });
-  if (manga !== null) throw new ConflictError('Already exists.');
+  if (isMangaExist(targetManga)) throw new ConflictError('Already exists.');
+  createManga(targetManga);
 
-  await Manga.Model.create({
-    id: targetManga,
-  });
   const task = await DownloadTask.Model.create({
     source,
     sourceManga,

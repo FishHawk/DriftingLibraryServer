@@ -45,8 +45,8 @@ async function postSubscription(req, res) {
     throw new BadRequestError('Arguments are illegal.');
 
   if (isMangaExist(targetManga)) throw new ConflictError('Already exists.');
-
   createManga(targetManga);
+
   await DownloadTask.Model.create({
     source,
     sourceManga,
