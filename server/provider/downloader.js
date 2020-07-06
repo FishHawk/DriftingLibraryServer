@@ -138,10 +138,9 @@ async function downloadChapter(chapterTask) {
     const imagePath = path.join(chapterDir, `${i}.jpg`);
     if (!fs.existsSync(imagePath)) {
       let isImageError = false;
-      const stream = fs.createWriteStream(imagePath);
-      source.requestImage(url, stream);
       try {
-        downloadImage(stream, url);
+        const stream = fs.createWriteStream(imagePath);
+        await source.requestImage(url, stream);
       } catch (error) {
         isImageError = true;
       }

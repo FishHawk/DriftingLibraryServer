@@ -140,8 +140,8 @@ const instance = axios.create({
   },
 });
 
-async function search(page, keywords) {
-  return await instance
+function search(page, keywords) {
+  return instance
     .get('/v1/search/getSearchManga', {
       params: addExtraParam({
         keywords,
@@ -155,11 +155,11 @@ async function search(page, keywords) {
       } else {
         return parseMangaList(response.data.mangas);
       }
-    })
+    });
 }
 
-async function requestPopular(page) {
-  return await instance
+function requestPopular(page) {
+  return instance
     .get('/v2/manga/getCategoryMangas', {
       params: addExtraParam({
         subCategoryType: '0',
@@ -169,13 +169,11 @@ async function requestPopular(page) {
         sort: '0',
       }),
     })
-    .then(function (response) {
-      return parseMangaList(response.data.response.mangas);
-    })
+    .then((response) => parseMangaList(response.data.response.mangas));
 }
 
-async function requestLatest(page) {
-  return await instance
+function requestLatest(page) {
+  return instance
     .get('/v2/manga/getCategoryMangas', {
       params: addExtraParam({
         subCategoryType: '0',
@@ -185,25 +183,21 @@ async function requestLatest(page) {
         sort: '1',
       }),
     })
-    .then(function (response) {
-      return parseMangaList(response.data.response.mangas);
-    })
+    .then((response) => parseMangaList(response.data.response.mangas));
 }
 
-async function requestMangaDetail(id) {
-  return await instance
+function requestMangaDetail(id) {
+  return instance
     .get('/v1/manga/getDetail', {
       params: addExtraParam({
         mangaId: id,
       }),
     })
-    .then(function (response) {
-      return parseMangaDetail(response.data.response);
-    })
+    .then((response) => parseMangaDetail(response.data.response));
 }
 
-async function requestChapterContent(id) {
-  return await instance
+function requestChapterContent(id) {
+  return instance
     .get('/v1/manga/getRead', {
       params: addExtraParam({
         mangaSectionId: id,
@@ -212,23 +206,22 @@ async function requestChapterContent(id) {
         imageQuality: 2,
       }),
     })
-    .then(function (response) {
-      return parseChapterContent(response.data.response);
-    })
+    .then((response) => parseChapterContent(response.data.response));
 }
 
-async function requestImage(url, stream) {
-  await instance({
+function requestImage(url, stream) {
+  return instance({
     method: 'get',
-    url: url,
+    url: encodeURI(url),
     responseType: 'stream',
-  }).then(function (response) {
-    return new Promise((resolve, reject) => {
-      stream.on('finish', resolve);
-      stream.on('error', reject);
-      response.data.pipe(stream);
-    });
-  });
+  }).then(
+    (response) =>
+      new Promise((resolve, reject) => {
+        stream.on('finish', resolve);
+        stream.on('error', reject);
+        response.data.pipe(stream);
+      })
+  );
 }
 
 export default {
