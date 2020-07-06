@@ -13,6 +13,7 @@ const SubscriptionModel = sequelize.define('Subscription', {
   targetManga: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   isEnabled: {
     type: DataTypes.BOOLEAN,

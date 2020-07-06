@@ -6,6 +6,8 @@ import { errorHandler } from './error.js';
 import { sequelize } from './model/db.js';
 import router from './routes/index.js';
 
+import './provider/subscriber.js';
+
 const app = express();
 
 app.use(bodyParser.json());
