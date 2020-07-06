@@ -33,7 +33,7 @@ async function getManga(req, res) {
   const detail = parseMangaDetail(id);
   if (detail === null) throw new NotFoundError('Manga not found.');
 
-  return res.json(mangaDetail);
+  return res.json(detail);
 }
 
 async function getChapter(req, res) {
