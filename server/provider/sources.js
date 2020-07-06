@@ -7,15 +7,10 @@ function registerSource(source) {
 }
 registerSource(manhuaren);
 
-function getAllSource() {
+export function getAllSource() {
   return Object.values(sourceRegistry);
 }
 
-function getSource(name) {
+export function getSource(name) {
   return name in sourceRegistry ? sourceRegistry[name] : undefined;
 }
-
-export default {
-  getAllSource,
-  getSource,
-};

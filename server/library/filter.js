@@ -53,7 +53,7 @@ class MatchPattern {
   }
 }
 
-class Filter {
+export class Filter {
   patterns = [];
 
   constructor(filterString) {
@@ -69,5 +69,3 @@ class Filter {
     return true;
   }
 }
-
-export default Filter;

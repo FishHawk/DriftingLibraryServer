@@ -1,6 +1,5 @@
 import { DataTypes } from 'sequelize';
-
-import sequelize from './db.js';
+import { sequelize } from './db.js';
 
 const DownloadChapterTaskModel = sequelize.define('DownloadChapterTask', {
   source: {

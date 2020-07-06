@@ -1,25 +1,26 @@
 import express from 'express';
 
-import error from '../error.js';
-import sources from '../provider/sources.js';
+import { errorWarp, BadRequestError } from '../error.js';
+import { getSource, getAllSource } from '../provider/sources.js';
 
 const router = express.Router();
 
-router.get('/sources', error.errorWarp(getSources));
-router.get('/source/:source/search', error.errorWarp(search));
-router.get('/source/:source/popular', error.errorWarp(getPopular));
-router.get('/source/:source/latest', error.errorWarp(getLatest));
-router.get('/source/:source/manga/:id', error.errorWarp(getManga));
-router.get('/source/:source/chapter/:id', error.errorWarp(getChapter));
-router.get('/source/:source/image/:url', error.errorWarp(getImage));
+router.get('/sources', errorWarp(getSources));
+router.get('/source/:source/search', errorWarp(search));
+router.get('/source/:source/popular', errorWarp(getPopular));
+router.get('/source/:source/latest', errorWarp(getLatest));
+
+router.get('/source/:source/manga/:id', errorWarp(getManga));
+router.get('/source/:source/chapter/:id', errorWarp(getChapter));
+router.get('/source/:source/image/:url', errorWarp(getImage));
 
 async function getSources(req, res) {
-  return res.json(sources.getAllSource());
+  return res.json(getAllSource());
 }
 
 async function search(req, res) {
-  const source = sources.getSource(req.params.source);
-  if (source == undefined) throw new error.ApplicationError(500, 'Source not support.');
+  const source = getSource(req.params.source);
+  if (source === undefined) throw new BadRequestError('Source not support.');
 
   const keywords = req.query.keywords ? req.query.keywords : '';
   const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
@@ -28,8 +29,8 @@ async function search(req, res) {
 }
 
 async function getPopular(req, res) {
-  const source = sources.getSource(req.params.source);
-  if (source == undefined) throw new error.ApplicationError(500, 'Source not support.');
+  const source = getSource(req.params.source);
+  if (source === undefined) throw new BadRequestError('Source not support.');
 
   const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
   const mangaList = await source.requestPopular(page);
@@ -37,8 +38,8 @@ async function getPopular(req, res) {
 }
 
 async function getLatest(req, res) {
-  const source = sources.getSource(req.params.source);
-  if (source == undefined) throw new error.ApplicationError(500, 'Source not support.');
+  const source = getSource(req.params.source);
+  if (source === undefined) throw new BadRequestError('Source not support.');
 
   const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
   const mangaList = await source.requestLatest(page);
@@ -46,8 +47,8 @@ async function getLatest(req, res) {
 }
 
 async function getManga(req, res) {
-  const source = sources.getSource(req.params.source);
-  if (source == undefined) throw new error.ApplicationError(500, 'Source not support.');
+  const source = getSource(req.params.source);
+  if (source === undefined) throw new BadRequestError('Source not support.');
 
   const id = req.params.id;
   const detail = await source.requestMangaDetail(id);
@@ -56,8 +57,8 @@ async function getManga(req, res) {
 
 async function getChapter(req, res) {
   const sourceName = req.params.source;
-  const source = sources.getSource(sourceName);
-  if (source == undefined) throw new error.ApplicationError(500, 'Source not support.');
+  const source = getSource(sourceName);
+  if (source === undefined) throw new BadRequestError('Source not support.');
 
   const id = req.params.id;
   const imageUrls = await source.requestChapterContent(id);
@@ -68,8 +69,8 @@ async function getChapter(req, res) {
 }
 
 async function getImage(req, res) {
-  const source = sources.getSource(req.params.source);
-  if (source == undefined) throw new error.ApplicationError(500, 'Source not support.');
+  const source = getSource(req.params.source);
+  if (source === undefined) throw new BadRequestError('Source not support.');
 
   const url = req.params.url;
   await source.requestImage(url, res);

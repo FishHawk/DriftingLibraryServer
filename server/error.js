@@ -1,4 +1,4 @@
-class AsyncTaskCancelError extends Error {
+export class AsyncTaskCancelError extends Error {
   constructor(message) {
     super();
     Error.captureStackTrace(this, this.constructor);
@@ -7,7 +7,7 @@ class AsyncTaskCancelError extends Error {
   }
 }
 
-class ApplicationError extends Error {
+export class ApplicationError extends Error {
   constructor(status, message) {
     super();
     Error.captureStackTrace(this, this.constructor);
@@ -17,31 +17,37 @@ class ApplicationError extends Error {
   }
 }
 
-class BadRequestError extends ApplicationError {
+export class BadRequestError extends ApplicationError {
   constructor(message) {
     super(400, message);
   }
 }
 
-class NotFoundError extends ApplicationError {
+export class NotFoundError extends ApplicationError {
   constructor(message) {
     super(404, message);
   }
 }
 
-class ConflictError extends ApplicationError {
+export class ConflictError extends ApplicationError {
   constructor(message) {
     super(409, message);
   }
 }
 
-function errorWarp(callback) {
+export class InternalServerError extends ApplicationError {
+  constructor(message) {
+    super(500, message);
+  }
+}
+
+export function errorWarp(callback) {
   return function (req, res, next) {
     callback(req, res, next).catch(next);
   };
 }
 
-function errorHandler(err, req, res, next) {
+export function errorHandler(err, req, res, next) {
   if (err instanceof ApplicationError) res.status(err.status).send(err.message);
   else res.status(500).send(err);
 }

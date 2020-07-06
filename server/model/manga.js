@@ -1,44 +1,67 @@
-import { DataTypes } from 'sequelize';
-
-import sequelize from './db.js';
-
-const MangaStatus = Object.freeze({
-  COMPLETED: 'completed',
-  ONGOING: 'ongoing',
-  UNKNOWN: 'unknown',
-
-  parse(x) {
-    if (x === this.COMPLETED || x === this.ONGOING || x === this.UNKNOWN) return x;
-    else return null;
-  },
+const Status = Object.freeze({
+  COMPLETED: 0,
+  ONGOING: 1,
+  UNKNOWN: 2,
 });
 
-const MangaModel = sequelize.define('Manga', {
-  id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    primaryKey: true,
-  },
-  title: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: '',
-  },
-  thumb: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: '',
-  },
-  author: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: '',
-  },
-  status: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: MangaStatus.UNKNOWN,
-  },
-});
+class Chapter {
+  id;
+  name;
+  title;
 
-export default { Model: MangaModel, Status: MangaStatus };
+  constructor(chapter) {
+    Object.assign(this, chapter);
+  }
+}
+
+class Tag {
+  key;
+  value = [];
+
+  constructor(tag) {
+    Object.assign(this, tag);
+  }
+}
+
+class Collection {
+  title;
+  chapters;
+
+  constructor(collection) {
+    Object.assign(this, collection);
+  }
+}
+
+class MangaOutline {
+  id;
+  title;
+  thumb;
+  author;
+  status;
+  update;
+
+  constructor(outline) {
+    Object.assign(this, outline);
+  }
+}
+
+class MangaDetail {
+  source;
+  id;
+  title;
+  thumb;
+  author;
+  status;
+  update;
+
+  description;
+
+  tags = [];
+  collections = [];
+
+  constructor(outline) {
+    Object.assign(this, outline);
+  }
+}
+
+export { Status, MangaOutline, MangaDetail, Tag, Collection, Chapter };

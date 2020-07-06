@@ -1,9 +1,9 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import config from './config.js';
-import error from './error.js';
-import sequelize from './model/db.js';
+import { port } from './config.js';
+import { errorHandler } from './error.js';
+import { sequelize } from './model/db.js';
 import router from './routes/index.js';
 
 const app = express();
@@ -19,9 +19,9 @@ sequelize
   })
   .then(() => {
     app.use('/', router);
-    app.use('/api', error.errorHandler);
-    app.listen(config.port, () => {
-      console.log(`Server：http://localhost:${config.port}`);
+    app.use('/api', errorHandler);
+    app.listen(port, () => {
+      console.log(`Server：http://localhost:${port}`);
     });
   })
   .catch((error) => {

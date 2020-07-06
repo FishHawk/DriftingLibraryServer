@@ -1,31 +1,30 @@
-import events from 'events';
 import fs from 'fs';
 import path from 'path';
 
-import config from '../config.js';
-import error from '../error.js';
+import { libraryDir } from '../config.js';
+import { AsyncTaskCancelError } from '../error.js';
+import { getSource } from './sources.js';
+
 import DownloadTask from '../model/download_task.js';
 import DownloadChapterTask from '../model/download_chapter_task.js';
-import Manga from '../model/manga.js';
-import factory from './sources.js';
 
 let isRunning = false;
 let isCancelled = false;
 let currentDownloadManga = null;
 
-function start() {
+function startDownloader() {
   if (isRunning) return;
   isRunning = true;
   downloadLoop();
   isRunning = false;
 }
 
-function cancel() {
+function cancelCurrentDownload() {
   isCancelled = true;
 }
 
-function cancelIfMangaDownloading(manga) {
-  if (manga === currentDownloadManga) isCancelled = true;
+function isMangaDownloading(manga) {
+  return manga === currentDownloadManga;
 }
 
 function cancelIfNeed() {
@@ -49,10 +48,10 @@ async function downloadManga(task) {
     await task.update({ status: DownloadTask.Status.DOWNLOADING });
     cancelIfNeed();
 
-    const mangaDir = path.join(config.libraryDir, task.targetManga);
+    const mangaDir = path.join(libraryDir, task.targetManga);
     if (!fs.existsSync(mangaDir)) fs.mkdirSync(mangaDir);
 
-    const source = factory.getSource(task.source);
+    const source = getSource(task.source);
     const detail = await source.requestMangaDetail(task.sourceManga);
     cancelIfNeed();
 
@@ -64,8 +63,8 @@ async function downloadManga(task) {
     }
     await task.destroy();
   } catch (e) {
-    if (e instanceof error.AsyncTaskCancelError) {
-      console.log('download task canceled')
+    if (e instanceof AsyncTaskCancelError) {
+      console.log('download task canceled');
     } else {
       await task.update({ status: DownloadTask.Status.ERROR });
     }
@@ -90,22 +89,11 @@ async function downloadMetadata(mangaDir, detail, task) {
 
   const thumbPath = path.join(mangaDir, 'thumb.jpg');
   if (!fs.existsSync(thumbPath)) {
-    const source = factory.getSource(task.source);
+    const source = getSource(task.source);
     const stream = fs.createWriteStream(thumbPath);
     await source.requestImage(detail.thumb, stream);
     cancelIfNeed();
   }
-
-  await Manga.Model.update(
-    {
-      title: detail.title,
-      thumb: 'thumb.jpg',
-      author: detail.author,
-      status: detail.status,
-    },
-    { where: { id: task.targetManga } }
-  );
-  cancelIfNeed();
 }
 
 async function downloadContent(mangaDir, detail, task) {
@@ -132,13 +120,13 @@ async function downloadContent(mangaDir, detail, task) {
 }
 
 async function downloadChapter(chapterTask) {
-  const source = factory.getSource(chapterTask.source);
+  const source = getSource(chapterTask.source);
   const imageUrls = await source.requestChapterContent(chapterTask.sourceChapter);
   cancelIfNeed();
   await chapterTask.update({ pageTotal: imageUrls.length });
 
   const chapterDir = path.join(
-    config.libraryDir,
+    libraryDir,
     chapterTask.targetManga,
     chapterTask.targetCollection,
     chapterTask.targetChapter
@@ -169,4 +157,4 @@ async function downloadChapter(chapterTask) {
   if (!isChapterError) await chapterTask.update({ isCompleted: true });
 }
 
-export default { start, cancel, cancelIfMangaDownloading };
+export { startDownloader, cancelCurrentDownload, isMangaDownloading };

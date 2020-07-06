@@ -2,8 +2,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { Status, MangaOutline, MangaDetail, Collection, Chapter } from '../../data/manga.js';
-import { resolve } from 'path';
+import { Status, MangaOutline, MangaDetail, Collection, Chapter } from '../../model/manga.js';
 
 const lang = 'zh';
 const name = '漫画人';
@@ -157,10 +156,6 @@ async function search(page, keywords) {
         return parseMangaList(response.data.mangas);
       }
     })
-    .catch(function (error) {
-      console.log(error);
-      return undefined;
-    });
 }
 
 async function requestPopular(page) {
@@ -177,10 +172,6 @@ async function requestPopular(page) {
     .then(function (response) {
       return parseMangaList(response.data.response.mangas);
     })
-    .catch(function (error) {
-      console.log(error);
-      return undefined;
-    });
 }
 
 async function requestLatest(page) {
@@ -197,10 +188,6 @@ async function requestLatest(page) {
     .then(function (response) {
       return parseMangaList(response.data.response.mangas);
     })
-    .catch(function (error) {
-      console.log(error);
-      return undefined;
-    });
 }
 
 async function requestMangaDetail(id) {
@@ -213,10 +200,6 @@ async function requestMangaDetail(id) {
     .then(function (response) {
       return parseMangaDetail(response.data.response);
     })
-    .catch(function (error) {
-      console.log(error);
-      return undefined;
-    });
 }
 
 async function requestChapterContent(id) {
@@ -232,10 +215,6 @@ async function requestChapterContent(id) {
     .then(function (response) {
       return parseChapterContent(response.data.response);
     })
-    .catch(function (error) {
-      console.log(error);
-      return undefined;
-    });
 }
 
 async function requestImage(url, stream) {
