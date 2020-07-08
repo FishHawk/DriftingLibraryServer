@@ -4,6 +4,7 @@ import path from 'path';
 import { libraryDir } from '../config.js';
 import { MangaOutline, Chapter, MangaDetail } from '../model/manga.js';
 import { Filter } from './filter.js';
+import { validateFilename } from './validate_filename.js';
 
 export { libraryDir };
 
@@ -59,6 +60,15 @@ function createManga(id) {
 function isMangaExist(id) {
   const mangaDir = path.join(libraryDir, id);
   return fs.existsSync(mangaDir);
+}
+
+function isMangaIdValid(id) {
+  return validateFilename(id);
+}
+
+function removeManga(id) {
+  const mangaDir = path.join(libraryDir, id);
+  fs.rmdirSync(mangaDir, { recursive: true });
 }
 
 function searchLibrary(lastId, limit, keywords) {
@@ -118,7 +128,9 @@ function parseChapterContent(id, collectionTitle, chapterTitle) {
 function parseMangaMetadataForSearch(id) {
   const filepath = path.join(libraryDir, id, 'metadata.json');
 
-  const metadata = fs.existsSync(filepath) ? JSON.parse(fs.readFileSync(filepath, 'utf8')) : {};
+  const metadata = fs.existsSync(filepath)
+    ? JSON.parse(fs.readFileSync(filepath, 'utf8'))
+    : {};
   if (metadata.title === undefined) metadata.title = id;
   if (metadata.tags === undefined) metadata.tags = [];
 
@@ -130,7 +142,9 @@ function parseMangaMetadataForSearch(id) {
 
 function parseMangaMetadata(id) {
   const filepath = path.join(libraryDir, id, 'metadata.json');
-  const metadata = fs.existsSync(filepath) ? JSON.parse(fs.readFileSync(filepath, 'utf8')) : {};
+  const metadata = fs.existsSync(filepath)
+    ? JSON.parse(fs.readFileSync(filepath, 'utf8'))
+    : {};
   if (metadata.title === undefined) metadata.title = id;
   if (metadata.author === undefined) metadata.author = '';
   return metadata;
@@ -166,7 +180,9 @@ function parseMangaContent(id) {
       }
       return collections;
     } else {
-      const chapters = folderLevel1.map((x) => new Chapter({ id: x, name: x, title: x }));
+      const chapters = folderLevel1.map(
+        (x) => new Chapter({ id: x, name: x, title: x })
+      );
       return [{ title: '', chapters }];
     }
   } else {
@@ -175,4 +191,12 @@ function parseMangaContent(id) {
   }
 }
 
-export { isMangaExist, createManga, searchLibrary, parseMangaDetail, parseChapterContent };
+export {
+  isMangaExist,
+  isMangaIdValid,
+  createManga,
+  removeManga,
+  searchLibrary,
+  parseMangaDetail,
+  parseChapterContent,
+};

@@ -1,8 +1,17 @@
 import express from 'express';
 
-import { errorWarp, ConflictError, BadRequestError, NotFoundError } from '../error.js';
+import {
+  errorWarp,
+  ConflictError,
+  BadRequestError,
+  NotFoundError,
+} from '../error.js';
 import { isMangaExist, createManga } from '../library/library.js';
-import { startDownloader, cancelCurrentDownload, isMangaDownloading } from '../provider/downloader.js';
+import {
+  startDownloader,
+  cancelCurrentDownload,
+  isMangaDownloading,
+} from '../provider/downloader.js';
 
 import DownloadTask from '../model/download_task.js';
 import DownloadChapterTask from '../model/download_chapter_task.js';
@@ -41,7 +50,11 @@ async function postSubscription(req, res) {
   const sourceManga = req.body.sourceManga;
   const targetManga = req.body.targetManga;
 
-  if (source === undefined || sourceManga === undefined || targetManga === undefined)
+  if (
+    source === undefined ||
+    sourceManga === undefined ||
+    !isMangaIdValid(targetManga)
+  )
     throw new BadRequestError('Arguments are illegal.');
 
   if (isMangaExist(targetManga)) throw new ConflictError('Already exists.');
@@ -66,22 +79,28 @@ async function postSubscription(req, res) {
 async function deleteSubscription(req, res) {
   const id = Number.parseInt(req.params.id);
 
-  if (!Number.isInteger(id)) throw new BadRequestError('Arguments are illegal.');
+  if (!Number.isInteger(id))
+    throw new BadRequestError('Arguments are illegal.');
 
   const subscription = await Subscription.Model.findByPk(id);
   if (subscription === null) throw new NotFoundError('Not found.');
 
-  await DownloadTask.Model.destroy({ where: { targetManga: subscription.targetManga } });
-  await DownloadChapterTask.Model.destroy({ where: { targetManga: subscription.targetManga } });
+  await DownloadTask.Model.destroy({
+    where: { targetManga: subscription.targetManga },
+  });
+  await DownloadChapterTask.Model.destroy({
+    where: { targetManga: subscription.targetManga },
+  });
   await subscription.destroy();
-  if (isMangaDownloading(id)) cancelCurrentDownload()
+  if (isMangaDownloading(id)) cancelCurrentDownload();
   return res.json(subscription);
 }
 
 async function enableSubscription(req, res) {
   const id = Number.parseInt(req.params.id);
 
-  if (!Number.isInteger(id)) throw new BadRequestError('Arguments are illegal.');
+  if (!Number.isInteger(id))
+    throw new BadRequestError('Arguments are illegal.');
 
   const subscription = await Subscription.Model.findByPk(id);
   if (subscription === null) throw new NotFoundError('Not found.');
@@ -93,7 +112,8 @@ async function enableSubscription(req, res) {
 async function disableSubscription(req, res) {
   const id = Number.parseInt(req.params.id);
 
-  if (!Number.isInteger(id)) throw new BadRequestError('Arguments are illegal.');
+  if (!Number.isInteger(id))
+    throw new BadRequestError('Arguments are illegal.');
 
   const subscription = await Subscription.Model.findByPk(id);
   if (subscription === null) throw new NotFoundError('Not found.');

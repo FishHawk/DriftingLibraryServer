@@ -6,12 +6,22 @@ import {
   searchLibrary,
   parseMangaDetail,
   parseChapterContent,
+  isMangaExist,
+  isMangaIdValid,
+  removeManga,
 } from '../library/library.js';
+
+import DownloadTask from '../model/download_task.js';
+import DownloadChapterTask from '../model/download_chapter_task.js';
+import Subscription from '../model/subscription.js';
 
 const router = express.Router();
 
 router.get('/library/search', errorWarp(search));
+
 router.get('/library/manga/:id', errorWarp(getManga));
+router.delete('/library/manga/:id', errorWarp(deleteManga));
+
 router.get('/library/chapter/:id', errorWarp(getChapter));
 router.use('/library/image', function (req, res, next) {
   express.static(libraryDir)(req, res, next);
@@ -30,10 +40,28 @@ async function search(req, res) {
 async function getManga(req, res) {
   const id = req.params.id;
 
+  if (!isMangaIdValid(id))
+    throw new BadRequestError('Arguments are illegal.');
+
   const detail = parseMangaDetail(id);
   if (detail === null) throw new NotFoundError('Manga not found.');
 
   return res.json(detail);
+}
+
+async function deleteManga(req, res) {
+  const id = req.params.id;
+
+  if (!isMangaIdValid(id))
+    throw new BadRequestError('Arguments are illegal.');
+
+  if (!isMangaExist(id)) throw new NotFoundError('Manga not found.');
+
+  removeManga(id);
+  await DownloadChapterTask.Model.destroy({ where: { targetManga: id } });
+  await DownloadTask.Model.destroy({ where: { targetManga: id } });
+  await Subscription.Model.destroy({ where: { targetManga: id } });
+  return res.json(id);
 }
 
 async function getChapter(req, res) {
