@@ -15,8 +15,7 @@ let currentDownloadManga = null;
 function startDownloader() {
   if (isRunning) return;
   isRunning = true;
-  downloadLoop();
-  isRunning = false;
+  downloadLoop().then(() => (isRunning = false));
 }
 
 function cancelCurrentDownload() {
@@ -45,6 +44,7 @@ async function downloadLoop() {
 async function downloadManga(task) {
   try {
     currentDownloadManga = task.targetManga;
+    console.log(`Download: ${currentDownloadManga}`);
     await task.update({ status: DownloadTask.Status.DOWNLOADING });
     cancelIfNeed();
 
@@ -63,8 +63,9 @@ async function downloadManga(task) {
     }
     await task.destroy();
   } catch (e) {
+    console.log(e);
     if (e instanceof AsyncTaskCancelError) {
-      console.log('download task canceled');
+      console.log('Download is canceled');
     } else {
       await task.update({ status: DownloadTask.Status.ERROR });
     }
@@ -142,6 +143,10 @@ async function downloadChapter(chapterTask) {
         const stream = fs.createWriteStream(imagePath);
         await source.requestImage(url, stream);
       } catch (error) {
+        console.log(
+          `ImageError manga:${chapterTask.targetManga} chapter:${chapterTask.targetChapter} image:${i}`
+        );
+        console.log(error);
         isImageError = true;
       }
       cancelIfNeed();
