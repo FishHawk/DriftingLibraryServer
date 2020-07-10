@@ -2,7 +2,13 @@ import axios from 'axios';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { Status, MangaOutline, MangaDetail, Collection, Chapter } from '../../model/manga.js';
+import {
+  Status,
+  MangaOutline,
+  MangaDetail,
+  Collection,
+  Chapter,
+} from '../../model/manga.js';
 
 const lang = 'zh';
 const name = '漫画人';
@@ -95,7 +101,7 @@ function parseMangaDetail(jsonManga) {
     id: jsonManga.mangaId.toString(),
     title: jsonManga.mangaName,
     thumb: thumb,
-    author: jsonManga.mangaAuthor,
+    author: jsonManga.mangaAuthors,
     status: parseStatus(jsonManga.mangaIsOver),
     update: jsonManga.mangaNewestTime,
 
@@ -105,7 +111,9 @@ function parseMangaDetail(jsonManga) {
 
   const parseCollection = (title, jsonChapterList) => {
     if (jsonChapterList.length > 0) {
-      const chapters = jsonChapterList.map((jsonChapter) => parseChapter(jsonChapter)).reverse();
+      const chapters = jsonChapterList
+        .map((jsonChapter) => parseChapter(jsonChapter))
+        .reverse();
       const collecton = new Collection({ title, chapters });
       detail.collections.push(collecton);
     }
