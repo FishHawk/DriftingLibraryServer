@@ -1,8 +1,15 @@
-const Status = Object.freeze({
-  COMPLETED: 0,
-  ONGOING: 1,
-  UNKNOWN: 2,
+const MangaStatus = Object.freeze({
+  COMPLETED: 'completed',
+  ONGOING: 'ongoing',
+  UNKNOWN: 'unknown',
+
+  parse(x) {
+    if (x === this.COMPLETED || x === this.ONGOING || x === this.UNKNOWN)
+      return x;
+    else return null;
+  },
 });
+
 
 class Chapter {
   id;
@@ -64,4 +71,4 @@ class MangaDetail {
   }
 }
 
-export { Status, MangaOutline, MangaDetail, Tag, Collection, Chapter };
+export { MangaStatus, MangaOutline, MangaDetail, Tag, Collection, Chapter };

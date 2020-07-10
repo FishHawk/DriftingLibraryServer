@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import moment from 'moment';
 
 import {
-  Status,
+  MangaStatus,
   MangaOutline,
   MangaDetail,
   Collection,
@@ -58,9 +58,9 @@ function addExtraParam(params) {
  */
 
 function parseStatus(status) {
-  if (status == 0) return Status.ONGOING;
-  else if (status == 1) return Status.COMPLETED;
-  else return Status.UNKNOWN;
+  if (status == 0) return MangaStatus.ONGOING;
+  else if (status == 1) return MangaStatus.COMPLETED;
+  else return MangaStatus.UNKNOWN;
 }
 
 function parseMangaList(mangas) {
