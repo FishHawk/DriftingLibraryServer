@@ -16,6 +16,7 @@ async function updateAllSubscription() {
 }
 
 async function updateSubscription(subscription) {
+  console.log(`Update Subscription`);
   const downloadTask = await DownloadTask.Model.findOne({
     where: { targetManga: subscription.targetManga },
   });
