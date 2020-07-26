@@ -43,8 +43,8 @@ class MatchPattern {
     return this.isMatched(interestedValues) ^ this.isExclusionMode;
   }
 
-  print() {
-    console.log(
+  toString() {
+    return (
       `key:${this.key} `,
       `value:${this.value} `,
       `exa:${this.isExactMode} `,

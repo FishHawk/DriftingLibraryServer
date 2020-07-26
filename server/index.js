@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 import { port } from './config.js';
-import { errorHandler } from './error.js';
+import { logger } from './logger.js';
 import { sequelize } from './model/db.js';
 import router from './routes/index.js';
 
@@ -16,16 +16,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 sequelize
   .authenticate()
   .then(() => {
-    console.log('Database connection has been established successfully.');
+    logger.info('Init: Database connection has been established successfully.');
     return sequelize.sync();
   })
   .then(() => {
     app.use('/', router);
-    app.use('/api', errorHandler);
     app.listen(port, () => {
-      console.log(`Server：http://localhost:${port}`);
+      logger.info(`Init: Listen on http://localhost:${port}`);
     });
   })
   .catch((error) => {
-    console.error('Error:', error);
+    logger.error(error.stack);
   });

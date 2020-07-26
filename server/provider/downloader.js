@@ -1,12 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
+import { logger } from '../logger.js';
 import { libraryDir } from '../config.js';
-import { AsyncTaskCancelError } from '../error.js';
-import { getSource } from './sources.js';
 
 import DownloadTask from '../model/download_task.js';
 import DownloadChapterTask from '../model/download_chapter_task.js';
+
+import { getSource } from './sources.js';
+
+class AsyncTaskCancelError extends Error {
+  constructor() {
+    super();
+    Error.captureStackTrace(this, this.constructor);
+    this.name = this.constructor.name;
+    this.message = 'Async task is cancelled.';
+  }
+}
 
 let isRunning = false;
 let isCancelled = false;
@@ -27,7 +37,7 @@ function isMangaDownloading(manga) {
 }
 
 function cancelIfNeed() {
-  if (isCancelled) throw new error.AsyncTaskCancelError();
+  if (isCancelled) throw new AsyncTaskCancelError();
 }
 
 async function downloadLoop() {
@@ -43,8 +53,8 @@ async function downloadLoop() {
 
 async function downloadManga(task) {
   try {
+    logger.info(`Download: ` + `${task.source}/${task.sourceManga} -> ` + `${task.targetManga}`);
     currentDownloadManga = task.targetManga;
-    console.log(`Download: ${currentDownloadManga}`);
     await task.update({ status: DownloadTask.Status.DOWNLOADING });
     cancelIfNeed();
 
@@ -59,14 +69,16 @@ async function downloadManga(task) {
     await downloadContent(mangaDir, detail, task);
 
     if (!task.isCreatedBySubscription) {
-      await DownloadChapterTask.Model.destroy({ where: { targetManga: task.targetManga } });
+      await DownloadChapterTask.Model.destroy({
+        where: { targetManga: task.targetManga },
+      });
     }
     await task.destroy();
-  } catch (e) {
-    console.log(e);
-    if (e instanceof AsyncTaskCancelError) {
-      console.log('Download is canceled');
+  } catch (error) {
+    if (error instanceof AsyncTaskCancelError) {
+      logger.info(`Download is canceled`);
     } else {
+      logger.error(`Download error: ${error.stack}`);
       await task.update({ status: DownloadTask.Status.ERROR });
     }
   } finally {
@@ -121,6 +133,11 @@ async function downloadContent(mangaDir, detail, task) {
 }
 
 async function downloadChapter(chapterTask) {
+  logger.info(
+    `Download chapter: ` +
+      `manga:${chapterTask.targetManga} ` +
+      `chapter:${chapterTask.targetChapter} `
+  );
   const source = getSource(chapterTask.source);
   const imageUrls = await source.requestChapterContent(chapterTask.sourceChapter);
   cancelIfNeed();
@@ -143,10 +160,13 @@ async function downloadChapter(chapterTask) {
         const stream = fs.createWriteStream(imagePath);
         await source.requestImage(url, stream);
       } catch (error) {
-        console.log(
-          `ImageError manga:${chapterTask.targetManga} chapter:${chapterTask.targetChapter} image:${i}`
+        logger.error(
+          `Image error at: ` +
+            `manga:${chapterTask.targetManga} ` +
+            `chapter:${chapterTask.targetChapter} ` +
+            `image:${i} `
         );
-        console.log(error);
+        logger.error(`Image error: ${error.stack}`);
         isImageError = true;
       }
       cancelIfNeed();

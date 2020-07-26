@@ -1,5 +1,6 @@
 import { CronJob } from 'cron';
 
+import { logger } from '../logger.js';
 import { startDownloader } from '../provider/downloader.js';
 
 import DownloadTask from '../model/download_task.js';
@@ -16,7 +17,7 @@ async function updateAllSubscription() {
 }
 
 async function updateSubscription(subscription) {
-  console.log(`Update Subscription`);
+  logger.info('Update subscription');
   const downloadTask = await DownloadTask.Model.findOne({
     where: { targetManga: subscription.targetManga },
   });

@@ -1,17 +1,8 @@
 import { Sequelize } from 'sequelize';
 import express from 'express';
 
-import {
-  errorWarp,
-  ConflictError,
-  BadRequestError,
-  NotFoundError,
-} from '../error.js';
-import {
-  isMangaExist,
-  createManga,
-  isMangaIdValid,
-} from '../library/library.js';
+import { errorWarp, ConflictError, BadRequestError, NotFoundError } from './httpError.js';
+import { isMangaExist, createManga, isMangaIdValid } from '../library/library.js';
 import {
   startDownloader,
   cancelCurrentDownload,
@@ -41,13 +32,7 @@ async function getAllDownloadTask(req, res) {
 async function startAllDownloadTask(req, res) {
   await DownloadTask.Model.update(
     { status: DownloadTask.Status.WAITING },
-    {
-      where: {
-        status: {
-          [Op.or]: [DownloadTask.Status.PAUSED, DownloadTask.Status.ERROR],
-        },
-      },
-    }
+    { where: { status: { [Op.or]: [DownloadTask.Status.PAUSED, DownloadTask.Status.ERROR] } } }
   );
 
   const tasks = await DownloadTask.Model.findAll();
@@ -60,12 +45,7 @@ async function pauseAllDownloadTask(req, res) {
     { status: DownloadTask.Status.PAUSED },
     {
       where: {
-        status: {
-          [Op.or]: [
-            DownloadTask.Status.WAITING,
-            DownloadTask.Status.DOWNLOADING,
-          ],
-        },
+        status: { [Op.or]: [DownloadTask.Status.WAITING, DownloadTask.Status.DOWNLOADING] },
       },
     }
   );
@@ -80,11 +60,7 @@ async function postDownloadTask(req, res) {
   const sourceManga = req.body.sourceManga;
   const targetManga = req.body.targetManga;
 
-  if (
-    source === undefined ||
-    sourceManga === undefined ||
-    !isMangaIdValid(targetManga)
-  )
+  if (source === undefined || sourceManga === undefined || !isMangaIdValid(targetManga))
     throw new BadRequestError('Arguments are illegal.');
 
   if (isMangaExist(targetManga)) throw new ConflictError('Already exists.');
@@ -103,8 +79,7 @@ async function postDownloadTask(req, res) {
 async function deleteDownloadTask(req, res) {
   const id = Number.parseInt(req.params.id);
 
-  if (!Number.isInteger(id))
-    throw new BadRequestError('Arguments are illegal.');
+  if (!Number.isInteger(id)) throw new BadRequestError('Arguments are illegal.');
 
   const task = await DownloadTask.Model.findByPk(id);
   if (task === null) throw new NotFoundError('Not found.');
@@ -122,16 +97,12 @@ async function deleteDownloadTask(req, res) {
 async function startDownloadTask(req, res) {
   const id = Number.parseInt(req.params.id);
 
-  if (!Number.isInteger(id))
-    throw new BadRequestError('Arguments are illegal.');
+  if (!Number.isInteger(id)) throw new BadRequestError('Arguments are illegal.');
 
   const task = await DownloadTask.Model.findByPk(id);
   if (task === null) throw new NotFoundError('Not found.');
 
-  if (
-    task.status === DownloadTask.Status.PAUSED ||
-    task.status === DownloadTask.Status.ERROR
-  ) {
+  if (task.status === DownloadTask.Status.PAUSED || task.status === DownloadTask.Status.ERROR) {
     await task.update({ status: DownloadTask.Status.WAITING });
   }
   startDownloader();
@@ -141,8 +112,7 @@ async function startDownloadTask(req, res) {
 async function pauseDownloadTask(req, res) {
   const id = Number.parseInt(req.params.id);
 
-  if (!Number.isInteger(id))
-    throw new BadRequestError('Arguments are illegal.');
+  if (!Number.isInteger(id)) throw new BadRequestError('Arguments are illegal.');
 
   const task = await DownloadTask.Model.findByPk(id);
   if (task === null) throw new NotFoundError('Not found.');

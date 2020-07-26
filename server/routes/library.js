@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { errorWarp, NotFoundError } from '../error.js';
+import { errorWarp, NotFoundError } from './httpError.js';
 import {
   libraryDir,
   searchLibrary,
