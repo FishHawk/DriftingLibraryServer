@@ -73,7 +73,7 @@ function searchLibrary(lastTime, limit, keywords) {
       const fileName = dirent.name;
       return {
         id: fileName,
-        time: fs.statSync(libraryDir + '/' + fileName).mtime.getTime(),
+        time: fs.statSync(path.join(libraryDir, fileName)).mtime.getTime(),
       };
     })
     .filter((v) => (lastTime === undefined ? true : v.time < lastTime))
@@ -109,7 +109,7 @@ function parseMangaDetail(id) {
     thumb: thumb,
     author: metadata.author,
     status: metadata.status,
-    update: metadata.update,
+    update: fs.statSync(path.join(libraryDir, id)).mtime.getTime(),
     description: metadata.description,
     tags: metadata.tags,
     collections,
@@ -170,7 +170,7 @@ function parseMangaContent(id) {
   if (folderLevel1.length != 0) {
     let isLevel3 = false;
     for (let folder of folderLevel1) {
-      if (getDirNaturalOrder(`${libraryDir}/${id}/${folder}`).length > 0) {
+      if (getDirNaturalOrder(path.join(libraryDir, id, folder)).length > 0) {
         isLevel3 = true;
       }
     }
@@ -180,7 +180,9 @@ function parseMangaContent(id) {
       for (let folder of folderLevel1) {
         collections.push({
           title: folder,
-          chapters: getDirNaturalOrder(`${libraryDir}/${id}/${folder}`).map((x) => parseChapter(x)),
+          chapters: getDirNaturalOrder(path.join(libraryDir, id, folder)).map((x) =>
+            parseChapter(x)
+          ),
         });
       }
       return collections;

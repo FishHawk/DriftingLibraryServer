@@ -96,6 +96,7 @@ function parseMangaDetail(jsonManga) {
     thumb = jsonManga.mangaPicimageUrl;
   if (thumb === undefined || thumb === '') thumb = jsonManga.shareIcon;
 
+    // update: jsonManga.mangaNewestTime,
   let detail = new MangaDetail({
     source: name,
     id: jsonManga.mangaId.toString(),
@@ -103,7 +104,6 @@ function parseMangaDetail(jsonManga) {
     thumb: thumb,
     author: jsonManga.mangaAuthors,
     status: parseStatus(jsonManga.mangaIsOver),
-    update: jsonManga.mangaNewestTime,
 
     description: jsonManga.mangaIntro,
     genre: jsonManga.mangaTheme.split(' '),
