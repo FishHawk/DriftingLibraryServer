@@ -9,12 +9,19 @@ import { validateFilename } from './validate_filename.js';
 export { libraryDir };
 
 // util function
-const getDir = (path) =>
+const getDir = (dir) =>
   fs
-    .readdirSync(path, { withFileTypes: true })
+    .readdirSync(dir, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name)
-    .sort();
+    .map(function (dirent) {
+      const fileName = dirent.name;
+      return {
+        name: fileName,
+        time: fs.statSync(dir + '/' + fileName).mtimeMs,
+      };
+    })
+    .sort((a, b) => b.time - a.time)
+    .map((v) => v.name);
 
 const getDirNaturalOrder = (path) =>
   fs
