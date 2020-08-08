@@ -109,6 +109,12 @@ async function downloadMetadata(mangaDir, detail, task) {
   }
 }
 
+function refreshModifiedTime(mangaDir) {
+  const tempPath = path.join(mangaDir, 'temp.json');
+  fs.closeSync(fs.openSync(tempPath, 'w'));
+  fs.unlinkSync(tempPath);
+}
+
 async function downloadContent(mangaDir, detail, task) {
   for (const collection of detail.collections) {
     const collectionDir = path.join(mangaDir, collection.title);
@@ -127,6 +133,7 @@ async function downloadContent(mangaDir, detail, task) {
       cancelIfNeed();
       if (!chapterTask.isCompleted) {
         await downloadChapter(chapterTask);
+        refreshModifiedTime(mangaDir);
       }
     }
   }
