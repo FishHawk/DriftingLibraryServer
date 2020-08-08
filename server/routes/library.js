@@ -28,11 +28,11 @@ router.use('/library/image', function (req, res, next) {
 });
 
 async function search(req, res) {
-  const lastId = req.query.lastId;
+  const lastTime = req.query.lastTime;
   const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 20;
   const keywords = req.query.keywords ? req.query.keywords : '';
 
-  const outlines = searchLibrary(lastId, limit, keywords);
+  const outlines = searchLibrary(lastTime, limit, keywords);
 
   return res.json(outlines);
 }

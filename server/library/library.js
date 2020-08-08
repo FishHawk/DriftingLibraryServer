@@ -9,19 +9,6 @@ import { validateFilename } from './validate_filename.js';
 export { libraryDir };
 
 // util function
-const getDir = (dir) =>
-  fs
-    .readdirSync(dir, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .map(function (dirent) {
-      const fileName = dirent.name;
-      return {
-        name: fileName,
-        time: fs.statSync(dir + '/' + fileName).mtimeMs,
-      };
-    })
-    .sort((a, b) => b.time - a.time)
-    .map((v) => v.name);
 
 const getDirNaturalOrder = (path) =>
   fs
@@ -78,21 +65,31 @@ function removeManga(id) {
   fs.rmdirSync(mangaDir, { recursive: true });
 }
 
-function searchLibrary(lastId, limit, keywords) {
-  const mangaIdList = getDir(libraryDir);
-  const start = lastId ? mangaIdList.findIndex((id) => id > lastId) : 0;
-  if (start === -1) return [];
+function searchLibrary(lastTime, limit, keywords) {
+  const mangaList = fs
+    .readdirSync(libraryDir, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map(function (dirent) {
+      const fileName = dirent.name;
+      return {
+        id: fileName,
+        time: fs.statSync(libraryDir + '/' + fileName).mtime.getTime(),
+      };
+    })
+    .filter((v) => (lastTime === undefined ? true : v.time < lastTime))
+    .sort((a, b) => b.time - a.time);
 
   const filter = new Filter(keywords);
   const result = [];
-  for (let i = start; i < mangaIdList.length; ++i) {
-    const id = mangaIdList[i];
-    const metadata = parseMangaMetadataForSearch(id);
+  for (let i = 0; i < mangaList.length; ++i) {
+    const x = mangaList[i];
+    const metadata = parseMangaMetadataForSearch(x.id);
     if (filter.check(metadata.title, metadata.tags)) {
       const outline = new MangaOutline({
-        id,
+        id: x.id,
         title: metadata.title,
-        thumb: parseMangaThumb(id),
+        thumb: parseMangaThumb(x.id),
+        update: x.time,
       });
       result.push(outline);
       if (result.length >= limit) break;
