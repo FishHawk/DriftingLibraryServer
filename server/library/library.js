@@ -128,9 +128,7 @@ function parseChapterContent(id, collectionTitle, chapterTitle) {
 function parseMangaMetadataForSearch(id) {
   const filepath = path.join(libraryDir, id, 'metadata.json');
 
-  const metadata = fs.existsSync(filepath)
-    ? JSON.parse(fs.readFileSync(filepath, 'utf8'))
-    : {};
+  const metadata = fs.existsSync(filepath) ? JSON.parse(fs.readFileSync(filepath, 'utf8')) : {};
   if (metadata.title === undefined) metadata.title = id;
   if (metadata.tags === undefined) metadata.tags = [];
 
@@ -142,9 +140,7 @@ function parseMangaMetadataForSearch(id) {
 
 function parseMangaMetadata(id) {
   const filepath = path.join(libraryDir, id, 'metadata.json');
-  const metadata = fs.existsSync(filepath)
-    ? JSON.parse(fs.readFileSync(filepath, 'utf8'))
-    : {};
+  const metadata = fs.existsSync(filepath) ? JSON.parse(fs.readFileSync(filepath, 'utf8')) : {};
   if (metadata.title === undefined) metadata.title = id;
   return metadata;
 }
@@ -155,6 +151,14 @@ function parseMangaThumb(id) {
     if (fs.existsSync(filepath)) return filename;
   }
   return '';
+}
+
+function parseChapter(id) {
+  const sep = ' ';
+  const sepPosition = id.indexOf(sep);
+  const name = sepPosition < 0 ? id : id.substr(0, sepPosition);
+  const title = sepPosition < 0 ? '' : id.substr(sepPosition + 1);
+  return new Chapter({ id: id, name: name, title: title });
 }
 
 function parseMangaContent(id) {
@@ -172,20 +176,16 @@ function parseMangaContent(id) {
       for (let folder of folderLevel1) {
         collections.push({
           title: folder,
-          chapters: getDirNaturalOrder(`${libraryDir}/${id}/${folder}`).map(
-            (x) => new Chapter({ id: x, name: x, title: x })
-          ),
+          chapters: getDirNaturalOrder(`${libraryDir}/${id}/${folder}`).map((x) => parseChapter(x)),
         });
       }
       return collections;
     } else {
-      const chapters = folderLevel1.map(
-        (x) => new Chapter({ id: x, name: x, title: x })
-      );
+      const chapters = folderLevel1.map((x) => parseChapter(x));
       return [{ title: '', chapters }];
     }
   } else {
-    const chapters = [new Chapter({ id: '', name: '', title: '' })];
+    const chapters = [new Chapter({ id: '', name: 'default', title: '' })];
     return [{ title: '', chapters }];
   }
 }

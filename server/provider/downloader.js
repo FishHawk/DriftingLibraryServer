@@ -121,7 +121,7 @@ async function downloadContent(mangaDir, detail, task) {
           sourceChapter: chapter.id,
           targetManga: task.targetManga,
           targetCollection: collection.title,
-          targetChapter: chapter.name,
+          targetChapter: `${chapter.name} ${chapter.title}`,
         },
       });
       cancelIfNeed();
