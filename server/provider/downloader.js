@@ -146,8 +146,11 @@ async function downloadContent(mangaDir, detail, task) {
       });
       cancelIfNeed();
       if (!chapterTask.isCompleted) {
-        await downloadChapter(chapterTask);
-        refreshModifiedTime(mangaDir);
+        try {
+          await downloadChapter(chapterTask);
+          refreshModifiedTime(mangaDir);
+        } catch (error) {}
+        cancelIfNeed();
       }
     }
   }
