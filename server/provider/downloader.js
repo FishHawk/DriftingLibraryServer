@@ -188,6 +188,7 @@ async function downloadChapter(chapterTask) {
             `image:${i} `
         );
         logger.error(`Image error: ${error.stack}`);
+        fs.unlinkSync(imagePath);
         isImageError = true;
       }
       cancelIfNeed();
