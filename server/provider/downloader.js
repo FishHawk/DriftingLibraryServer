@@ -68,12 +68,26 @@ async function downloadManga(task) {
     await downloadMetadata(mangaDir, detail, task);
     await downloadContent(mangaDir, detail, task);
 
-    if (!task.isCreatedBySubscription) {
-      await DownloadChapterTask.Model.destroy({
-        where: { targetManga: task.targetManga },
-      });
+    const isCompleted = DownloadChapterTask.Model.count({
+      where: {
+        targetManga: task.targetManga,
+        isCompleted: false,
+      },
+    }).then((count) => {
+      if (count != 0) return false;
+      return true;
+    });
+
+    if (isCompleted) {
+      if (!task.isCreatedBySubscription) {
+        await DownloadChapterTask.Model.destroy({
+          where: { targetManga: task.targetManga },
+        });
+      }
+      await task.destroy();
+    } else {
+      await task.update({ status: DownloadTask.Status.ERROR });
     }
-    await task.destroy();
   } catch (error) {
     if (error instanceof AsyncTaskCancelError) {
       logger.info(`Download is canceled`);
