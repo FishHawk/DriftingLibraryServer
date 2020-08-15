@@ -1,5 +1,6 @@
 .vscode/
 node_modules/
 log/
+out/
 start.sh
 package-lock.json
