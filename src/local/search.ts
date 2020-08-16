@@ -3,7 +3,7 @@ import path from 'path';
 import { Filter, MatchEntry } from './filter';
 import { readJSON } from './fs_util';
 import { parseMangaThumb } from './parse';
-import { MangaOutline } from '../model/manga_outline';
+import { MangaOutline } from '../entity/manga_outline';
 
 const libraryDir = '';
 
@@ -57,7 +57,9 @@ export async function searchLibrary(lastTime: number, limit: number, keywords: s
         id: x.id,
         title: entry.title,
         thumb: await parseMangaThumb(x.id),
-        lastUpdate: x.time,
+        status: undefined,
+        authors: entry.authors,
+        updateTime: x.time,
       };
       result.push(outline);
       if (result.length >= limit) break;

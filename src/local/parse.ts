@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { Metadata, MangaDetail, Collection, Chapter } from '../model/manga_detail';
+import { Metadata, MangaDetail, Collection, Chapter } from '../entity/manga_detail';
+import { MangaDetailBuilder } from '../entity/manga_detail_builder';
 import {
   isFileExist,
   readJSON,
@@ -53,11 +54,7 @@ async function parseMangaCollections(mangaDir: string): Promise<Collection[]> {
         path.join(mangaDir, collectionId)
       ).then((list) => list.map(parseChapterId));
       if (chapters.length > 0) {
-        const collection: Collection = {
-          id: collectionId,
-          depth: 3,
-          chapters: chapters,
-        };
+        const collection: Collection = { id: collectionId, chapters: chapters };
         collections.push(collection);
       }
     }
@@ -65,7 +62,7 @@ async function parseMangaCollections(mangaDir: string): Promise<Collection[]> {
     // depth 2
     if (collections.length === 0) {
       const chapters = subFolders.map((x) => parseChapterId(x));
-      const collection: Collection = { id: '', depth: 2, chapters: chapters };
+      const collection: Collection = { id: '', chapters: chapters };
       collections.push(collection);
     }
 
@@ -74,7 +71,7 @@ async function parseMangaCollections(mangaDir: string): Promise<Collection[]> {
     // depth 1
     // TODO: add preview
     const chapter: Chapter = { id: '', name: '', title: '' };
-    const collection: Collection = { id: '', depth: 1, chapters: [chapter] };
+    const collection: Collection = { id: '', chapters: [chapter] };
     return [collection];
   }
 }
@@ -85,11 +82,12 @@ export async function parseMangaDetail(id: string): Promise<MangaDetail | undefi
   const mangaDir = path.join(libraryDir, id);
   if (!isDirectoryExist(mangaDir)) return undefined;
 
-  return new MangaDetail(id)
+  return new MangaDetailBuilder(id)
     .setMetaData(await parseMangaMetadata(mangaDir))
     .setThumb(await parseMangaThumb(mangaDir))
     .setCollections(await parseMangaCollections(mangaDir))
-    .setUpdateTime(await fs.stat(mangaDir).then((x) => x.mtime.getTime()));
+    .setUpdateTime(await fs.stat(mangaDir).then((x) => x.mtime.getTime()))
+    .build();
 }
 
 export async function parseChapterContent(
