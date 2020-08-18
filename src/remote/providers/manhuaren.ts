@@ -2,12 +2,11 @@ import axios from 'axios';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { MangaProvider } from '../provider';
 import { MangaOutline } from '../../entity/manga_outline';
 import { Status } from '../../entity/manga_status';
 import { Chapter, MangaDetail, Collection, Tag } from '../../entity/manga_detail';
 
-const pageSize = 20;
+import { ProviderAdapter } from '../provider_adapter';
 
 /*
  *  Param helper
@@ -137,11 +136,12 @@ function parseChapterContent(jsonImageList: any): string[] {
   return jsonImageList.mangaSectionImages.map((it: any) => `${host}${it}${query}`);
 }
 
-export default class MangaProviderManhuaren extends MangaProvider {
+export default class MangaProviderManhuaren extends ProviderAdapter {
   readonly lang: string = 'zh';
   readonly name: string = '漫画人';
   readonly isLatestSupport: boolean = true;
 
+  private readonly pageSize = 20;
   private readonly baseUrl = 'http://mangaapi.manhuaren.com';
   private readonly instance = axios.create({
     baseURL: this.baseUrl,
@@ -159,8 +159,8 @@ export default class MangaProviderManhuaren extends MangaProvider {
       .get('/v1/search/getSearchManga', {
         params: addExtraParam({
           keywords,
-          start: (pageSize * (page - 1)).toString(),
-          limit: pageSize.toString(),
+          start: (this.pageSize * (page - 1)).toString(),
+          limit: this.pageSize.toString(),
         }),
       })
       .then(function (response) {
@@ -178,8 +178,8 @@ export default class MangaProviderManhuaren extends MangaProvider {
         params: addExtraParam({
           subCategoryType: '0',
           subCategoryId: '0',
-          start: (pageSize * (page - 1)).toString(),
-          limit: pageSize.toString(),
+          start: (this.pageSize * (page - 1)).toString(),
+          limit: this.pageSize.toString(),
           sort: '0',
         }),
       })
@@ -192,8 +192,8 @@ export default class MangaProviderManhuaren extends MangaProvider {
         params: addExtraParam({
           subCategoryType: '0',
           subCategoryId: '0',
-          start: (pageSize * (page - 1)).toString(),
-          limit: pageSize.toString(),
+          start: (this.pageSize * (page - 1)).toString(),
+          limit: this.pageSize.toString(),
           sort: '1',
         }),
       })

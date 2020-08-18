@@ -1,15 +1,15 @@
-export interface MangaProviderInfo {
+export interface ProviderInfo {
   readonly lang: string;
   readonly name: string;
   readonly isLatestSupport: boolean;
 }
 
-export abstract class MangaProvider implements MangaProviderInfo {
+export abstract class ProviderAdapter implements ProviderInfo {
   abstract readonly lang: string;
   abstract readonly name: string;
   abstract readonly isLatestSupport: boolean;
 
-  getInfo(): MangaProviderInfo {
+  getInfo(): ProviderInfo {
     return {
       lang: this.lang,
       name: this.name,
