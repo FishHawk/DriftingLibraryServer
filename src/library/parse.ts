@@ -11,8 +11,6 @@ import {
 } from './fs_util';
 import { validateMangaId, validateCollectionId, validateChapterId } from './validate';
 
-const libraryDir = '';
-
 async function parseMangaMetadata(mangaDir: string): Promise<Metadata> {
   const filepath = path.join(mangaDir, 'metadata.json');
   return readJSON(filepath).then((json) => {
@@ -76,13 +74,16 @@ async function parseMangaCollections(mangaDir: string): Promise<Collection[]> {
   }
 }
 
-export async function parseMangaDetail(id: string): Promise<MangaDetail | undefined> {
-  if (validateMangaId(id)) return undefined;
+export async function parseMangaDetail(
+  libraryDir: string,
+  mangaId: string
+): Promise<MangaDetail | undefined> {
+  if (validateMangaId(mangaId)) return undefined;
 
-  const mangaDir = path.join(libraryDir, id);
+  const mangaDir = path.join(libraryDir, mangaId);
   if (!isDirectoryExist(mangaDir)) return undefined;
 
-  return new MangaDetailBuilder(id)
+  return new MangaDetailBuilder(mangaId)
     .setMetaData(await parseMangaMetadata(mangaDir))
     .setThumb(await parseMangaThumb(mangaDir))
     .setCollections(await parseMangaCollections(mangaDir))
@@ -91,14 +92,37 @@ export async function parseMangaDetail(id: string): Promise<MangaDetail | undefi
 }
 
 export async function parseChapterContent(
-  id: string,
+  libraryDir: string,
+  mangaId: string,
   collectionId: string,
   chapterId: string
 ): Promise<string[] | undefined> {
-  if (validateMangaId(id) && validateCollectionId(collectionId) && validateChapterId(chapterId))
+  if (
+    validateMangaId(mangaId) &&
+    validateCollectionId(collectionId) &&
+    validateChapterId(chapterId)
+  )
     return undefined;
 
-  const chapterDir = path.join(libraryDir, id, collectionId, chapterId);
+  const chapterDir = path.join(libraryDir, mangaId, collectionId, chapterId);
   if (!(await isDirectoryExist(chapterDir))) return undefined;
   return listImageFileWithNaturalOrder(chapterDir);
+}
+
+export async function isMangaExist(libraryDir: string, mangaId: string): Promise<boolean> {
+  if (validateMangaId(mangaId)) return false;
+  const mangaDir = path.join(libraryDir, mangaId);
+  return isDirectoryExist(mangaDir);
+}
+
+export async function createManga(libraryDir: string, mangaId: string): Promise<void> {
+  const mangaDir = path.join(libraryDir, mangaId);
+  if (isDirectoryExist(mangaDir)) return;
+  return fs.mkdir(mangaDir);
+}
+
+export async function removeManga(libraryDir: string, mangaId: string): Promise<void> {
+  const mangaDir = path.join(libraryDir, mangaId);
+  if (!isDirectoryExist(mangaDir)) return;
+  return fs.rmdir(mangaDir, { recursive: true });
 }
