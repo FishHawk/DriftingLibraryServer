@@ -1,11 +1,6 @@
-enum DownloadTaskStatus {
-  WAITING = 'waiting',
-  DOWNLOADING = 'downloading',
-  PAUSED = 'paused',
-  ERROR = 'error',
+class A {
+  a!: number;
 }
 
-const a = DownloadTaskStatus.WAITING;
-console.log(a)
-console.log(a == 'waiting')
-console.log(a === 'waiting')
+let a = new A();
+console.log(a.a);

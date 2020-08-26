@@ -1,15 +1,28 @@
-import { DownloadChapterTask } from './model/download_chapter_task';
-import { DownloadTask } from './model/download_task';
-import { Subscription } from './model/subscription';
+import 'reflect-metadata';
+import { Repository, createConnection } from 'typeorm';
+
+import { DownloadChapterTask } from './entity/download_chapter_task';
+import { DownloadTask } from './entity/download_task';
+import { Subscription } from './entity/subscription';
 
 export interface DatabaseAdapter {
-  readonly downloadChapterTaskModel: DownloadChapterTask.Model;
-  readonly downloadTaskModel: DownloadTask.Model;
-  readonly subscriptionModel: Subscription.Model;
-
-  init(): Promise<void>;
+  downloadChapterTaskRepository: Repository<DownloadChapterTask>;
+  downloadTaskRepository: Repository<DownloadTask>;
+  subscriptionRepository: Repository<Subscription>;
 }
 
-export { DownloadChapterTask } from './model/download_chapter_task';
-export { DownloadTask } from './model/download_task';
-export { Subscription } from './model/subscription';
+export async function createSqliteDatabase(path: string) {
+  return createConnection({
+    type: 'sqlite',
+    database: path,
+    entities: [DownloadChapterTask, DownloadTask, Subscription],
+    synchronize: true,
+    logging: false,
+  }).then((connection) => {
+    return {
+      downloadChapterTaskRepository: connection.getRepository(DownloadChapterTask),
+      downloadTaskRepository: connection.getRepository(DownloadTask),
+      subscriptionRepository: connection.getRepository(Subscription),
+    } as DatabaseAdapter;
+  });
+}

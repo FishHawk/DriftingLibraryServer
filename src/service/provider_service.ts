@@ -1,11 +1,11 @@
-import { ProviderAdapter, ProviderInfo } from './provider_adapter';
-import MangaProviderManhuaren from './providers/manhuaren';
+import { ProviderAdapter, ProviderInfo } from '../provider/provider_adapter';
+import ProviderManhuaren from '../provider/providers/manhuaren';
 
-export class ProviderRegistry {
+class ProviderService {
   readonly providers: Record<string, ProviderAdapter> = {};
 
   constructor() {
-    this.registerProvider(new MangaProviderManhuaren());
+    this.registerProvider(new ProviderManhuaren());
   }
 
   private registerProvider(provider: ProviderAdapter) {

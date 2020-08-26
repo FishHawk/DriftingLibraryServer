@@ -136,7 +136,7 @@ function parseChapterContent(jsonImageList: any): string[] {
   return jsonImageList.mangaSectionImages.map((it: any) => `${host}${it}${query}`);
 }
 
-export default class MangaProviderManhuaren extends ProviderAdapter {
+export default class ProviderManhuaren extends ProviderAdapter {
   readonly lang: string = 'zh';
   readonly name: string = '漫画人';
   readonly isLatestSupport: boolean = true;

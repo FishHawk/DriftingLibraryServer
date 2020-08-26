@@ -4,23 +4,24 @@ import bodyParser from 'body-parser';
 
 import { port, libraryDir } from './config';
 import { logger } from './logger';
-import { DatabaseSqlite } from './db/db_sqlite';
+import { createSqliteDatabase } from './db/db_adapter';
 // import router from './routes/index.js';
 
 // import './provider/subscriber.js';
 
-const dbpath = path.join(libraryDir, '.db.sqlite');
-const db = new DatabaseSqlite(dbpath);
+async function setup() {
+  const dbpath = path.join(libraryDir, '.db.sqlite');
 
-db.init()
-  .then(() => {
-    const app = express();
+  const db = await createSqliteDatabase('asdf');
 
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: false }));
-    //   app.use('/', router);
-    app.listen(port, () => {
-      logger.info(`Init: Listen on http://localhost:${port}`);
-    });
-  })
-  .catch((error) => {});
+  const app = express();
+
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: false }));
+  //   app.use('/', router);
+  app.listen(port, () => {
+    logger.info(`Init: Listen on http://localhost:${port}`);
+  });
+}
+
+setup();

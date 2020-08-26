@@ -3,7 +3,7 @@ import { MangaOutline } from '../entity/manga_outline';
 import { MangaDetail } from '../entity/manga_detail';
 import { parseMangaDetail, parseChapterContent } from './parse';
 
-class LibraryLocal implements LibraryAdapter {
+export class LibraryLocal implements LibraryAdapter {
   libraryDir: string;
 
   constructor(libraryDir: string) {

@@ -17,8 +17,10 @@
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "moment": "^2.27.0",
+    "reflect-metadata": "^0.1.13",
     "sequelize": "^6.3.4",
     "sqlite3": "^5.0.0",
+    "typeorm": "^0.2.25",
     "winston": "^3.3.3"
   },
   "devDependencies": {
