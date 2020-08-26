@@ -1,7 +1,10 @@
-import { LibraryAdapter } from './library_adapter';
-import { MangaOutline } from '../entity/manga_outline';
-import { MangaDetail } from '../entity/manga_detail';
+import { MangaOutline } from '../../entity/manga_outline';
+import { MangaDetail } from '../../entity/manga_detail';
+
+import { LibraryAdapter } from '../library_adapter';
+
 import { parseMangaDetail, parseChapterContent } from './parse';
+import { searchLibrary } from './search';
 
 export class LibraryLocal implements LibraryAdapter {
   libraryDir: string;
@@ -11,7 +14,7 @@ export class LibraryLocal implements LibraryAdapter {
   }
 
   search(lastTime: number, limit: number, keywords: string): Promise<MangaOutline[]> {
-    throw new Error('Method not implemented.');
+    return searchLibrary(this.libraryDir, lastTime, limit, keywords);
   }
 
   getMangaDetail(mangaId: string): Promise<MangaDetail | undefined> {

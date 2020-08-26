@@ -1,13 +1,13 @@
 import fs from 'fs/promises';
 import path from 'path';
+
+import { MangaOutline } from '../../entity/manga_outline';
+
 import { Filter, MatchEntry } from './filter';
 import { readJSON } from './fs_util';
 import { parseMangaThumb } from './parse';
-import { MangaOutline } from '../entity/manga_outline';
 
-const libraryDir = '';
-
-async function listLibraryWithMtime() {
+async function listLibraryWithMtime(libraryDir: string) {
   return fs.readdir(libraryDir, { withFileTypes: true }).then((list) => {
     return Promise.all(
       list
@@ -24,7 +24,7 @@ async function listLibraryWithMtime() {
   });
 }
 
-async function buildMatchEntry(id: string): Promise<MatchEntry> {
+async function buildMatchEntry(libraryDir: string, id: string): Promise<MatchEntry> {
   const filepath = path.join(libraryDir, id, 'metadata.json');
 
   return readJSON(filepath).then((json) => {
@@ -40,8 +40,13 @@ async function buildMatchEntry(id: string): Promise<MatchEntry> {
   });
 }
 
-export async function searchLibrary(lastTime: number, limit: number, keywords: string) {
-  const mangaList = await listLibraryWithMtime().then((list) => {
+export async function searchLibrary(
+  libraryDir: string,
+  lastTime: number,
+  limit: number,
+  keywords: string
+) {
+  const mangaList = await listLibraryWithMtime(libraryDir).then((list) => {
     return list
       .filter((v) => (lastTime === undefined ? true : v.time < lastTime))
       .sort((a, b) => b.time - a.time);
@@ -51,7 +56,7 @@ export async function searchLibrary(lastTime: number, limit: number, keywords: s
   const result = [];
   for (let i = 0; i < mangaList.length; ++i) {
     const x = mangaList[i];
-    const entry = await buildMatchEntry(x.id);
+    const entry = await buildMatchEntry(libraryDir, x.id);
     if (filter.check(entry)) {
       const outline: MangaOutline = {
         id: x.id,

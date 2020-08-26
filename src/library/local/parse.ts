@@ -1,7 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { Metadata, MangaDetail, Collection, Chapter } from '../entity/manga_detail';
-import { MangaDetailBuilder } from '../entity/manga_detail_builder';
+
+import { Metadata, MangaDetail, Collection, Chapter } from '../../entity/manga_detail';
+import { MangaDetailBuilder } from '../../entity/manga_detail_builder';
+
 import {
   isFileExist,
   readJSON,

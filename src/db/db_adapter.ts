@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import path from 'path';
 import { Repository, createConnection } from 'typeorm';
 
 import { DownloadChapterTask } from './entity/download_chapter_task';
@@ -11,10 +12,10 @@ export interface DatabaseAdapter {
   subscriptionRepository: Repository<Subscription>;
 }
 
-export async function createSqliteDatabase(path: string) {
+export async function createSqliteDatabase(libraryDir: string) {
   return createConnection({
     type: 'sqlite',
-    database: path,
+    database: path.join(libraryDir, '.db.sqlite'),
     entities: [DownloadChapterTask, DownloadTask, Subscription],
     synchronize: true,
     logging: false,

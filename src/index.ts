@@ -5,14 +5,14 @@ import bodyParser from 'body-parser';
 import { port, libraryDir } from './config';
 import { logger } from './logger';
 import { createSqliteDatabase } from './db/db_adapter';
+import { createLocalLibrary } from './library/library_adapter';
 // import router from './routes/index.js';
 
 // import './provider/subscriber.js';
 
 async function setup() {
-  const dbpath = path.join(libraryDir, '.db.sqlite');
-
-  const db = await createSqliteDatabase('asdf');
+  const db = await createSqliteDatabase(libraryDir);
+  const library = createLocalLibrary(libraryDir);
 
   const app = express();
 
