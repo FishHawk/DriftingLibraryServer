@@ -1,51 +1,78 @@
+import path from 'path';
+import fs from 'fs/promises';
+
 import { MangaOutline } from '../../entity/manga_outline';
-import { MangaDetail } from '../../entity/manga_detail';
+import { MangaDetail, MetadataDetail } from '../../entity/manga_detail';
+import * as fsu from '../../util/fs';
 
-import { LibraryAdapter } from '../library_adapter';
+import { LibraryAdapter } from '../adapter';
 
-import {
-  parseMangaDetail,
-  parseChapterContent,
-  removeManga,
-  createManga,
-  isMangaExist,
-} from './parse';
+import { parseMangaDetail } from './parse';
 import { searchLibrary } from './search';
-import { validateMangaId } from './validate';
+import { validateMangaId, validateCollectionId, validateChapterId } from './validate';
 
 export class LibraryLocal implements LibraryAdapter {
-  libraryDir: string;
+  constructor(readonly libraryDir: string) {}
 
-  constructor(libraryDir: string) {
-    this.libraryDir = libraryDir;
-  }
-
-  search(lastTime: number, limit: number, keywords: string): Promise<MangaOutline[]> {
+  /*
+   * Library
+   */
+  async search(lastTime: number, limit: number, keywords: string): Promise<MangaOutline[]> {
     return searchLibrary(this.libraryDir, lastTime, limit, keywords);
   }
 
-  getMangaDetail(mangaId: string): Promise<MangaDetail | undefined> {
-    return parseMangaDetail(this.libraryDir, mangaId);
-  }
-  getChapterContent(
-    mangaId: string,
-    collectionId: string,
-    chapterId: string
-  ): Promise<string[] | undefined> {
-    return parseChapterContent(this.libraryDir, mangaId, collectionId, chapterId);
+  async isMangaExist(mangaId: string): Promise<boolean> {
+    if (this.validateMangaId(mangaId)) return false;
+    const mangaDir = path.join(this.libraryDir, mangaId);
+    return fsu.isDirectoryExist(mangaDir);
   }
 
-  isMangaExist(mangaId: string): Promise<boolean> {
-    return isMangaExist(this.libraryDir, mangaId);
+  async createManga(mangaId: string): Promise<void> {
+    const mangaDir = path.join(this.libraryDir, mangaId);
+    if (fsu.isDirectoryExist(mangaDir)) return;
+    return fs.mkdir(mangaDir);
   }
-  createManga(mangaId: string): Promise<void> {
-    return createManga(this.libraryDir, mangaId);
-  }
-  deleteManga(mangaId: string): Promise<void> {
-    return removeManga(this.libraryDir, mangaId);
+
+  async deleteManga(mangaId: string): Promise<void> {
+    const mangaDir = path.join(this.libraryDir, mangaId);
+    if (!fsu.isDirectoryExist(mangaDir)) return;
+    return fs.rmdir(mangaDir, { recursive: true });
   }
 
   validateMangaId(mangaId: string): boolean {
     return validateMangaId(mangaId);
+  }
+
+  /*
+   * Manga
+   */
+  async getMangaDetail(mangaId: string): Promise<MangaDetail | undefined> {
+    if (validateMangaId(mangaId)) return undefined;
+
+    const mangaDir = path.join(this.libraryDir, mangaId);
+    if (!fsu.isDirectoryExist(mangaDir)) return undefined;
+
+    return parseMangaDetail(this.libraryDir, mangaId);
+  }
+
+  /*
+   * Chapter
+   */
+  async getChapterContent(
+    mangaId: string,
+    collectionId: string,
+    chapterId: string
+  ): Promise<string[] | undefined> {
+    if (
+      validateMangaId(mangaId) &&
+      validateCollectionId(collectionId) &&
+      validateChapterId(chapterId)
+    )
+      return undefined;
+
+    const chapterDir = path.join(this.libraryDir, mangaId, collectionId, chapterId);
+    if (!(await fsu.isDirectoryExist(chapterDir))) return undefined;
+
+    return fsu.listImageFileWithNaturalOrder(chapterDir);
   }
 }

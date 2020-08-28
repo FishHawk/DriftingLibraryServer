@@ -3,9 +3,11 @@ import bodyParser from 'body-parser';
 
 import { logger } from './logger';
 import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
-import { createLocalLibrary, LibraryAdapter } from './library/library_adapter';
+import { createLocalLibrary, LibraryAdapter } from './library/adapter';
+import { ProviderService } from './service/service.provider';
 import { ControllerAdapter } from './controller/adapter';
 import { LibraryController } from './controller/controller.library';
+import { DownloadService } from './service/service.download';
 
 export class App {
   private readonly app: express.Application;
@@ -14,6 +16,9 @@ export class App {
 
   private db!: DatabaseAdapter;
   private library!: LibraryAdapter;
+
+  private providerService!: ProviderService;
+  private downloadService!: DownloadService;
 
   private controllers!: ControllerAdapter[];
 
@@ -33,6 +38,9 @@ export class App {
 
     this.db = await createSqliteDatabase(this.libraryDir);
     this.library = createLocalLibrary(this.libraryDir);
+
+    this.providerService = new ProviderService();
+    this.downloadService = new DownloadService(this.db, this.library, this.providerService);
 
     this.controllers = [new LibraryController(this.db, this.library)];
     this.controllers.forEach((controller) => {

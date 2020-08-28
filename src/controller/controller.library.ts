@@ -1,7 +1,7 @@
 import { Request, Response, static as staticService } from 'express';
 
 import { DatabaseAdapter } from '../db/db_adapter';
-import { LibraryAdapter } from '../library/library_adapter';
+import { LibraryAdapter } from '../library/adapter';
 
 import { ControllerAdapter } from './adapter';
 import { check, checkString } from './validators';

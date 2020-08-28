@@ -2,9 +2,9 @@ import axios from 'axios';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { MangaOutline } from '../../entity/manga_outline';
+import { MangaOutline, MetadataOutline } from '../../entity/manga_outline';
 import { Status } from '../../entity/manga_status';
-import { Chapter, MangaDetail, Collection, Tag } from '../../entity/manga_detail';
+import { Chapter, MangaDetail, Collection, Tag, MetadataDetail } from '../../entity/manga_detail';
 
 import { ProviderAdapter } from '../provider_adapter';
 
@@ -57,13 +57,16 @@ function parseStatus(status: any): Status {
 
 function parseMangaList(mangas: any): MangaOutline[] {
   return mangas.map((json: any) => {
+    const metadata: MetadataOutline = {
+      title: json.mangaName,
+      authors: [json.mangaAuthor],
+      status: parseStatus(json.mangaIsOver),
+    };
     const outline: MangaOutline = {
       id: json.mangaId,
-      title: json.mangaName,
       thumb: json.mangaCoverimageUrl,
-      authors: json.mangaAuthor,
-      status: parseStatus(json.mangaIsOver),
       updateTime: undefined,
+      metadata: metadata,
     };
     return outline;
   });
@@ -91,28 +94,23 @@ function parseMangaDetail(jsonManga: any) {
     thumb = jsonManga.mangaPicimageUrl;
   if (thumb === undefined || thumb === '') thumb = jsonManga.shareIcon;
 
-  let detail: MangaDetail = {
-    source: '漫画人',
-    id: jsonManga.mangaId.toString(),
-    title: jsonManga.mangaName,
-    thumb: thumb,
-    authors: jsonManga.mangaAuthors,
-    status: parseStatus(jsonManga.mangaIsOver),
-    updateTime: moment(jsonManga.mangaNewestTime).valueOf(),
-
-    description: jsonManga.mangaIntro,
-    tags: [],
-    collections: [],
-  };
-
   // parse tag
   const tag: Tag = {
     key: 'genre',
     value: jsonManga.mangaTheme.split(' '),
   };
-  detail.tags.push(tag);
+
+  // parse metadata
+  const metadata: MetadataDetail = {
+    title: jsonManga.mangaName,
+    authors: jsonManga.mangaAuthors,
+    status: parseStatus(jsonManga.mangaIsOver),
+    description: jsonManga.mangaIntro,
+    tags: [tag],
+  };
 
   // parse collections
+  const collections: Collection[] = [];
   const parseCollection = (id: string, jsonChapterList: any) => {
     if (jsonChapterList.length > 0) {
       const chapters = jsonChapterList
@@ -126,6 +124,16 @@ function parseMangaDetail(jsonManga: any) {
   parseCollection('连载', jsonManga.mangaWords);
   parseCollection('单行本', jsonManga.mangaRolls);
   parseCollection('番外', jsonManga.mangaEpisode);
+
+  // parse detail
+  const detail: MangaDetail = {
+    source: '漫画人',
+    id: jsonManga.mangaId.toString(),
+    thumb: thumb,
+    updateTime: moment(jsonManga.mangaNewestTime).valueOf(),
+    metadata: metadata,
+    collections: collections,
+  };
 
   return detail;
 }

@@ -20,12 +20,6 @@ export class DownloadChapterTask {
   @Column()
   targetChapter!: string;
 
-  @Column({ default: 0 })
-  pageTotal!: number;
-
-  @Column({ default: 0 })
-  pageDownloaded!: number;
-
   @Column({ default: false })
   isCompleted!: boolean;
 }

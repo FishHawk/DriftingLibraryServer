@@ -16,24 +16,21 @@ export interface Tag {
   readonly value: string[];
 }
 
-export interface Metadata {
+export interface MetadataDetail {
   title?: string;
   authors?: string[];
-  tags?: Tag[];
+  status?: Status;
+
   description?: string;
+  tags?: Tag[];
 }
 
 export interface MangaDetail {
-  source: string | undefined;
+  source?: string;
   id: string;
-  title: string | undefined;
-  thumb: string | undefined;
+  thumb?: string;
+  updateTime?: number;
 
-  authors: string[] | undefined;
-  status: Status | undefined;
-  updateTime: number | undefined;
-  description: string | undefined;
-
-  tags: Tag[];
+  metadata: MetadataDetail;
   collections: Collection[];
 }

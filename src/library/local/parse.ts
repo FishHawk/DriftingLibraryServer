@@ -1,35 +1,41 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { Metadata, MangaDetail, Collection, Chapter } from '../../entity/manga_detail';
-import { MangaDetailBuilder } from '../../entity/manga_detail_builder';
+import { MetadataOutline, MangaOutline } from '../../entity/manga_outline';
+import { MetadataDetail, MangaDetail, Collection, Chapter } from '../../entity/manga_detail';
+import * as fsu from '../../util/fs';
 
-import {
-  isFileExist,
-  readJSON,
-  isDirectoryExist,
-  listDirectoryWithNaturalOrder,
-  listImageFileWithNaturalOrder,
-} from './fs_util';
-import { validateMangaId, validateCollectionId, validateChapterId } from './validate';
 
-async function parseMangaMetadata(mangaDir: string): Promise<Metadata> {
+async function parseMangaThumb(mangaDir: string) {
+  const possibleThumbFileName = ['thumb.jpg', 'thumb.png', 'thumb.png'];
+  for (const filename of possibleThumbFileName) {
+    const filepath = path.join(mangaDir, filename);
+    if (await fsu.isFileExist(filepath)) return filename;
+  }
+  // TODO: choose first image if thumb not exist
+  return undefined;
+}
+
+async function parseMangaUpdateTime(mangaDir: string) {
+  return fs.stat(mangaDir).then((x) => x.mtime.getTime());
+}
+
+async function parseMangaMetadataOutline(mangaDir: string): Promise<MetadataOutline> {
   const filepath = path.join(mangaDir, 'metadata.json');
-  return readJSON(filepath).then((json) => {
+  return fsu.readJSON(filepath).then((json) => {
     // TODO: check json schema
     if (json === undefined) return {};
     return json;
   });
 }
 
-export async function parseMangaThumb(mangaDir: string) {
-  const possibleThumbFileName = ['thumb.jpg', 'thumb.png', 'thumb.png'];
-  for (const filename of possibleThumbFileName) {
-    const filepath = path.join(mangaDir, filename);
-    if (await isFileExist(filepath)) return filename;
-  }
-  // TODO: choose first image if thumb not exist
-  return undefined;
+async function parseMangaMetadataDetail(mangaDir: string): Promise<MetadataDetail> {
+  const filepath = path.join(mangaDir, 'metadata.json');
+  return fsu.readJSON(filepath).then((json) => {
+    // TODO: check json schema
+    if (json === undefined) return {};
+    return json;
+  });
 }
 
 async function parseMangaCollections(mangaDir: string): Promise<Collection[]> {
@@ -44,15 +50,15 @@ async function parseMangaCollections(mangaDir: string): Promise<Collection[]> {
     return chapter;
   };
 
-  const subFolders = await listDirectoryWithNaturalOrder(mangaDir);
+  const subFolders = await fsu.listDirectoryWithNaturalOrder(mangaDir);
   if (subFolders.length != 0) {
     let collections = [];
 
     // depth 3
     for (const collectionId of subFolders) {
-      const chapters = await listDirectoryWithNaturalOrder(
-        path.join(mangaDir, collectionId)
-      ).then((list) => list.map(parseChapterId));
+      const chapters = await fsu
+        .listDirectoryWithNaturalOrder(path.join(mangaDir, collectionId))
+        .then((list) => list.map(parseChapterId));
       if (chapters.length > 0) {
         const collection: Collection = { id: collectionId, chapters: chapters };
         collections.push(collection);
@@ -76,55 +82,28 @@ async function parseMangaCollections(mangaDir: string): Promise<Collection[]> {
   }
 }
 
-export async function parseMangaDetail(
+export async function parseMangaOutline(
   libraryDir: string,
   mangaId: string
-): Promise<MangaDetail | undefined> {
-  if (validateMangaId(mangaId)) return undefined;
-
+): Promise<MangaOutline> {
   const mangaDir = path.join(libraryDir, mangaId);
-  if (!isDirectoryExist(mangaDir)) return undefined;
-
-  return new MangaDetailBuilder(mangaId)
-    .setMetaData(await parseMangaMetadata(mangaDir))
-    .setThumb(await parseMangaThumb(mangaDir))
-    .setCollections(await parseMangaCollections(mangaDir))
-    .setUpdateTime(await fs.stat(mangaDir).then((x) => x.mtime.getTime()))
-    .build();
+  const mangaOutline: MangaOutline = {
+    id: mangaId,
+    thumb: await parseMangaThumb(mangaDir),
+    updateTime: await parseMangaUpdateTime(mangaDir),
+    metadata: await parseMangaMetadataOutline(mangaDir),
+  };
+  return mangaOutline;
 }
 
-export async function parseChapterContent(
-  libraryDir: string,
-  mangaId: string,
-  collectionId: string,
-  chapterId: string
-): Promise<string[] | undefined> {
-  if (
-    validateMangaId(mangaId) &&
-    validateCollectionId(collectionId) &&
-    validateChapterId(chapterId)
-  )
-    return undefined;
-
-  const chapterDir = path.join(libraryDir, mangaId, collectionId, chapterId);
-  if (!(await isDirectoryExist(chapterDir))) return undefined;
-  return listImageFileWithNaturalOrder(chapterDir);
-}
-
-export async function isMangaExist(libraryDir: string, mangaId: string): Promise<boolean> {
-  if (validateMangaId(mangaId)) return false;
+export async function parseMangaDetail(libraryDir: string, mangaId: string): Promise<MangaDetail> {
   const mangaDir = path.join(libraryDir, mangaId);
-  return isDirectoryExist(mangaDir);
-}
-
-export async function createManga(libraryDir: string, mangaId: string): Promise<void> {
-  const mangaDir = path.join(libraryDir, mangaId);
-  if (isDirectoryExist(mangaDir)) return;
-  return fs.mkdir(mangaDir);
-}
-
-export async function removeManga(libraryDir: string, mangaId: string): Promise<void> {
-  const mangaDir = path.join(libraryDir, mangaId);
-  if (!isDirectoryExist(mangaDir)) return;
-  return fs.rmdir(mangaDir, { recursive: true });
+  const mangaDetail: MangaDetail = {
+    id: mangaId,
+    thumb: await parseMangaThumb(mangaDir),
+    updateTime: await parseMangaUpdateTime(mangaDir),
+    metadata: await parseMangaMetadataDetail(mangaDir),
+    collections: await parseMangaCollections(mangaDir),
+  };
+  return mangaDetail;
 }

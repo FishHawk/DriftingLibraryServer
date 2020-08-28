@@ -1,7 +1,7 @@
 import { ProviderAdapter, ProviderInfo } from '../provider/provider_adapter';
 import ProviderManhuaren from '../provider/providers/manhuaren';
 
-class ProviderService {
+export class ProviderService {
   readonly providers: Record<string, ProviderAdapter> = {};
 
   constructor() {

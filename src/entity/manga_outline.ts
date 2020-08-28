@@ -1,11 +1,15 @@
-import { Status } from "./manga_status";
+import { Status } from './manga_status';
+
+export interface MetadataOutline {
+  title?: string;
+  authors?: string[];
+  status?: Status;
+}
 
 export interface MangaOutline {
   id: string;
-  title: string;
   thumb: string | undefined;
-
-  status: Status | undefined;
-  authors: string[] | undefined;
   updateTime: number | undefined;
+
+  metadata: MetadataOutline;
 }

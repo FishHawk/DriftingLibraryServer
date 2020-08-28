@@ -1,5 +1,5 @@
 import assert from 'assert';
-import Manhuaren from '../src/remote/providers/manhuaren';
+import Manhuaren from '../src/provider/providers/manhuaren';
 
 describe('Source test: manhuaren', function () {
   const provider = new Manhuaren();

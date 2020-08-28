@@ -1,11 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { MangaOutline } from '../../entity/manga_outline';
-
+import { readJSON } from '../../util/fs';
 import { Filter, MatchEntry } from './filter';
-import { readJSON } from './fs_util';
-import { parseMangaThumb } from './parse';
+import { parseMangaOutline } from './parse';
 
 async function listLibraryWithMtime(libraryDir: string) {
   return fs.readdir(libraryDir, { withFileTypes: true }).then((list) => {
@@ -49,23 +47,19 @@ export async function searchLibrary(
   const mangaList = await listLibraryWithMtime(libraryDir).then((list) => {
     return list
       .filter((v) => (lastTime === undefined ? true : v.time < lastTime))
-      .sort((a, b) => b.time - a.time);
+      .sort((a, b) => b.time - a.time)
+      .map((v) => v.id);
   });
 
   const filter = new Filter(keywords);
   const result = [];
+
   for (let i = 0; i < mangaList.length; ++i) {
-    const x = mangaList[i];
-    const entry = await buildMatchEntry(libraryDir, x.id);
+    const mangaId = mangaList[i];
+    const entry = await buildMatchEntry(libraryDir, mangaId);
+
     if (filter.check(entry)) {
-      const outline: MangaOutline = {
-        id: x.id,
-        title: entry.title,
-        thumb: await parseMangaThumb(x.id),
-        status: undefined,
-        authors: entry.authors,
-        updateTime: x.time,
-      };
+      const outline = await parseMangaOutline(libraryDir, mangaId);
       result.push(outline);
       if (result.length >= limit) break;
     }
