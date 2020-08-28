@@ -2,5 +2,6 @@
 node_modules/
 log/
 out/
-start.sh
+
+.env
 package-lock.json
