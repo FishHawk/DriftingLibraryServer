@@ -16,8 +16,10 @@ export interface LibraryAdapter {
   isMangaExist(mangaId: string): Promise<boolean>;
   createManga(mangaId: string): Promise<void>;
   deleteManga(mangaId: string): Promise<void>;
+
+  validateMangaId(mangaId: string): boolean;
 }
 
-export function createLocalLibrary(path: string): LibraryLocal {
+export function createLocalLibrary(path: string): LibraryAdapter {
   return new LibraryLocal(path);
 }

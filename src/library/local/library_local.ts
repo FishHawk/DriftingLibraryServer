@@ -3,8 +3,15 @@ import { MangaDetail } from '../../entity/manga_detail';
 
 import { LibraryAdapter } from '../library_adapter';
 
-import { parseMangaDetail, parseChapterContent } from './parse';
+import {
+  parseMangaDetail,
+  parseChapterContent,
+  removeManga,
+  createManga,
+  isMangaExist,
+} from './parse';
 import { searchLibrary } from './search';
+import { validateMangaId } from './validate';
 
 export class LibraryLocal implements LibraryAdapter {
   libraryDir: string;
@@ -29,12 +36,16 @@ export class LibraryLocal implements LibraryAdapter {
   }
 
   isMangaExist(mangaId: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    return isMangaExist(this.libraryDir, mangaId);
   }
   createManga(mangaId: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    return createManga(this.libraryDir, mangaId);
   }
   deleteManga(mangaId: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    return removeManga(this.libraryDir, mangaId);
+  }
+
+  validateMangaId(mangaId: string): boolean {
+    return validateMangaId(mangaId);
   }
 }

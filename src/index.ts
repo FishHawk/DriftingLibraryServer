@@ -1,27 +1,11 @@
-import path from 'path';
-import express from 'express';
-import bodyParser from 'body-parser';
-
 import { port, libraryDir } from './config';
 import { logger } from './logger';
-import { createSqliteDatabase } from './db/db_adapter';
-import { createLocalLibrary } from './library/library_adapter';
-// import router from './routes/index.js';
+import { App } from './app';
 
-// import './provider/subscriber.js';
-
-async function setup() {
-  const db = await createSqliteDatabase(libraryDir);
-  const library = createLocalLibrary(libraryDir);
-
-  const app = express();
-
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: false }));
-  //   app.use('/', router);
-  app.listen(port, () => {
-    logger.info(`Init: Listen on http://localhost:${port}`);
+App.createApplication(port, libraryDir)
+  .then((app) => {
+    app.listen();
+  })
+  .catch((e) => {
+    logger.error(e);
   });
-}
-
-setup();
