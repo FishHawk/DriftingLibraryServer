@@ -6,7 +6,7 @@ import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
 import { createLocalLibrary, LibraryAdapter } from './library/adapter';
 import { ProviderService } from './service/service.provider';
 import { ControllerAdapter } from './controller/adapter';
-import { LibraryController } from './controller/controller.library';
+import { ControllerLibrary } from './controller/controller.library';
 import { DownloadService } from './service/service.download';
 
 export class App {
@@ -42,7 +42,7 @@ export class App {
     this.providerService = new ProviderService();
     this.downloadService = new DownloadService(this.db, this.library, this.providerService);
 
-    this.controllers = [new LibraryController(this.db, this.library)];
+    this.controllers = [new ControllerLibrary(this.db, this.library)];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);
     });

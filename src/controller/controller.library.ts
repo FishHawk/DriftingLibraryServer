@@ -6,15 +6,11 @@ import { LibraryAdapter } from '../library/adapter';
 import { ControllerAdapter } from './adapter';
 import { check, checkString } from './validators';
 import { BadRequestError, NotFoundError } from './exceptions';
+import { DownloadService } from '../service/service.download';
 
-export class LibraryController extends ControllerAdapter {
-  readonly db: DatabaseAdapter;
-  readonly library: LibraryAdapter;
-
-  constructor(db: DatabaseAdapter, library: LibraryAdapter) {
+export class ControllerLibrary extends ControllerAdapter {
+  constructor(private readonly db: DatabaseAdapter, private readonly library: LibraryAdapter) {
     super();
-    this.db = db;
-    this.library = library;
 
     this.router.get('/library/search', this.wrap(this.search));
 
