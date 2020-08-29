@@ -1,3 +1,5 @@
+import { validateFilename } from '../util/validate';
+
 class Validator<T> {
   protected value: T;
 
@@ -47,6 +49,11 @@ class ValidatorString extends Validator<string> {
   toFloat() {
     const number = Number.parseFloat(this.value);
     if (!Number.isNaN(number)) return new ValidatorNumber(number);
+    return undefined;
+  }
+
+  isFilename() {
+    if (validateFilename(this.value)) return this;
     return undefined;
   }
 }

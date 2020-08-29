@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import 'reflect-metadata';
 
 @Entity()
 export class Subscription {

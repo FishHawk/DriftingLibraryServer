@@ -11,18 +11,4 @@ function validateFilenameWin(filename: string) {
 }
 
 const isWin = process.platform === 'win32';
-const validateFilename = isWin ? validateFilenameWin : validateFilenameLinux;
-
-export function validateMangaId(id: string) {
-  return validateFilename(id);
-}
-
-export function validateCollectionId(id: string) {
-  if (id.length === 0) return true;
-  return validateFilename(id);
-}
-
-export function validateChapterId(id: string) {
-  if (id.length === 0) return true;
-  return validateFilename(id);
-}
+export const validateFilename = isWin ? validateFilenameWin : validateFilenameLinux;

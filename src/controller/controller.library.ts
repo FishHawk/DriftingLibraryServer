@@ -1,15 +1,14 @@
 import { Request, Response, static as staticService } from 'express';
 
 import { DatabaseAdapter } from '../db/db_adapter';
-import { LibraryAdapter } from '../library/adapter';
+import { AccessorLibrary } from '../library/accessor.library';
 
 import { ControllerAdapter } from './adapter';
 import { check, checkString } from './validators';
 import { BadRequestError, NotFoundError } from './exceptions';
-import { DownloadService } from '../service/service.download';
 
 export class ControllerLibrary extends ControllerAdapter {
-  constructor(private readonly db: DatabaseAdapter, private readonly library: LibraryAdapter) {
+  constructor(private readonly db: DatabaseAdapter, private readonly library: AccessorLibrary) {
     super();
 
     this.router.get('/library/search', this.wrap(this.search));
@@ -18,10 +17,11 @@ export class ControllerLibrary extends ControllerAdapter {
     this.router.delete('/library/manga/:id', this.wrap(this.deleteManga));
 
     this.router.get('/library/chapter/:id', this.wrap(this.getChapter));
+    // TODO
     this.router.use(
       '/library/image',
       this.wrap((req, res, next) => {
-        staticService(this.library.libraryDir)(req, res, next);
+        staticService(this.library.dir)(req, res, next);
       })
     );
   }
@@ -40,22 +40,23 @@ export class ControllerLibrary extends ControllerAdapter {
   }
 
   async getManga(req: Request, res: Response) {
-    const id = checkString(req.params.id).custom(this.library.validateMangaId)?.to();
+    const id = checkString(req.params.id).isFilename()?.to();
     if (id === undefined) throw new BadRequestError('Illegal argument: id');
 
-    const detail = await this.library.getMangaDetail(id);
+    const manga = await this.library.openManga(id);
+    const detail = await manga?.parseMangaDetail();
     if (detail === undefined) throw new NotFoundError('Not found: manga');
 
     return res.json(detail);
   }
 
   async deleteManga(req: Request, res: Response) {
-    const id = checkString(req.params.id).custom(this.library.validateMangaId)?.to();
+    const id = checkString(req.params.id).isFilename()?.to();
     if (id === undefined) throw new BadRequestError('Illegal argument: id');
 
     if (!(await this.library.isMangaExist(id))) throw new NotFoundError('Not found: manga');
-
     await this.library.deleteManga(id!);
+
     await this.db.downloadChapterTaskRepository.delete({ targetManga: id });
     await this.db.downloadTaskRepository.delete({ targetManga: id });
     await this.db.subscriptionRepository.delete({ targetManga: id });
@@ -63,7 +64,7 @@ export class ControllerLibrary extends ControllerAdapter {
   }
 
   async getChapter(req: Request, res: Response) {
-    const id = checkString(req.params.id).custom(this.library.validateMangaId)?.to();
+    const id = checkString(req.params.id).isFilename()?.to();
     const collectionId = check(req.query.collection).isString()?.to();
     const chapterId = check(req.query.chapter).isString()?.to();
 
@@ -71,8 +72,10 @@ export class ControllerLibrary extends ControllerAdapter {
     if (collectionId === undefined) throw new BadRequestError('Illegal argument: collectionId');
     if (chapterId === undefined) throw new BadRequestError('Illegal argument: chapterId');
 
-    const content = this.library.getChapterContent(id, collectionId, chapterId);
-    if (content === null) throw new NotFoundError('Not found: chapter');
+    const manga = await this.library.openManga(id);
+    const chapter = await manga?.openChapter(collectionId, chapterId);
+    const content = chapter?.listImage();
+    if (content === undefined) throw new NotFoundError('Not found: chapter');
 
     return res.json(content);
   }

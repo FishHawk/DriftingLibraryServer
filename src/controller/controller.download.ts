@@ -1,7 +1,7 @@
 import { Request, Response, static as staticService } from 'express';
 
 import { DatabaseAdapter } from '../db/db_adapter';
-import { LibraryAdapter } from '../library/adapter';
+import { AccessorLibrary } from '../library/accessor.library';
 
 import { ControllerAdapter } from './adapter';
 import { check, checkString } from './validators';
@@ -12,7 +12,7 @@ import { DownloadTaskStatus } from '../db/entity/download_task';
 export class ControllerDownload extends ControllerAdapter {
   constructor(
     private readonly db: DatabaseAdapter,
-    private readonly library: LibraryAdapter,
+    private readonly library: AccessorLibrary,
     private readonly downloadService: DownloadService
   ) {
     super();

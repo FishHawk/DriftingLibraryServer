@@ -1,9 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { readJSON } from '../../util/fs';
+import { readJSON } from '../util/fs';
 import { Filter, MatchEntry } from './filter';
-import { parseMangaOutline } from './parse';
+import { AccessorManga } from './accessor.manga';
 
 async function listLibraryWithMtime(libraryDir: string) {
   return fs.readdir(libraryDir, { withFileTypes: true }).then((list) => {
@@ -59,7 +59,8 @@ export async function searchLibrary(
     const entry = await buildMatchEntry(libraryDir, mangaId);
 
     if (filter.check(entry)) {
-      const outline = await parseMangaOutline(libraryDir, mangaId);
+      const accessor = new AccessorManga(libraryDir, mangaId);
+      const outline = await accessor.parseMangaOutline();
       result.push(outline);
       if (result.length >= limit) break;
     }

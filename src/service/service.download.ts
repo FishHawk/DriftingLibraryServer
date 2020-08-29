@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import { DatabaseAdapter } from '../db/db_adapter';
 import { DownloadTask, DownloadTaskStatus } from '../db/entity/download_task';
 import { Collection, MetadataDetail } from '../entity/manga_detail';
-import { LibraryAdapter } from '../library/adapter';
+import { AccessorLibrary } from '../library/accessor.library';
 import * as fsu from '../util/fs';
 
 import { ProviderService } from './service.provider';
@@ -25,7 +25,7 @@ class AsyncTaskCancelError extends Error {
 export class DownloadService {
   constructor(
     private readonly db: DatabaseAdapter,
-    private readonly library: LibraryAdapter,
+    private readonly library: AccessorLibrary,
     private readonly providerService: ProviderService
   ) {}
 
@@ -79,7 +79,7 @@ export class DownloadService {
       const detail = await provider.requestMangaDetail(task.sourceManga);
       this.cancelIfNeed();
 
-      const mangaDir = path.join(this.library.libraryDir, task.targetManga);
+      const mangaDir = path.join(this.library.dir, task.targetManga);
       if (detail.thumb !== undefined) await this.downloadThumb(mangaDir, detail.thumb, provider);
       await this.downloadMetadata(mangaDir, detail.metadata);
       await this.downloadContent(mangaDir, detail.collections, provider, task);
@@ -196,7 +196,7 @@ export class DownloadService {
     this.cancelIfNeed();
 
     const chapterDir = path.join(
-      this.library.libraryDir,
+      this.library.dir,
       chapterTask.targetManga,
       chapterTask.targetCollection,
       chapterTask.targetChapter
