@@ -41,6 +41,10 @@ export class App {
   private async initialize() {
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: false }));
+    this.app.use(function (req, res, next) {
+      logger.info(`Request: ${req.method} ${req.url}`);
+      next();
+    });
 
     this.db = await createSqliteDatabase(this.libraryDir);
     this.libraryAccessor = new AccessorLibrary(this.libraryDir);
