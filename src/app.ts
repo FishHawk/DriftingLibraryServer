@@ -4,14 +4,15 @@ import bodyParser from 'body-parser';
 import { logger } from './logger';
 
 import { ControllerAdapter } from './controller/adapter';
-import { ControllerLibrary } from './controller/controller.library';
 import { ControllerDownload } from './controller/controller.download';
+import { ControllerLibrary } from './controller/controller.library';
+import { ControllerProvider } from './controller/controller.provider';
 
 import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
 import { AccessorLibrary } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
-import { DownloadService } from './download/service';
-import { ControllerProvider } from './controller/controller.provider';
+import { DownloadService } from './download/service.download';
+import { SubscribeService } from './download/service.subscribe';
 
 export class App {
   private readonly app: express.Application;
@@ -22,6 +23,7 @@ export class App {
   private libraryAccessor!: AccessorLibrary;
   private providerManager!: ProviderManager;
   private downloadService!: DownloadService;
+  private subscribeService!: SubscribeService;
 
   private controllers!: ControllerAdapter[];
 
@@ -44,6 +46,7 @@ export class App {
     this.providerManager = new ProviderManager();
 
     this.downloadService = new DownloadService(this.db, this.libraryAccessor, this.providerManager);
+    this.subscribeService = new SubscribeService(this.db, this.downloadService);
 
     this.controllers = [
       new ControllerDownload(this.downloadService),

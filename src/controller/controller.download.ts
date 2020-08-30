@@ -1,6 +1,6 @@
 import { Request, Response, static as staticService } from 'express';
 
-import { DownloadService } from '../download/service';
+import { DownloadService } from '../download/service.download';
 
 import { ControllerAdapter } from './adapter';
 import { check, checkString } from './validators';

@@ -68,7 +68,12 @@ export class DownloadService {
     );
   }
 
-  async createDownloadTask(source: string, sourceManga: string, targetManga: string) {
+  async createDownloadTask(
+    source: string,
+    sourceManga: string,
+    targetManga: string,
+    isCreatedBySubscription: boolean = false
+  ) {
     if (await this.library.isMangaExist(targetManga)) return undefined;
     await this.library.createManga(targetManga);
 
@@ -76,7 +81,7 @@ export class DownloadService {
       source,
       sourceManga,
       targetManga,
-      isCreatedBySubscription: false,
+      isCreatedBySubscription,
     });
     this.start();
     return task;
