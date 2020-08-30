@@ -1,10 +1,11 @@
-import { Request, Response, static as staticService } from 'express';
+import { Request, Response } from 'express';
+
+import { ProviderManager } from '../provider/manager';
+import { ProviderAdapter } from '../provider/adapter';
 
 import { ControllerAdapter } from './adapter';
 import { check } from './validators';
 import { BadRequestError } from './exceptions';
-import { ProviderManager } from '../provider/manager';
-import { ProviderAdapter } from '../provider/adapter';
 
 export class ControllerProvider extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {

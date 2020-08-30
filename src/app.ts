@@ -7,6 +7,7 @@ import { ControllerAdapter } from './controller/adapter';
 import { ControllerDownload } from './controller/controller.download';
 import { ControllerLibrary } from './controller/controller.library';
 import { ControllerProvider } from './controller/controller.provider';
+import { ControllerSubscription } from './controller/controller.subscription';
 
 import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
 import { AccessorLibrary } from './library/accessor.library';
@@ -52,6 +53,7 @@ export class App {
       new ControllerDownload(this.downloadService),
       new ControllerLibrary(this.db, this.libraryAccessor),
       new ControllerProvider(this.providerManager),
+      new ControllerSubscription(this.providerManager, this.subscribeService),
     ];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);
