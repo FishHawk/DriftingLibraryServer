@@ -117,7 +117,7 @@ function parseMangaDetail(jsonManga: any) {
         .map((jsonChapter: any) => parseChapter(jsonChapter))
         .reverse();
       const collecton: Collection = { id, chapters };
-      detail.collections.push(collecton);
+      collections.push(collecton);
     }
   };
 
@@ -217,7 +217,7 @@ export default class ProviderManhuaren extends ProviderAdapter {
       .then((response) => parseMangaDetail(response.data.response));
   }
 
-  requestChapterContent(id: string): Promise<any> {
+  requestChapterContent(id: string): Promise<string[]> {
     return this.instance
       .get('/v1/manga/getRead', {
         params: addExtraParam({
@@ -230,18 +230,11 @@ export default class ProviderManhuaren extends ProviderAdapter {
       .then((response) => parseChapterContent(response.data.response));
   }
 
-  requestImage(url: string, stream: any): Promise<void> {
+  requestImage(url: string): Promise<Buffer> {
     return this.instance({
       method: 'get',
       url: encodeURI(url),
-      responseType: 'stream',
-    }).then(
-      (response) =>
-        new Promise((resolve, reject) => {
-          stream.on('finish', resolve);
-          stream.on('error', reject);
-          response.data.pipe(stream);
-        })
-    );
+      responseType: 'arraybuffer',
+    }).then((response) => response.data);
   }
 }

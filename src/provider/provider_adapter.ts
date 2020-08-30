@@ -23,5 +23,5 @@ export abstract class ProviderAdapter implements ProviderInfo {
 
   abstract requestMangaDetail(id: string): Promise<any>;
   abstract requestChapterContent(id: string): Promise<any>;
-  abstract requestImage(url: string, stream: any): Promise<void>;
+  abstract requestImage(url: string): Promise<Buffer>;
 }
