@@ -12,8 +12,8 @@ export class ProviderManager {
     this.providers[provider.name] = provider;
   }
 
-  getProvider(name: string): ProviderAdapter | undefined {
-    return name in this.providers ? this.providers[name] : undefined;
+  getProvider(id: string): ProviderAdapter | undefined {
+    return id in this.providers ? this.providers[id] : undefined;
   }
 
   getProviderInfoList(): ProviderInfo[] {

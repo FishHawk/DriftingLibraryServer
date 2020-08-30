@@ -11,6 +11,7 @@ import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
 import { AccessorLibrary } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './download/service';
+import { ControllerProvider } from './controller/controller.provider';
 
 export class App {
   private readonly app: express.Application;
@@ -45,8 +46,9 @@ export class App {
     this.downloadService = new DownloadService(this.db, this.libraryAccessor, this.providerManager);
 
     this.controllers = [
-      new ControllerLibrary(this.db, this.libraryAccessor),
       new ControllerDownload(this.downloadService),
+      new ControllerLibrary(this.db, this.libraryAccessor),
+      new ControllerProvider(this.providerManager),
     ];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);
