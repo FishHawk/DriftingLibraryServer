@@ -6,7 +6,7 @@ import { MangaOutline, MetadataOutline } from '../../entity/manga_outline';
 import { Status } from '../../entity/manga_status';
 import { Chapter, MangaDetail, Collection, Tag, MetadataDetail } from '../../entity/manga_detail';
 
-import { ProviderAdapter } from '../provider_adapter';
+import { ProviderAdapter } from '../adapter';
 
 /*
  *  Param helper

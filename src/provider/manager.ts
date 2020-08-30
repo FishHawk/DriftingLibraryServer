@@ -1,7 +1,7 @@
-import { ProviderAdapter, ProviderInfo } from '../provider/provider_adapter';
-import ProviderManhuaren from '../provider/providers/manhuaren';
+import { ProviderAdapter, ProviderInfo } from './adapter';
+import ProviderManhuaren from './providers/manhuaren';
 
-export class ProviderService {
+export class ProviderManager {
   readonly providers: Record<string, ProviderAdapter> = {};
 
   constructor() {

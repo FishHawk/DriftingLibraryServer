@@ -2,12 +2,15 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 import { logger } from './logger';
-import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
-import { AccessorLibrary } from './library/accessor.library';
-import { ProviderService } from './service/service.provider';
+
 import { ControllerAdapter } from './controller/adapter';
 import { ControllerLibrary } from './controller/controller.library';
-import { DownloadService } from './service/service.download';
+import { ControllerDownload } from './controller/controller.download';
+
+import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
+import { AccessorLibrary } from './library/accessor.library';
+import { ProviderManager } from './provider/manager';
+import { DownloadService } from './download/service';
 
 export class App {
   private readonly app: express.Application;
@@ -15,9 +18,8 @@ export class App {
   private readonly libraryDir: string;
 
   private db!: DatabaseAdapter;
-  private library!: AccessorLibrary;
-
-  private providerService!: ProviderService;
+  private libraryAccessor!: AccessorLibrary;
+  private providerManager!: ProviderManager;
   private downloadService!: DownloadService;
 
   private controllers!: ControllerAdapter[];
@@ -37,12 +39,15 @@ export class App {
     this.app.use(bodyParser.urlencoded({ extended: false }));
 
     this.db = await createSqliteDatabase(this.libraryDir);
-    this.library = new AccessorLibrary(this.libraryDir);
+    this.libraryAccessor = new AccessorLibrary(this.libraryDir);
+    this.providerManager = new ProviderManager();
 
-    this.providerService = new ProviderService();
-    this.downloadService = new DownloadService(this.db, this.library, this.providerService);
+    this.downloadService = new DownloadService(this.db, this.libraryAccessor, this.providerManager);
 
-    this.controllers = [new ControllerLibrary(this.db, this.library)];
+    this.controllers = [
+      new ControllerLibrary(this.db, this.libraryAccessor),
+      new ControllerDownload(this.downloadService),
+    ];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);
     });
