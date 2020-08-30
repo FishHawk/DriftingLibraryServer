@@ -35,6 +35,28 @@ export class AccessorManga {
     return mangaDetail;
   }
 
+  async updateMangaDetail(detail: MangaDetail, thumb: Buffer | undefined): Promise<void> {
+    //TODO: better check
+    const matedataPath = path.join(this.dir, 'metadata.json');
+    await fs.writeFile(matedataPath, JSON.stringify(detail.metadata));
+
+    if (thumb !== undefined) {
+      const thumbPath = path.join(this.dir, 'thumb.jpg');
+      return fs.writeFile(thumbPath, thumb);
+    }
+
+    for (const collection of detail.collections) {
+      const collectionDir = path.join(this.dir, collection.id);
+      if (!(await fsu.isDirectoryExist(collectionDir))) await fs.mkdir(collectionDir);
+
+      for (const chapter of collection.chapters) {
+        const chapterId = `${chapter.name} ${chapter.title}`;
+        const chapterDir = path.join(collectionDir, chapterId);
+        if (!(await fsu.isDirectoryExist(chapterDir))) await fs.mkdir(chapterDir);
+      }
+    }
+  }
+
   async openChapter(collectionId: string, chapterId: string) {
     // TODO: better check
     if (collectionId.length !== 0 && validateFilename(collectionId)) return undefined;
@@ -120,4 +142,9 @@ export class AccessorManga {
       return [collection];
     }
   }
+  // async refreshModifiedTime() {
+  //   const tempPath = path.join(this.dir, 'temp.json');
+  //   await fsp.open(tempPath, 'w').then((f) => f.close());
+  //   await fs.unlinkSync(tempPath);
+  // }
 }

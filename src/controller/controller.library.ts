@@ -57,9 +57,9 @@ export class ControllerLibrary extends ControllerAdapter {
     if (!(await this.library.isMangaExist(id))) throw new NotFoundError('Not found: manga');
     await this.library.deleteManga(id!);
 
-    await this.db.downloadChapterTaskRepository.delete({ targetManga: id });
-    await this.db.downloadTaskRepository.delete({ targetManga: id });
-    await this.db.subscriptionRepository.delete({ targetManga: id });
+    // await this.db.downloadChapterRepository.delete({ targetManga: id });
+    // await this.db.downloadTaskRepository.delete({ targetManga: id });
+    // await this.db.subscriptionRepository.delete({ targetManga: id });
     return res.json(id);
   }
 
