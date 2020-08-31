@@ -9,7 +9,7 @@ import { ControllerLibrary } from './controller/controller.library';
 import { ControllerProvider } from './controller/controller.provider';
 import { ControllerSubscription } from './controller/controller.subscription';
 
-import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
+import { createSqliteDatabase, DatabaseAdapter } from './database/db_adapter';
 import { AccessorLibrary } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './download/service.download';
@@ -20,7 +20,7 @@ export class App {
   private readonly port: number;
   private readonly libraryDir: string;
 
-  private db!: DatabaseAdapter;
+  private database!: DatabaseAdapter;
   private libraryAccessor!: AccessorLibrary;
   private providerManager!: ProviderManager;
   private downloadService!: DownloadService;
@@ -46,12 +46,16 @@ export class App {
       next();
     });
 
-    this.db = await createSqliteDatabase(this.libraryDir);
+    this.database = await createSqliteDatabase(this.libraryDir);
     this.libraryAccessor = new AccessorLibrary(this.libraryDir);
     this.providerManager = new ProviderManager();
 
-    this.downloadService = new DownloadService(this.db, this.libraryAccessor, this.providerManager);
-    this.subscribeService = new SubscriptionService(this.db, this.downloadService);
+    this.downloadService = new DownloadService(
+      this.database,
+      this.libraryAccessor,
+      this.providerManager
+    );
+    this.subscribeService = new SubscriptionService(this.database, this.downloadService);
 
     this.controllers = [
       new ControllerLibrary(this.libraryAccessor, this.downloadService, this.subscribeService),

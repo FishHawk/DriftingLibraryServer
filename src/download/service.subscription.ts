@@ -1,8 +1,8 @@
 import { CronJob } from 'cron';
 
 import { logger } from '../logger';
-import { DatabaseAdapter, Entity } from '../db/db_adapter';
-import { DownloadTaskStatus } from '../db/entity/download_task';
+import { DatabaseAdapter, Entity } from '../database/db_adapter';
+import { DownloadTaskStatus } from '../database/entity/download_task';
 
 import { DownloadService } from './service.download';
 

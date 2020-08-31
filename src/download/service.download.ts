@@ -1,6 +1,6 @@
 import { logger } from '../logger';
-import { DatabaseAdapter } from '../db/db_adapter';
-import { DownloadTask, DownloadTaskStatus } from '../db/entity/download_task';
+import { DatabaseAdapter } from '../database/db_adapter';
+import { DownloadTask, DownloadTaskStatus } from '../database/entity/download_task';
 
 import { ProviderAdapter } from '../provider/adapter';
 import { ProviderManager } from '../provider/manager';
