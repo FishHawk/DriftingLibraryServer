@@ -4,11 +4,20 @@ import dotenv from 'dotenv';
 import { logger } from './logger';
 import { App } from './app';
 
+/*
+ * Read .env file
+ */
 dotenv.config();
 
+/*
+ * Parse environment variables
+ */
 const port = parseEnvPort(process.env.APP_PORT);
 const libraryDir = parseEnvLibraryDir(process.env.APP_LIBRARY_DIR);
 
+/*
+ * Start application
+ */
 App.createApplication(port, libraryDir)
   .then((app) => {
     app.listen();
@@ -17,6 +26,9 @@ App.createApplication(port, libraryDir)
     logger.error(e);
   });
 
+/*
+ * Helper function
+ */
 function parseEnvPort(envPort: string | undefined): number {
   if (envPort !== undefined) {
     const port = Number.parseInt(envPort);
