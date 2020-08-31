@@ -8,6 +8,4 @@ export abstract class ControllerAdapter {
       callback(req, res, next).catch(next);
     };
   }
-
-
 }

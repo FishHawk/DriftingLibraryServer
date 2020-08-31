@@ -40,7 +40,7 @@ async function buildMatchEntry(libraryDir: string, id: string): Promise<MatchEnt
 
 export async function searchLibrary(
   libraryDir: string,
-  lastTime: number,
+  lastTime: number | undefined,
   limit: number,
   keywords: string
 ) {

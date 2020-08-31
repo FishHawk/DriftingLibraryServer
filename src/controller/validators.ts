@@ -56,6 +56,10 @@ class ValidatorString extends Validator<string> {
     if (validateFilename(this.value)) return this;
     return undefined;
   }
+  isEmpty() {
+    if (this.value.length === 0) return this;
+    return undefined;
+  }
 }
 
 class ValidatorNumber extends Validator<number> {

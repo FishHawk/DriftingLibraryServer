@@ -1,3 +1,4 @@
+
 export class HttpError extends Error {
   status: number;
 
@@ -33,9 +34,3 @@ export class InternalServerError extends HttpError {
     super(500, message);
   }
 }
-
-// export function errorWarp(callback) {
-//   return function (req, res, next) {
-//     callback(req, res, next).catch(next);
-//   };
-// }

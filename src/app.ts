@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 
 import { logger } from './logger';
@@ -14,6 +14,7 @@ import { AccessorLibrary } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './download/service.download';
 import { SubscriptionService } from './download/service.subscription';
+import { HttpError } from './controller/exceptions';
 
 export class App {
   private readonly app: express.Application;
@@ -39,13 +40,18 @@ export class App {
   }
 
   private async initialize() {
+    // Middlewares
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: false }));
-    this.app.use(function (req, res, next) {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
       logger.info(`Request: ${req.method} ${req.url}`);
       next();
     });
+    this.app.get('/test', (req: Request, res: Response) => {
+      res.send('Hello World!');
+    });
 
+    // Components
     this.database = await createSqliteDatabase(this.libraryDir);
     this.libraryAccessor = new AccessorLibrary(this.libraryDir);
     this.providerManager = new ProviderManager();
@@ -57,6 +63,7 @@ export class App {
     );
     this.subscribeService = new SubscriptionService(this.database, this.downloadService);
 
+    // Controllers
     this.controllers = [
       new ControllerLibrary(this.libraryAccessor, this.downloadService, this.subscribeService),
       new ControllerProvider(this.providerManager),
@@ -65,6 +72,14 @@ export class App {
     ];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);
+    });
+
+    // Error handle
+    this.app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
+      logger.error(err.stack);
+      const status = err.status || 500;
+      const message = err.message || 'Unexceped error.';
+      res.status(status).send(message);
     });
 
     return this;

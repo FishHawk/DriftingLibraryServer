@@ -60,8 +60,8 @@ export class AccessorManga {
 
   async openChapter(collectionId: string, chapterId: string) {
     // TODO: better check
-    if (collectionId.length !== 0 && validateFilename(collectionId)) return undefined;
-    if (chapterId.length !== 0 && validateFilename(chapterId)) return undefined;
+    if (collectionId.length !== 0 && !validateFilename(collectionId)) return undefined;
+    if (chapterId.length !== 0 && !validateFilename(chapterId)) return undefined;
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
     if (!(await fsu.isDirectoryExist(chapterDir))) return undefined;
