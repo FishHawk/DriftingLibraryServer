@@ -1,4 +1,4 @@
-import { Request, Response, static as staticService } from 'express';
+import { Request, Response } from 'express';
 
 import { DatabaseAdapter } from '../db/db_adapter';
 import { AccessorLibrary } from '../library/accessor.library';

@@ -1,4 +1,4 @@
-import { MangaDetail } from "../entity/manga_detail";
+import { MangaDetail } from "../library/entity/manga_detail";
 
 export interface ProviderInfo {
   readonly lang: string;

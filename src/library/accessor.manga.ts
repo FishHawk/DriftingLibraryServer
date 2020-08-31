@@ -1,11 +1,12 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { MetadataOutline, MangaOutline } from '../entity/manga_outline';
-import { MetadataDetail, MangaDetail, Collection, Chapter } from '../entity/manga_detail';
 import * as fsu from '../util/fs';
-import { AccessorChapter } from './accessor.chapter';
 import { validateFilename } from '../util/validate';
+
+import { MetadataOutline, MangaOutline } from './entity/manga_outline';
+import { MetadataDetail, MangaDetail, Collection, Chapter } from './entity/manga_detail';
+import { AccessorChapter } from './accessor.chapter';
 
 export class AccessorManga {
   private readonly dir: string;

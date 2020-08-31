@@ -2,9 +2,15 @@ import axios from 'axios';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { MangaOutline, MetadataOutline } from '../../entity/manga_outline';
-import { Status } from '../../entity/manga_status';
-import { Chapter, MangaDetail, Collection, Tag, MetadataDetail } from '../../entity/manga_detail';
+import { Status } from '../../library/entity/manga_status';
+import { MangaOutline, MetadataOutline } from '../../library/entity/manga_outline';
+import {
+  Chapter,
+  MangaDetail,
+  Collection,
+  Tag,
+  MetadataDetail,
+} from '../../library/entity/manga_detail';
 
 import { ProviderAdapter } from '../adapter';
 

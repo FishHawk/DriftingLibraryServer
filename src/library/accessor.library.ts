@@ -1,13 +1,12 @@
-import path from 'path';
 import fs from 'fs/promises';
+import path from 'path';
 
-import { MangaOutline } from '../entity/manga_outline';
 import * as fsu from '../util/fs';
-import { checkString } from '../controller/validators';
+import { validateFilename } from '../util/validate';
 
+import { MangaOutline } from './entity/manga_outline';
 import { AccessorManga } from './accessor.manga';
 import { searchLibrary } from './search';
-import { validateFilename } from '../util/validate';
 
 export class AccessorLibrary {
   constructor(readonly dir: string) {}
