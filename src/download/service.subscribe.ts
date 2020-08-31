@@ -30,7 +30,7 @@ export class SubscribeService {
 
     if (downloadTask === undefined) {
       await this.db.downloadTaskRepository.create({
-        source: subscription.source,
+        providerId: subscription.providerId,
         sourceManga: subscription.sourceManga,
         targetManga: subscription.targetManga,
         isCreatedBySubscription: true,
@@ -53,16 +53,16 @@ export class SubscribeService {
     await this.db.subscriptionRepository.update({ isEnabled: false }, { isEnabled: true });
   }
 
-  async createSubscription(source: string, sourceManga: string, targetManga: string) {
+  async createSubscription(providerId: string, sourceManga: string, targetManga: string) {
     const task = await this.downloadService.createDownloadTask(
-      source,
+      providerId,
       sourceManga,
       targetManga,
       true
     );
     if (task === undefined) return undefined;
     const subscription = await this.db.subscriptionRepository.create({
-      source,
+      providerId,
       sourceManga,
       targetManga,
     });

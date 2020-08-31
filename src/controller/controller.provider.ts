@@ -11,14 +11,14 @@ export class ControllerProvider extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {
     super();
 
-    this.router.get('/sources', this.wrap(this.getProviders));
-    this.router.get('/source/:source/search', this.wrap(this.search));
-    this.router.get('/source/:source/popular', this.wrap(this.getPopular));
-    this.router.get('/source/:source/latest', this.wrap(this.getLatest));
+    this.router.get('/providers', this.wrap(this.getProviders));
+    this.router.get('/provider/:providerId/search', this.wrap(this.search));
+    this.router.get('/provider/:providerId/popular', this.wrap(this.getPopular));
+    this.router.get('/provider/:providerId/latest', this.wrap(this.getLatest));
 
-    this.router.get('/source/:source/manga/:id', this.wrap(this.getManga));
-    this.router.get('/source/:source/chapter/:id', this.wrap(this.getChapter));
-    this.router.get('/source/:source/image/:url', this.wrap(this.getImage));
+    this.router.get('/provider/:providerId/manga/:mangaId', this.wrap(this.getManga));
+    this.router.get('/provider/:providerId/chapter/:chapterId', this.wrap(this.getChapter));
+    this.router.get('/provider/:providerId/image/:url', this.wrap(this.getImage));
   }
 
   async getProviders(req: Request, res: Response) {
@@ -27,7 +27,7 @@ export class ControllerProvider extends ControllerAdapter {
   }
 
   async search(req: Request, res: Response) {
-    const provider = this.checkProvider(req.query.provider);
+    const provider = this.checkProvider(req.params.providerId);
     const keywords = this.checkKeywords(req.query.keywords);
     const page = this.checkPage(req.query.page);
 
@@ -36,7 +36,7 @@ export class ControllerProvider extends ControllerAdapter {
   }
 
   async getPopular(req: Request, res: Response) {
-    const provider = this.checkProvider(req.query.provider);
+    const provider = this.checkProvider(req.params.providerId);
     const page = this.checkPage(req.query.page);
 
     const outlines = await provider.requestPopular(page);
@@ -44,7 +44,7 @@ export class ControllerProvider extends ControllerAdapter {
   }
 
   async getLatest(req: Request, res: Response) {
-    const provider = this.checkProvider(req.query.provider);
+    const provider = this.checkProvider(req.params.providerId);
     const page = this.checkPage(req.query.page);
 
     const outlines = await provider.requestLatest(page);
@@ -52,27 +52,27 @@ export class ControllerProvider extends ControllerAdapter {
   }
 
   async getManga(req: Request, res: Response) {
-    const provider = this.checkProvider(req.query.provider);
-    const id = this.checkMangaId(req.params.id);
+    const provider = this.checkProvider(req.params.providerId);
+    const mangaId = this.checkMangaId(req.params.mangaId);
 
-    const detail = await provider.requestMangaDetail(id);
+    const detail = await provider.requestMangaDetail(mangaId);
     return res.json(detail);
   }
 
   async getChapter(req: Request, res: Response) {
-    const provider = this.checkProvider(req.params.provider);
-    const id = this.checkChapterId(req.params.id);
+    const provider = this.checkProvider(req.params.providerId);
+    const chapterId = this.checkChapterId(req.params.chapterId);
 
-    const imageUrls = await provider.requestChapterContent(id);
-    const imageProxyUrls = imageUrls.map((x) => {
-      return `source/${encodeURIComponent(provider.name)}/image/${encodeURIComponent(x)}`;
-    });
+    const imageUrls = await provider.requestChapterContent(chapterId);
+    const imageProxyUrls = imageUrls.map(
+      (x) => `provider/${encodeURIComponent(provider.name)}/image/${encodeURIComponent(x)}`
+    );
     return res.json(imageProxyUrls);
   }
 
   async getImage(req: Request, res: Response) {
-    const provider = this.checkProvider(req.params.provider);
-    const url = req.params.url;
+    const provider = this.checkProvider(req.params.providerId);
+    const url = this.checkImageUrl(req.params.url);
 
     const image = await provider.requestImage(url);
     // TODO: image type

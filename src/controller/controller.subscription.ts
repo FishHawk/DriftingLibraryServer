@@ -43,12 +43,12 @@ export class ControllerSubscription extends ControllerAdapter {
   }
 
   async postSubscription(req: Request, res: Response) {
-    const source = this.checkProviderId(req.body.source);
+    const providerId = this.checkProviderId(req.body.providerId);
     const sourceManga = this.checkSourceMangaId(req.body.sourceManga);
     const targetManga = this.checkTargetMangaId(req.body.targetManga);
 
     const subscription = await this.subscribeService.createSubscription(
-      source,
+      providerId,
       sourceManga,
       targetManga
     );

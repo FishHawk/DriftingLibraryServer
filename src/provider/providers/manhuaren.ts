@@ -133,7 +133,7 @@ function parseMangaDetail(jsonManga: any) {
 
   // parse detail
   const detail: MangaDetail = {
-    source: '漫画人',
+    providerId: '漫画人',
     id: jsonManga.mangaId.toString(),
     thumb: thumb,
     updateTime: moment(jsonManga.mangaNewestTime).valueOf(),

@@ -26,7 +26,7 @@ export interface MetadataDetail {
 }
 
 export interface MangaDetail {
-  source?: string;
+  providerId?: string;
   id: string;
   thumb?: string;
   updateTime?: number;

@@ -38,15 +38,15 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   async createDownloadTask(req: Request, res: Response) {
-    const source = check(req.body.source).isString()?.to();
+    const providerId = check(req.body.providerId).isString()?.to();
     const sourceManga = check(req.body.sourceManga).isString()?.to();
     const targetManga = check(req.body.targetManga).isString()?.isFilename()?.to();
 
-    if (source === undefined) throw new BadRequestError('Arguments are illegal.');
+    if (providerId === undefined) throw new BadRequestError('Arguments are illegal.');
     if (sourceManga === undefined) throw new BadRequestError('Arguments are illegal.');
     if (targetManga === undefined) throw new BadRequestError('Arguments are illegal.');
 
-    const task = await this.downloadService.createDownloadTask(source, sourceManga, targetManga);
+    const task = await this.downloadService.createDownloadTask(providerId, sourceManga, targetManga);
     if (task === undefined) throw new ConflictError('Already exists.');
 
     return res.json(task);

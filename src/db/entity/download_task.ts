@@ -13,7 +13,7 @@ export class DownloadTask {
   id!: number;
 
   @Column()
-  source!: string;
+  providerId!: string;
 
   @Column()
   sourceManga!: string;

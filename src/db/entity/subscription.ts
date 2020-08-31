@@ -6,7 +6,7 @@ export class Subscription {
   id!: number;
 
   @Column()
-  source!: string;
+  providerId!: string;
 
   @Column()
   sourceManga!: string;

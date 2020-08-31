@@ -69,7 +69,7 @@ export class DownloadService {
   }
 
   async createDownloadTask(
-    source: string,
+    providerId: string,
     sourceManga: string,
     targetManga: string,
     isCreatedBySubscription: boolean = false
@@ -78,7 +78,7 @@ export class DownloadService {
     await this.library.createManga(targetManga);
 
     const task = await this.db.downloadTaskRepository.create({
-      source,
+      providerId,
       sourceManga,
       targetManga,
       isCreatedBySubscription,
@@ -139,7 +139,7 @@ export class DownloadService {
       if (task === undefined) break;
 
       try {
-        logger.info(`Download: ${task.source}/${task.sourceManga} -> ${task.targetManga}`);
+        logger.info(`Download: ${task.providerId}/${task.sourceManga} -> ${task.targetManga}`);
         this.currentTaskId = task.id;
 
         task.status = DownloadTaskStatus.Downloading;
@@ -164,7 +164,7 @@ export class DownloadService {
   private async downloadManga(task: DownloadTask) {
     await this.library.createManga(task.targetManga);
 
-    const provider = this.providerManager.getProvider(task.source);
+    const provider = this.providerManager.getProvider(task.providerId);
     if (provider === undefined) throw Error('Provider not exist');
 
     const mangaAccessor = await this.library.openManga(task.targetManga);
