@@ -6,7 +6,7 @@ import { DownloadTaskStatus } from '../db/entity/download_task';
 
 import { DownloadService } from './service.download';
 
-export class SubscribeService {
+export class SubscriptionService {
   constructor(
     private readonly db: DatabaseAdapter,
     private readonly downloadService: DownloadService
@@ -72,10 +72,18 @@ export class SubscribeService {
   async deleteSubscription(id: number) {
     const subscription = await this.db.subscriptionRepository.findOne(id);
     if (subscription !== undefined) {
-      const task = await this.db.downloadTaskRepository.findOne({
-        targetManga: subscription.targetManga,
-      });
-      if (task !== undefined) await this.downloadService.deleteDownloadTask(task.id);
+      await this.downloadService.deleteDownloadTaskByMangaId(subscription.targetManga);
+      await this.db.subscriptionRepository.remove(subscription);
+    }
+    return subscription;
+  }
+
+  async deleteSubscriptionByMangaId(mangaId: string) {
+    const subscription = await this.db.subscriptionRepository.findOne({
+      targetManga: mangaId,
+    });
+    if (subscription !== undefined) {
+      await this.downloadService.deleteDownloadTaskByMangaId(subscription.targetManga);
       await this.db.subscriptionRepository.remove(subscription);
     }
     return subscription;

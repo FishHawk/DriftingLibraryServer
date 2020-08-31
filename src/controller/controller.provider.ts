@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 
-import { ProviderManager } from '../provider/manager';
 import { ProviderAdapter } from '../provider/adapter';
+import { ProviderManager } from '../provider/manager';
 
 import { ControllerAdapter } from './adapter';
-import { check } from './validators';
 import { BadRequestError } from './exceptions';
+import { check } from './validators';
 
 export class ControllerProvider extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {

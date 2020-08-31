@@ -79,11 +79,3 @@ class ValidatorBoolean extends Validator<boolean> {}
 export function check(value: any): ValidatorAny {
   return new ValidatorAny(value);
 }
-
-export function checkString(value: string): ValidatorString {
-  return new ValidatorString(value);
-}
-
-export function checkNumber(value: number): ValidatorNumber {
-  return new ValidatorNumber(value);
-}

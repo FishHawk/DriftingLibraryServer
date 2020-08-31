@@ -1,17 +1,17 @@
 import { Request, Response } from 'express';
 
-import { SubscribeService } from '../download/service.subscribe';
+import { SubscriptionService } from '../download/service.subscription';
+import { ProviderAdapter } from '../provider/adapter';
 import { ProviderManager } from '../provider/manager';
 
 import { ControllerAdapter } from './adapter';
-import { check } from './validators';
 import { BadRequestError, NotFoundError, ConflictError } from './exceptions';
-import { ProviderAdapter } from '../provider/adapter';
+import { check } from './validators';
 
 export class ControllerSubscription extends ControllerAdapter {
   constructor(
     private readonly providerManager: ProviderManager,
-    private readonly subscribeService: SubscribeService
+    private readonly subscribeService: SubscriptionService
   ) {
     super();
 
@@ -19,7 +19,7 @@ export class ControllerSubscription extends ControllerAdapter {
     this.router.patch('/subscriptions/enable', this.wrap(this.enableAllSubscription));
     this.router.patch('/subscriptions/disable', this.wrap(this.disableAllSubscription));
 
-    this.router.post('/subscription', this.wrap(this.postSubscription));
+    this.router.post('/subscription', this.wrap(this.createSubscription));
     this.router.delete('/subscription/:id', this.wrap(this.deleteSubscription));
     this.router.patch('/subscription/:id/enable', this.wrap(this.enableSubscription));
     this.router.patch('/subscription/:id/disable', this.wrap(this.disableSubscription));
@@ -42,10 +42,11 @@ export class ControllerSubscription extends ControllerAdapter {
     return res.json(subscriptions);
   }
 
-  async postSubscription(req: Request, res: Response) {
+  async createSubscription(req: Request, res: Response) {
     const providerId = this.checkProviderId(req.body.providerId);
     const sourceManga = this.checkSourceMangaId(req.body.sourceManga);
     const targetManga = this.checkTargetMangaId(req.body.targetManga);
+    this.checkProvider(providerId);
 
     const subscription = await this.subscribeService.createSubscription(
       providerId,
@@ -100,9 +101,8 @@ export class ControllerSubscription extends ControllerAdapter {
     return checked;
   }
 
-  private checkProvider(id: any): ProviderAdapter {
-    const checkedId = this.checkProviderId(id);
-    const provider = this.providerManager.getProvider(checkedId);
+  private checkProvider(id: string): ProviderAdapter {
+    const provider = this.providerManager.getProvider(id);
     if (provider === undefined) throw new BadRequestError('Unsupport provider');
     return provider;
   }

@@ -3,11 +3,16 @@ import { Request, Response } from 'express';
 import { DownloadService } from '../download/service.download';
 
 import { ControllerAdapter } from './adapter';
-import { check, checkString } from './validators';
+import { check } from './validators';
 import { BadRequestError, NotFoundError, ConflictError } from './exceptions';
+import { ProviderManager } from '../provider/manager';
+import { ProviderAdapter } from '../provider/adapter';
 
 export class ControllerDownload extends ControllerAdapter {
-  constructor(private readonly downloadService: DownloadService) {
+  constructor(
+    private readonly providerManager: ProviderManager,
+    private readonly downloadService: DownloadService
+  ) {
     super();
 
     this.router.get('/downloads', this.wrap(this.getAllDownloadTask));
@@ -38,23 +43,23 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   async createDownloadTask(req: Request, res: Response) {
-    const providerId = check(req.body.providerId).isString()?.to();
-    const sourceManga = check(req.body.sourceManga).isString()?.to();
-    const targetManga = check(req.body.targetManga).isString()?.isFilename()?.to();
+    const providerId = this.checkProviderId(req.body.providerId);
+    const sourceManga = this.checkSourceMangaId(req.body.sourceManga);
+    const targetManga = this.checkTargetMangaId(req.body.targetManga);
+    this.checkProvider(providerId);
 
-    if (providerId === undefined) throw new BadRequestError('Arguments are illegal.');
-    if (sourceManga === undefined) throw new BadRequestError('Arguments are illegal.');
-    if (targetManga === undefined) throw new BadRequestError('Arguments are illegal.');
-
-    const task = await this.downloadService.createDownloadTask(providerId, sourceManga, targetManga);
+    const task = await this.downloadService.createDownloadTask(
+      providerId,
+      sourceManga,
+      targetManga
+    );
     if (task === undefined) throw new ConflictError('Already exists.');
 
     return res.json(task);
   }
 
   async deleteDownloadTask(req: Request, res: Response) {
-    const id = checkString(req.params.id).toInt()?.to();
-    if (id === undefined) throw new BadRequestError('Arguments are illegal.');
+    const id = this.checkDownloadId(req.params.id);
 
     const task = await this.downloadService.deleteDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
@@ -62,8 +67,7 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   async startDownloadTask(req: Request, res: Response) {
-    const id = checkString(req.params.id).toInt()?.to();
-    if (id === undefined) throw new BadRequestError('Arguments are illegal.');
+    const id = this.checkDownloadId(req.params.id);
 
     const task = await this.downloadService.startDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
@@ -71,11 +75,44 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   async pauseDownloadTask(req: Request, res: Response) {
-    const id = checkString(req.params.id).toInt()?.to();
-    if (id === undefined) throw new BadRequestError('Arguments are illegal.');
+    const id = this.checkDownloadId(req.params.id);
 
     const task = await this.downloadService.pauseDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
     return res.json(task);
+  }
+
+  /*
+   * Argument validation helper
+   */
+
+  private checkDownloadId(id: any): number {
+    const checked = check(id)?.isString()?.toInt()?.to();
+    if (checked === undefined) throw new BadRequestError('Illegal argument: download id');
+    return checked;
+  }
+
+  private checkProviderId(id: any): string {
+    const checked = check(id)?.isString()?.to();
+    if (checked === undefined) throw new BadRequestError('Illegal argument: provider id');
+    return checked;
+  }
+
+  private checkProvider(id: string): ProviderAdapter {
+    const provider = this.providerManager.getProvider(id);
+    if (provider === undefined) throw new BadRequestError('Unsupport provider');
+    return provider;
+  }
+
+  private checkSourceMangaId(id: any): string {
+    const checked = check(id).isString()?.to();
+    if (checked === undefined) throw new BadRequestError('Illegal argument: source manga id');
+    return checked;
+  }
+
+  private checkTargetMangaId(id: any): string {
+    const checked = check(id).isString()?.isFilename()?.to();
+    if (checked === undefined) throw new BadRequestError('Illegal argument: target manga id');
+    return checked;
   }
 }

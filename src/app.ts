@@ -13,7 +13,7 @@ import { createSqliteDatabase, DatabaseAdapter } from './db/db_adapter';
 import { AccessorLibrary } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './download/service.download';
-import { SubscribeService } from './download/service.subscribe';
+import { SubscriptionService } from './download/service.subscription';
 
 export class App {
   private readonly app: express.Application;
@@ -24,7 +24,7 @@ export class App {
   private libraryAccessor!: AccessorLibrary;
   private providerManager!: ProviderManager;
   private downloadService!: DownloadService;
-  private subscribeService!: SubscribeService;
+  private subscribeService!: SubscriptionService;
 
   private controllers!: ControllerAdapter[];
 
@@ -51,12 +51,12 @@ export class App {
     this.providerManager = new ProviderManager();
 
     this.downloadService = new DownloadService(this.db, this.libraryAccessor, this.providerManager);
-    this.subscribeService = new SubscribeService(this.db, this.downloadService);
+    this.subscribeService = new SubscriptionService(this.db, this.downloadService);
 
     this.controllers = [
-      new ControllerDownload(this.downloadService),
-      new ControllerLibrary(this.db, this.libraryAccessor),
+      new ControllerLibrary(this.libraryAccessor, this.downloadService, this.subscribeService),
       new ControllerProvider(this.providerManager),
+      new ControllerDownload(this.providerManager, this.downloadService),
       new ControllerSubscription(this.providerManager, this.subscribeService),
     ];
     this.controllers.forEach((controller) => {

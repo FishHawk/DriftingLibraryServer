@@ -1,14 +1,19 @@
 import { Request, Response, static as staticService } from 'express';
 
-import { DatabaseAdapter } from '../db/db_adapter';
+import { DownloadService } from '../download/service.download';
 import { AccessorLibrary } from '../library/accessor.library';
 
 import { ControllerAdapter } from './adapter';
-import { check, checkString } from './validators';
 import { BadRequestError, NotFoundError } from './exceptions';
+import { check } from './validators';
+import { SubscriptionService } from '../download/service.subscription';
 
 export class ControllerLibrary extends ControllerAdapter {
-  constructor(private readonly db: DatabaseAdapter, private readonly library: AccessorLibrary) {
+  constructor(
+    private readonly library: AccessorLibrary,
+    private readonly downloadService: DownloadService,
+    private readonly subscriptionService: SubscriptionService
+  ) {
     super();
 
     this.router.get('/library/search', this.wrap(this.search));
@@ -40,8 +45,7 @@ export class ControllerLibrary extends ControllerAdapter {
   }
 
   async getManga(req: Request, res: Response) {
-    const id = checkString(req.params.id).isFilename()?.to();
-    if (id === undefined) throw new BadRequestError('Illegal argument: id');
+    const id = this.checkMangaId(req.params.id);
 
     const manga = await this.library.openManga(id);
     const detail = await manga?.parseMangaDetail();
@@ -51,20 +55,18 @@ export class ControllerLibrary extends ControllerAdapter {
   }
 
   async deleteManga(req: Request, res: Response) {
-    const id = checkString(req.params.id).isFilename()?.to();
-    if (id === undefined) throw new BadRequestError('Illegal argument: id');
+    const id = this.checkMangaId(req.params.id);
 
     if (!(await this.library.isMangaExist(id))) throw new NotFoundError('Not found: manga');
     await this.library.deleteManga(id!);
 
-    // await this.db.downloadChapterRepository.delete({ targetManga: id });
-    // await this.db.downloadTaskRepository.delete({ targetManga: id });
-    // await this.db.subscriptionRepository.delete({ targetManga: id });
+    await this.subscriptionService.deleteSubscriptionByMangaId(id);
+    await this.downloadService.deleteDownloadTaskByMangaId(id);
     return res.json(id);
   }
 
   async getChapter(req: Request, res: Response) {
-    const id = checkString(req.params.id).isFilename()?.to();
+    const id = this.checkMangaId(req.params.id);
     const collectionId = check(req.query.collection).isString()?.to();
     const chapterId = check(req.query.chapter).isString()?.to();
 
@@ -78,5 +80,15 @@ export class ControllerLibrary extends ControllerAdapter {
     if (content === undefined) throw new NotFoundError('Not found: chapter');
 
     return res.json(content);
+  }
+
+  /*
+   * Argument validation helper
+   */
+
+  private checkMangaId(id: any): string {
+    const checked = check(id).isString()?.isFilename()?.to();
+    if (checked === undefined) throw new BadRequestError('Illegal argument: target manga id');
+    return checked;
   }
 }

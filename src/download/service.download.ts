@@ -100,6 +100,19 @@ export class DownloadService {
     return task;
   }
 
+  async deleteDownloadTaskByMangaId(mangaId: string) {
+    const task = await this.db.downloadTaskRepository.findOne({ targetManga: mangaId });
+    if (task !== undefined) {
+      this.cancelTask(task.id);
+      if (!task.isCreatedBySubscription) {
+        await this.db.downloadChapterRepository.delete({ task: task.id });
+      }
+      await this.db.downloadTaskRepository.remove(task);
+      return task;
+    }
+    return task;
+  }
+
   async startDownloadTask(id: number) {
     const task = await this.db.downloadTaskRepository.findOne(id);
     if (
