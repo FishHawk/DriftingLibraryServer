@@ -78,7 +78,6 @@ export function parseMangaDetail(json: any): Entity.MangaDetail {
 
   // parse detail
   const detail: Entity.MangaDetail = {
-    providerId: '漫画人',
     id: json.mangaId.toString(),
     thumb: thumb,
     updateTime: moment(json.mangaNewestTime).valueOf(),

@@ -76,7 +76,11 @@ export default class Provider extends ProviderAdapter {
           mangaId: id,
         }),
       })
-      .then((response) => parseMangaDetail(response.data.response));
+      .then((response) => parseMangaDetail(response.data.response))
+      .then((detail) => {
+        detail.providerId = this.name;
+        return detail;
+      });
   }
 
   requestChapterContent(id: string): Promise<string[]> {
