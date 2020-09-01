@@ -7,16 +7,16 @@ function parseMangaStatus(json: any): Entity.Status {
 }
 
 export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
-  return json.map((x: any) => {
+  return json.map((it: any) => {
     const metadata: Entity.MetadataOutline = {
-      title: x.title,
-      authors: x.authors.split('/'),
-      status: parseMangaStatus(x.status),
+      title: it.title,
+      authors: it.authors.split('/'),
+      status: parseMangaStatus(it.status),
     };
     const outline: Entity.MangaOutline = {
-      id: x.id,
-      thumb: x.cover,
-      updateTime: x.last_updatetime,
+      id: it.id,
+      thumb: it.cover,
+      updateTime: it.last_updatetime,
       metadata: metadata,
     };
     return outline;
@@ -25,10 +25,10 @@ export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
 
 export function parseMangaDetail(json: any): Entity.MangaDetail {
   // parse metadata
-  const authors = json.authors.map((x: any) => x.tag_name);
+  const authors = json.authors.map((it: any) => it.tag_name);
   const status = parseMangaStatus(json.status[0].tag_name);
 
-  const types = json.types.map((x: any) => x.tag_name);
+  const types = json.types.map((it: any) => it.tag_name);
   const tag: Entity.Tag = { key: 'type', value: types };
 
   const metadata: Entity.MetadataDetail = {
@@ -40,19 +40,19 @@ export function parseMangaDetail(json: any): Entity.MangaDetail {
   };
 
   // parse collections
-  const collections: Entity.Collection[] = json.chapters.map((x: any) => {
-    const chapters = x.data
-      .map((x: any) => {
+  const collections: Entity.Collection[] = json.chapters.map((it: any) => {
+    const chapters = it.data
+      .map((it: any) => {
         const chapter: Entity.Chapter = {
-          id: x.chapter_id,
-          name: x.chapter_title,
-          title: x.chapter_title,
+          id: it.chapter_id,
+          name: it.chapter_title,
+          title: it.chapter_title,
         };
         return chapter;
       })
       .reverse();
     const collection: Entity.Collection = {
-      id: x.title,
+      id: it.title,
       chapters,
     };
     return collection;
