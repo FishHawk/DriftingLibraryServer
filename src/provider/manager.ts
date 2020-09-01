@@ -1,10 +1,13 @@
 import { ProviderAdapter, ProviderInfo } from './adapter';
+
+import ProviderDmzj from './providers/dmzj';
 import ProviderManhuaren from './providers/manhuaren';
 
 export class ProviderManager {
   readonly providers: Record<string, ProviderAdapter> = {};
 
   constructor() {
+    this.registerProvider(new ProviderDmzj());
     this.registerProvider(new ProviderManhuaren());
   }
 
