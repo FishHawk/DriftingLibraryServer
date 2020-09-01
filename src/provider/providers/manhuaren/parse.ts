@@ -8,7 +8,7 @@ function parseStatus(status: any): Entity.Status {
   else return Entity.Status.Unknown;
 }
 
-export function parseMangaList(json: any): Entity.MangaOutline[] {
+export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
   return json.map((it: any) => {
     const metadata: Entity.MetadataOutline = {
       title: it.mangaName,
@@ -26,13 +26,11 @@ export function parseMangaList(json: any): Entity.MangaOutline[] {
 }
 
 function parseChapter(json: any): Entity.Chapter {
-  let name = json.sectionName;
-  if (json.isMustPay === 1) name = '[锁] ' + name;
-
+  const prefix = json.isMustPay === 1 ? '[X] ' : '';
   const chapter: Entity.Chapter = {
     id: json.sectionId.toString(),
-    name: name,
-    title: json.sectionTitle,
+    name: prefix + json.sectionName,
+    title: prefix + json.sectionTitle,
   };
   return chapter;
 }

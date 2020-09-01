@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import * as Entity from '../../../library/entity';
 import { ProviderAdapter } from '../../adapter';
-import { parseMangaList, parseMangaDetail, parseChapterContent } from './parse';
+import { parseMangaOutlines, parseMangaDetail, parseChapterContent } from './parse';
 
 export default class Provider extends ProviderAdapter {
   readonly lang: string = 'zh';
@@ -35,9 +35,9 @@ export default class Provider extends ProviderAdapter {
       })
       .then(function (res) {
         if (res.data.mangas === undefined) {
-          return parseMangaList(res.data.response.result);
+          return parseMangaOutlines(res.data.response.result);
         } else {
-          return parseMangaList(res.data.mangas);
+          return parseMangaOutlines(res.data.mangas);
         }
       });
   }
@@ -53,7 +53,7 @@ export default class Provider extends ProviderAdapter {
           sort: '0',
         }),
       })
-      .then((res) => parseMangaList(res.data.response.mangas));
+      .then((res) => parseMangaOutlines(res.data.response.mangas));
   }
 
   requestLatest(page: number): Promise<Entity.MangaOutline[]> {
@@ -67,7 +67,7 @@ export default class Provider extends ProviderAdapter {
           sort: '1',
         }),
       })
-      .then((res) => parseMangaList(res.data.response.mangas));
+      .then((res) => parseMangaOutlines(res.data.response.mangas));
   }
   requestMangaDetail(id: string): Promise<Entity.MangaDetail> {
     return this.instance
@@ -97,11 +97,9 @@ export default class Provider extends ProviderAdapter {
   }
 
   requestImage(url: string): Promise<Buffer> {
-    return this.instance({
-      method: 'get',
-      url: encodeURI(url),
-      responseType: 'arraybuffer',
-    }).then((res) => res.data);
+    return this.instance
+      .get(encodeURI(url), { responseType: 'arraybuffer' })
+      .then((res) => res.data);
   }
 }
 
