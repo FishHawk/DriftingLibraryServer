@@ -8,7 +8,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "start": "node out/index.js",
-    "test": "./node_modules/mocha/bin/mocha -r ts-node/register test/**/*.test.ts "
+    "test": "./node_modules/mocha/bin/mocha -r ts-node/register test/**/*.test.ts"
   },
   "dependencies": {
     "axios": "^0.19.2",

@@ -1,8 +1,9 @@
 import assert from 'assert';
-import Manhuaren from '../src/provider/providers/manhuaren';
+import Provider from '../src/provider/providers/manhuaren';
+import { saveImageFile } from './util';
 
-describe('Source test: manhuaren', function () {
-  const provider = new Manhuaren();
+describe('Provider test: manhuaren', function () {
+  const provider = new Provider();
   it('test search', () => {
     return provider.search(1, '龙珠超').then((result) => {
       assert.equal(result[0].metadata.title, '龙珠超');
@@ -35,10 +36,11 @@ describe('Source test: manhuaren', function () {
 
   it('test request image', () => {
     const url =
-      'http://manhua1034-61-174-50-98.cdndm5.com/19/18657/1012028/42_8784.jpg' +
-      '?cid=1012028&key=38ff9ebb8af1295c83622280db2bda33&type=1';
+      'http://manhua1034-101-69-161-98.cdndm5.com/19/18657/1012028/' +
+      '1_7696.jpg?cid=1012028&key=9174c2c636d05612834c562370d3e2ea&type=1';
     return provider.requestImage(url).then((result) => {
-      assert.equal(result.length, 243579);
+      assert.equal(result.length, 283001);
+      return saveImageFile(provider.name, result);
     });
   });
 });

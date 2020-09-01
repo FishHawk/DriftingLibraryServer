@@ -21,45 +21,45 @@ export class ControllerProvider extends ControllerAdapter {
     this.router.get('/provider/:providerId/image/:url', this.wrap(this.getImage));
   }
 
-  async getProviders(req: Request, res: Response) {
+  getProviders = async (req: Request, res: Response) => {
     const providers = this.providerManager.getProviderInfoList();
     return res.json(providers);
-  }
+  };
 
-  async search(req: Request, res: Response) {
+  search = async (req: Request, res: Response) => {
     const provider = this.checkProvider(req.params.providerId);
     const keywords = this.checkKeywords(req.query.keywords);
     const page = this.checkPage(req.query.page);
 
     const outlines = await provider.search(page, keywords);
     return res.json(outlines);
-  }
+  };
 
-  async getPopular(req: Request, res: Response) {
+  getPopular = async (req: Request, res: Response) => {
     const provider = this.checkProvider(req.params.providerId);
     const page = this.checkPage(req.query.page);
 
     const outlines = await provider.requestPopular(page);
     return res.json(outlines);
-  }
+  };
 
-  async getLatest(req: Request, res: Response) {
+  getLatest = async (req: Request, res: Response) => {
     const provider = this.checkProvider(req.params.providerId);
     const page = this.checkPage(req.query.page);
 
     const outlines = await provider.requestLatest(page);
     return res.json(outlines);
-  }
+  };
 
-  async getManga(req: Request, res: Response) {
+  getManga = async (req: Request, res: Response) => {
     const provider = this.checkProvider(req.params.providerId);
     const mangaId = this.checkMangaId(req.params.mangaId);
 
     const detail = await provider.requestMangaDetail(mangaId);
     return res.json(detail);
-  }
+  };
 
-  async getChapter(req: Request, res: Response) {
+  getChapter = async (req: Request, res: Response) => {
     const provider = this.checkProvider(req.params.providerId);
     const chapterId = this.checkChapterId(req.params.chapterId);
 
@@ -68,15 +68,15 @@ export class ControllerProvider extends ControllerAdapter {
       (x) => `provider/${encodeURIComponent(provider.name)}/image/${encodeURIComponent(x)}`
     );
     return res.json(imageProxyUrls);
-  }
+  };
 
-  async getImage(req: Request, res: Response) {
+  getImage = async (req: Request, res: Response) => {
     const provider = this.checkProvider(req.params.providerId);
     const url = this.checkImageUrl(req.params.url);
 
     const image = await provider.requestImage(url);
     // TODO: image type
-  }
+  };
 
   /*
    * Argument validation helper

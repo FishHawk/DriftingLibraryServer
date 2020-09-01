@@ -2,6 +2,7 @@
 node_modules/
 log/
 out/
+test/result
 
 .env
 package-lock.json

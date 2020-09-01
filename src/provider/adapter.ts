@@ -1,4 +1,4 @@
-import { MangaDetail } from "../library/entity/manga_detail";
+import { MangaOutline, MangaDetail } from '../library/entity';
 
 export interface ProviderInfo {
   readonly lang: string;
@@ -19,9 +19,9 @@ export abstract class ProviderAdapter implements ProviderInfo {
     };
   }
 
-  abstract search(page: number, keywords: string): Promise<any>;
-  abstract requestPopular(page: number): Promise<any>;
-  abstract requestLatest(page: number): Promise<any>;
+  abstract search(page: number, keywords: string): Promise<MangaOutline[]>;
+  abstract requestPopular(page: number): Promise<MangaOutline[]>;
+  abstract requestLatest(page: number): Promise<MangaOutline[]>;
 
   abstract requestMangaDetail(id: string): Promise<MangaDetail>;
   abstract requestChapterContent(id: string): Promise<string[]>;

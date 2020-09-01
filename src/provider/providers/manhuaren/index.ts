@@ -2,17 +2,17 @@ import axios from 'axios';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { Status } from '../../library/entity/manga_status';
-import { MangaOutline, MetadataOutline } from '../../library/entity/manga_outline';
+import { Status } from '../../../library/entity/manga_status';
+import { MangaOutline, MetadataOutline } from '../../../library/entity/manga_outline';
 import {
   Chapter,
   MangaDetail,
   Collection,
   Tag,
   MetadataDetail,
-} from '../../library/entity/manga_detail';
+} from '../../../library/entity/manga_detail';
 
-import { ProviderAdapter } from '../adapter';
+import { ProviderAdapter } from '../../adapter';
 
 /*
  *  Param helper
@@ -150,7 +150,7 @@ function parseChapterContent(jsonImageList: any): string[] {
   return jsonImageList.mangaSectionImages.map((it: any) => `${host}${it}${query}`);
 }
 
-export default class ProviderManhuaren extends ProviderAdapter {
+export default class Provider extends ProviderAdapter {
   readonly lang: string = 'zh';
   readonly name: string = '漫画人';
   readonly isLatestSupport: boolean = true;
