@@ -25,24 +25,24 @@ export class ControllerDownload extends ControllerAdapter {
     this.router.patch('/download/:id/pause', this.wrap(this.pauseDownloadTask));
   }
 
-  async getAllDownloadTask(req: Request, res: Response) {
+  getAllDownloadTask = async (req: Request, res: Response) => {
     const tasks = await this.downloadService.getAllDownloadTask();
     return res.json(tasks);
-  }
+  };
 
-  async startAllDownloadTask(req: Request, res: Response) {
+  startAllDownloadTask = async (req: Request, res: Response) => {
     await this.downloadService.startAllDownloadTask();
     const tasks = await this.downloadService.getAllDownloadTask();
     return res.json(tasks);
-  }
+  };
 
-  async pauseAllDownloadTask(req: Request, res: Response) {
+  pauseAllDownloadTask = async (req: Request, res: Response) => {
     await this.downloadService.pauseAllDownloadTask();
     const tasks = await this.downloadService.getAllDownloadTask();
     return res.json(tasks);
-  }
+  };
 
-  async createDownloadTask(req: Request, res: Response) {
+  createDownloadTask = async (req: Request, res: Response) => {
     const providerId = this.checkProviderId(req.body.providerId);
     const sourceManga = this.checkSourceMangaId(req.body.sourceManga);
     const targetManga = this.checkTargetMangaId(req.body.targetManga);
@@ -56,31 +56,31 @@ export class ControllerDownload extends ControllerAdapter {
     if (task === undefined) throw new ConflictError('Already exists.');
 
     return res.json(task);
-  }
+  };
 
-  async deleteDownloadTask(req: Request, res: Response) {
+  deleteDownloadTask = async (req: Request, res: Response) => {
     const id = this.checkDownloadId(req.params.id);
 
     const task = await this.downloadService.deleteDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
     return res.json(task);
-  }
+  };
 
-  async startDownloadTask(req: Request, res: Response) {
+  startDownloadTask = async (req: Request, res: Response) => {
     const id = this.checkDownloadId(req.params.id);
 
     const task = await this.downloadService.startDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
     return res.json(task);
-  }
+  };
 
-  async pauseDownloadTask(req: Request, res: Response) {
+  pauseDownloadTask = async (req: Request, res: Response) => {
     const id = this.checkDownloadId(req.params.id);
 
     const task = await this.downloadService.pauseDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
     return res.json(task);
-  }
+  };
 
   /*
    * Argument validation helper

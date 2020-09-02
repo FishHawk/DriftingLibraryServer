@@ -25,24 +25,24 @@ export class ControllerSubscription extends ControllerAdapter {
     this.router.patch('/subscription/:id/disable', this.wrap(this.disableSubscription));
   }
 
-  async getAllSubscription(req: Request, res: Response) {
+  getAllSubscription = async (req: Request, res: Response) => {
     const subscriptions = await this.subscribeService.getAllSubscription();
     return res.json(subscriptions);
-  }
+  };
 
-  async enableAllSubscription(req: Request, res: Response) {
+  enableAllSubscription = async (req: Request, res: Response) => {
     await this.subscribeService.enableAllSubscription();
     const subscriptions = await this.subscribeService.getAllSubscription();
     return res.json(subscriptions);
-  }
+  };
 
-  async disableAllSubscription(req: Request, res: Response) {
+  disableAllSubscription = async (req: Request, res: Response) => {
     await this.subscribeService.disableAllSubscription();
     const subscriptions = await this.subscribeService.getAllSubscription();
     return res.json(subscriptions);
-  }
+  };
 
-  async createSubscription(req: Request, res: Response) {
+  createSubscription = async (req: Request, res: Response) => {
     const providerId = this.checkProviderId(req.body.providerId);
     const sourceManga = this.checkSourceMangaId(req.body.sourceManga);
     const targetManga = this.checkTargetMangaId(req.body.targetManga);
@@ -56,34 +56,34 @@ export class ControllerSubscription extends ControllerAdapter {
     if (subscription === undefined) throw new ConflictError('Already exists.');
 
     return res.json(subscription);
-  }
+  };
 
-  async deleteSubscription(req: Request, res: Response) {
+  deleteSubscription = async (req: Request, res: Response) => {
     const id = this.checkSubscriptionId(req.params.id);
 
     const subscription = await this.subscribeService.deleteSubscription(id);
     if (subscription === undefined) throw new NotFoundError('Not found.');
 
     return res.json(subscription);
-  }
+  };
 
-  async enableSubscription(req: Request, res: Response) {
+  enableSubscription = async (req: Request, res: Response) => {
     const id = this.checkSubscriptionId(req.params.id);
 
     const subscription = await this.subscribeService.enableSubscription(id);
     if (subscription === undefined) throw new NotFoundError('Not found.');
 
     return res.json(subscription);
-  }
+  };
 
-  async disableSubscription(req: Request, res: Response) {
+  disableSubscription = async (req: Request, res: Response) => {
     const id = this.checkSubscriptionId(req.params.id);
 
     const subscription = await this.subscribeService.disableSubscription(id);
     if (subscription === undefined) throw new NotFoundError('Not found.');
 
     return res.json(subscription);
-  }
+  };
 
   /*
    * Argument validation helper
