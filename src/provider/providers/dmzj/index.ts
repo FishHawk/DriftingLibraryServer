@@ -43,9 +43,9 @@ export default class Provider extends ProviderAdapter {
       .then((res) => parseMangaOutlines(res.data));
   }
 
-  requestMangaDetail(id: string): Promise<Entity.MangaDetail> {
+  requestMangaDetail(mangaId: string): Promise<Entity.MangaDetail> {
     return this.instance
-      .get(`/comic/comic_${id}.json?version=2.7.019`)
+      .get(`/comic/comic_${mangaId}.json?version=2.7.019`)
       .then((res) => parseMangaDetail(res.data))
       .then((detail) => {
         detail.providerId = this.name;
@@ -53,10 +53,9 @@ export default class Provider extends ProviderAdapter {
       });
   }
 
-  requestChapterContent(id: string): Promise<string[]> {
-    const [mid, cid] = id.split('/');
+  requestChapterContent(mangaId: string, chapterId: string): Promise<string[]> {
     return this.instance
-      .get(`/chapter/${mid}/${cid}.json`)
+      .get(`/chapter/${mangaId}/${chapterId}.json`)
       .then((res) => parseChapterContent(res.data));
   }
 
@@ -65,6 +64,6 @@ export default class Provider extends ProviderAdapter {
       method: 'get',
       url: encodeURI(url),
       responseType: 'arraybuffer',
-    }).then((response) => response.data);
+    }).then((res) => res.data);
   }
 }

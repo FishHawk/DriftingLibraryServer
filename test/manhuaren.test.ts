@@ -4,6 +4,7 @@ import { saveImageFile } from './util';
 
 describe('Provider test: manhuaren', function () {
   const provider = new Provider();
+
   it('test search', () => {
     return provider.search(1, '龙珠超').then((result) => {
       assert.equal(result[0].metadata.title, '龙珠超');
@@ -22,25 +23,27 @@ describe('Provider test: manhuaren', function () {
     });
   });
 
+  const mangaId: string = '18657';
+  const chapterId: string = '1012028';
+
   it('test request manga detail', () => {
-    return provider.requestMangaDetail('18657').then((result) => {
+    return provider.requestMangaDetail(mangaId).then((result) => {
       assert.equal(result.metadata.title, '龙珠超');
     });
   });
 
   it('test request chapter content', () => {
-    return provider.requestChapterContent('1012028').then((result) => {
+    return provider.requestChapterContent(mangaId, chapterId).then((result) => {
       assert.equal(result.length, 45);
     });
   });
 
   it('test request image', () => {
-    const url =
-      'http://manhua1034-101-69-161-98.cdndm5.com/19/18657/1012028/' +
-      '1_7696.jpg?cid=1012028&key=9174c2c636d05612834c562370d3e2ea&type=1';
-    return provider.requestImage(url).then((result) => {
-      assert.equal(result.length, 283001);
-      return saveImageFile(provider.name, result);
-    });
+    return provider.requestChapterContent(mangaId, chapterId).then((result) =>
+      provider.requestImage(result[0]).then((result) => {
+        assert.equal(result.length, 283001);
+        return saveImageFile(provider.name, result.slice());
+      })
+    );
   });
 });

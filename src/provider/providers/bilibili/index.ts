@@ -64,9 +64,9 @@ export default class Provider extends ProviderAdapter {
       .then((res) => parseMangaOutlinesAlter(res.data));
   }
 
-  requestMangaDetail(id: string): Promise<Entity.MangaDetail> {
+  requestMangaDetail(mangaId: string): Promise<Entity.MangaDetail> {
     return this.instance
-      .post('/twirp/comic.v1.Comic/ComicDetail?device=h5&platform=h5', { comic_id: id })
+      .post('/twirp/comic.v1.Comic/ComicDetail?device=h5&platform=h5', { comic_id: mangaId })
       .then((res) => parseMangaDetail(res.data.data))
       .then((detail) => {
         detail.providerId = this.name;
@@ -74,9 +74,7 @@ export default class Provider extends ProviderAdapter {
       });
   }
 
-  requestChapterContent(id: string): Promise<string[]> {
-    const [mangaId, chapterId] = id.split('/');
-
+  requestChapterContent(mangaId: string, chapterId: string): Promise<string[]> {
     return this.instance
       .post('/twirp/comic.v1.Comic/Index?device=h5&platform=h5', { ep_id: chapterId })
       .then((res) =>
@@ -88,14 +86,10 @@ export default class Provider extends ProviderAdapter {
           urls: JSON.stringify(json.pics),
         })
       )
-      .then(async (res) => {
-        return res.data.data.map((it: any) => `${it.url}?token=${it.token}`);
-      });
+      .then((res) => res.data.data.map((it: any) => `${it.url}?token=${it.token}`));
   }
 
   requestImage(url: string): Promise<Buffer> {
-    return this.instance.get(url, { responseType: 'arraybuffer' }).then((res) => {
-      return res.data;
-    });
+    return this.instance.get(url, { responseType: 'arraybuffer' }).then((res) => res.data);
   }
 }

@@ -69,13 +69,9 @@ export default class Provider extends ProviderAdapter {
       })
       .then((res) => parseMangaOutlines(res.data.response.mangas));
   }
-  requestMangaDetail(id: string): Promise<Entity.MangaDetail> {
+  requestMangaDetail(mangaId: string): Promise<Entity.MangaDetail> {
     return this.instance
-      .get('/v1/manga/getDetail', {
-        params: addExtraParam({
-          mangaId: id,
-        }),
-      })
+      .get('/v1/manga/getDetail', { params: addExtraParam({ mangaId }) })
       .then((response) => parseMangaDetail(response.data.response))
       .then((detail) => {
         detail.providerId = this.name;
@@ -83,11 +79,11 @@ export default class Provider extends ProviderAdapter {
       });
   }
 
-  requestChapterContent(id: string): Promise<string[]> {
+  requestChapterContent(mangaId: string, chapterId: string): Promise<string[]> {
     return this.instance
       .get('/v1/manga/getRead', {
         params: addExtraParam({
-          mangaSectionId: id,
+          mangaSectionId: chapterId,
           netType: 4,
           loadreal: 1,
           imageQuality: 2,

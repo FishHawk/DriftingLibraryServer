@@ -17,7 +17,10 @@ export class ControllerProvider extends ControllerAdapter {
     this.router.get('/provider/:providerId/latest', this.wrap(this.getLatest));
 
     this.router.get('/provider/:providerId/manga/:mangaId', this.wrap(this.getManga));
-    this.router.get('/provider/:providerId/chapter/:chapterId', this.wrap(this.getChapter));
+    this.router.get(
+      '/provider/:providerId/chapter/:mangaId/:chapterId',
+      this.wrap(this.getChapter)
+    );
     this.router.get('/provider/:providerId/image/:url', this.wrap(this.getImage));
   }
 
@@ -61,9 +64,10 @@ export class ControllerProvider extends ControllerAdapter {
 
   getChapter = async (req: Request, res: Response) => {
     const provider = this.checkProvider(req.params.providerId);
+    const mangaId = this.checkMangaId(req.params.mangaId);
     const chapterId = this.checkChapterId(req.params.chapterId);
 
-    const imageUrls = await provider.requestChapterContent(chapterId);
+    const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
     const imageProxyUrls = imageUrls.map(
       (x) => `provider/${encodeURIComponent(provider.name)}/image/${encodeURIComponent(x)}`
     );
@@ -75,7 +79,7 @@ export class ControllerProvider extends ControllerAdapter {
     const url = this.checkImageUrl(req.params.url);
 
     const image = await provider.requestImage(url);
-    // TODO: image type
+    return res.send(image);
   };
 
   /*

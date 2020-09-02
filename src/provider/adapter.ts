@@ -23,7 +23,7 @@ export abstract class ProviderAdapter implements ProviderInfo {
   abstract requestPopular(page: number): Promise<MangaOutline[]>;
   abstract requestLatest(page: number): Promise<MangaOutline[]>;
 
-  abstract requestMangaDetail(id: string): Promise<MangaDetail>;
-  abstract requestChapterContent(id: string): Promise<string[]>;
+  abstract requestMangaDetail(mangaId: string): Promise<MangaDetail>;
+  abstract requestChapterContent(mangaId: string, chapterId: string): Promise<string[]>;
   abstract requestImage(url: string): Promise<Buffer>;
 }
