@@ -5,8 +5,9 @@ import { ProviderAdapter } from '../../adapter';
 import { parseMangaOutlines, parseMangaDetail, parseChapterContent } from './parse';
 
 export default class Provider extends ProviderAdapter {
-  readonly lang: string = 'zh';
+  readonly id: string = 'dmzj';
   readonly name: string = '动漫之家';
+  readonly lang: string = 'zh';
   readonly isLatestSupport: boolean = true;
 
   private readonly baseUrl = 'http://v3api.dmzj.com';
@@ -48,7 +49,7 @@ export default class Provider extends ProviderAdapter {
       .get(`/comic/comic_${mangaId}.json?version=2.7.019`)
       .then((res) => parseMangaDetail(res.data))
       .then((detail) => {
-        detail.providerId = this.name;
+        detail.providerId = this.id;
         return detail;
       });
   }

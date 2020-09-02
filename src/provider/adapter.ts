@@ -1,20 +1,23 @@
 import { MangaOutline, MangaDetail } from '../library/entity';
 
 export interface ProviderInfo {
-  readonly lang: string;
+  readonly id: string;
   readonly name: string;
+  readonly lang: string;
   readonly isLatestSupport: boolean;
 }
 
 export abstract class ProviderAdapter implements ProviderInfo {
-  abstract readonly lang: string;
+  abstract readonly id: string;
   abstract readonly name: string;
+  abstract readonly lang: string;
   abstract readonly isLatestSupport: boolean;
 
   getInfo(): ProviderInfo {
     return {
-      lang: this.lang,
+      id: this.id,
       name: this.name,
+      lang: this.lang,
       isLatestSupport: this.isLatestSupport,
     };
   }

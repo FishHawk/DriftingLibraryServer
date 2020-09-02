@@ -10,8 +10,9 @@ import {
 } from './parse';
 
 export default class Provider extends ProviderAdapter {
-  readonly lang: string = 'zh';
+  readonly id: string = 'bilibili';
   readonly name: string = '哔哩哔哩漫画';
+  readonly lang: string = 'zh';
   readonly isLatestSupport: boolean = true;
 
   private readonly pageSize = 20;
@@ -69,7 +70,7 @@ export default class Provider extends ProviderAdapter {
       .post('/ComicDetail?device=h5&platform=h5', { comic_id: mangaId })
       .then((res) => parseMangaDetail(res.data.data))
       .then((detail) => {
-        detail.providerId = this.name;
+        detail.providerId = this.id;
         return detail;
       });
   }

@@ -7,8 +7,9 @@ import { ProviderAdapter } from '../../adapter';
 import { parseMangaOutlines, parseMangaDetail, parseChapterContent } from './parse';
 
 export default class Provider extends ProviderAdapter {
-  readonly lang: string = 'zh';
+  readonly id: string = 'manhuaren';
   readonly name: string = '漫画人';
+  readonly lang: string = 'zh';
   readonly isLatestSupport: boolean = true;
 
   private readonly pageSize = 20;
@@ -74,7 +75,7 @@ export default class Provider extends ProviderAdapter {
       .get('/v1/manga/getDetail', { params: addExtraParam({ mangaId }) })
       .then((response) => parseMangaDetail(response.data.response))
       .then((detail) => {
-        detail.providerId = this.name;
+        detail.providerId = this.id;
         return detail;
       });
   }
