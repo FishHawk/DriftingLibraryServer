@@ -69,7 +69,7 @@ export class ControllerProvider extends ControllerAdapter {
 
     const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
     const imageProxyUrls = imageUrls.map(
-      (x) => `provider/${encodeURIComponent(provider.name)}/image/${encodeURIComponent(x)}`
+      (it) => `provider/${encodeURIComponent(provider.name)}/image/${encodeURIComponent(it)}`
     );
     return res.json(imageProxyUrls);
   };

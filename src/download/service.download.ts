@@ -198,7 +198,12 @@ export class DownloadService {
         if (chapterTask !== undefined) continue;
         const chapterId = `${chapter.name} ${chapter.title}`;
         const chapterAccessor = await mangaAccessor!.openChapter(collection.id, chapterId);
-        const isChapterError = await this.downloadChapter(provider, chapterAccessor!, chapter.id);
+        const isChapterError = await this.downloadChapter(
+          provider,
+          chapterAccessor!,
+          detail.id,
+          chapter.id
+        );
 
         if (isChapterError) hasChapterError = true;
         else {
@@ -236,10 +241,11 @@ export class DownloadService {
   private async downloadChapter(
     provider: ProviderAdapter,
     accessor: AccessorChapter,
-    chapter: string
+    mangaId: string,
+    chapterId: string
   ) {
-    logger.info(`Download chapter: chapter:${chapter}`);
-    const imageUrls = await provider.requestChapterContent(chapter);
+    logger.info(`Download chapter: chapter:${chapterId}`);
+    const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
     this.cancelIfNeed();
 
     let hasImageError = false;
@@ -251,7 +257,7 @@ export class DownloadService {
         const data = await provider.requestImage(url);
         await accessor.writeImage(imageFilename, data);
       } catch (error) {
-        logger.error(`Image error at: ${provider.name}:${chapter}:${i}`);
+        logger.error(`Image error at: ${provider.name}:${chapterId}:${i}`);
         logger.error(`Image error: ${error.stack}`);
         hasImageError = true;
       }
