@@ -3,7 +3,6 @@ import path from 'path';
 import { Repository, createConnection } from 'typeorm';
 
 import * as Entity from './entity';
-export * as Entity from './entity';
 
 export interface DatabaseAdapter {
   downloadChapterRepository: Repository<Entity.DownloadChapter>;

@@ -4,8 +4,7 @@ import path from 'path';
 import * as fsu from '../util/fs';
 import { validateFilename } from '../util/validate';
 
-import { MetadataOutline, MangaOutline } from './entity/manga_outline';
-import { MetadataDetail, MangaDetail, Collection, Chapter } from './entity/manga_detail';
+import * as Entity from './entity';
 import { AccessorChapter } from './accessor.chapter';
 
 export class AccessorManga {
@@ -15,8 +14,8 @@ export class AccessorManga {
     this.dir = path.join(libraryDir, id);
   }
 
-  async parseMangaOutline(): Promise<MangaOutline> {
-    const mangaOutline: MangaOutline = {
+  async parseMangaOutline(): Promise<Entity.MangaOutline> {
+    const mangaOutline: Entity.MangaOutline = {
       id: this.id,
       thumb: await this.parseMangaThumb(),
       updateTime: await this.parseMangaUpdateTime(),
@@ -25,8 +24,8 @@ export class AccessorManga {
     return mangaOutline;
   }
 
-  async parseMangaDetail(): Promise<MangaDetail> {
-    const mangaDetail: MangaDetail = {
+  async parseMangaDetail(): Promise<Entity.MangaDetail> {
+    const mangaDetail: Entity.MangaDetail = {
       id: this.id,
       thumb: await this.parseMangaThumb(),
       updateTime: await this.parseMangaUpdateTime(),
@@ -36,7 +35,7 @@ export class AccessorManga {
     return mangaDetail;
   }
 
-  async updateMangaDetail(detail: MangaDetail, thumb: Buffer | undefined): Promise<void> {
+  async updateMangaDetail(detail: Entity.MangaDetail, thumb: Buffer | undefined): Promise<void> {
     //TODO: better check
     const matedataPath = path.join(this.dir, 'metadata.json');
     await fs.writeFile(matedataPath, JSON.stringify(detail.metadata));
@@ -82,7 +81,7 @@ export class AccessorManga {
     return fs.stat(this.dir).then((x) => x.mtime.getTime());
   }
 
-  private async parseMangaMetadataOutline(): Promise<MetadataOutline> {
+  private async parseMangaMetadataOutline(): Promise<Entity.MetadataOutline> {
     const filepath = path.join(this.dir, 'metadata.json');
     return fsu.readJSON(filepath).then((json) => {
       // TODO: check json schema
@@ -91,7 +90,7 @@ export class AccessorManga {
     });
   }
 
-  private async parseMangaMetadataDetail(): Promise<MetadataDetail> {
+  private async parseMangaMetadataDetail(): Promise<Entity.MetadataDetail> {
     const filepath = path.join(this.dir, 'metadata.json');
     return fsu.readJSON(filepath).then((json) => {
       // TODO: check json schema
@@ -100,11 +99,11 @@ export class AccessorManga {
     });
   }
 
-  private async parseMangaCollections(): Promise<Collection[]> {
-    const parseChapterId = (id: string): Chapter => {
+  private async parseMangaCollections(): Promise<Entity.Collection[]> {
+    const parseChapterId = (id: string): Entity.Chapter => {
       const sep = ' ';
       const sepPosition = id.indexOf(sep);
-      const chapter: Chapter = {
+      const chapter: Entity.Chapter = {
         id: id,
         name: sepPosition < 0 ? id : id.substr(0, sepPosition),
         title: sepPosition < 0 ? '' : id.substr(sepPosition + 1),
@@ -122,7 +121,7 @@ export class AccessorManga {
           .listDirectoryWithNaturalOrder(path.join(this.dir, collectionId))
           .then((list) => list.map(parseChapterId));
         if (chapters.length > 0) {
-          const collection: Collection = { id: collectionId, chapters: chapters };
+          const collection: Entity.Collection = { id: collectionId, chapters: chapters };
           collections.push(collection);
         }
       }
@@ -130,7 +129,7 @@ export class AccessorManga {
       // depth 2
       if (collections.length === 0) {
         const chapters = subFolders.map((x) => parseChapterId(x));
-        const collection: Collection = { id: '', chapters: chapters };
+        const collection: Entity.Collection = { id: '', chapters: chapters };
         collections.push(collection);
       }
 
@@ -138,8 +137,8 @@ export class AccessorManga {
     } else {
       // depth 1
       // TODO: add preview
-      const chapter: Chapter = { id: '', name: '', title: '' };
-      const collection: Collection = { id: '', chapters: [chapter] };
+      const chapter: Entity.Chapter = { id: '', name: '', title: '' };
+      const collection: Entity.Collection = { id: '', chapters: [chapter] };
       return [collection];
     }
   }

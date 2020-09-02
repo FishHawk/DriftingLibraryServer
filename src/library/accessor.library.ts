@@ -4,7 +4,7 @@ import path from 'path';
 import * as fsu from '../util/fs';
 import { validateFilename } from '../util/validate';
 
-import { MangaOutline } from './entity/manga_outline';
+import * as Entity from './entity';
 import { AccessorManga } from './accessor.manga';
 import { searchLibrary } from './search';
 
@@ -15,7 +15,7 @@ export class AccessorLibrary {
     lastTime: number | undefined,
     limit: number,
     keywords: string
-  ): Promise<MangaOutline[]> {
+  ): Promise<Entity.MangaOutline[]> {
     return searchLibrary(this.dir, lastTime, limit, keywords);
   }
 
