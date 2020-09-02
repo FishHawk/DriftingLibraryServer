@@ -15,7 +15,7 @@ export default class Provider extends ProviderAdapter {
   readonly isLatestSupport: boolean = true;
 
   private readonly pageSize = 20;
-  private readonly baseUrl = 'https://manga.bilibili.com/';
+  private readonly baseUrl = 'https://manga.bilibili.com/twirp/comic.v1.Comic/';
   private readonly instance = axios.create({
     baseURL: this.baseUrl,
     timeout: 5000,
@@ -28,7 +28,7 @@ export default class Provider extends ProviderAdapter {
 
   search(page: number, keywords: string): Promise<Entity.MangaOutline[]> {
     return this.instance
-      .post('/twirp/comic.v1.Comic/Search?device=pc&platform=web', {
+      .post('/Search?device=pc&platform=web', {
         key_word: keywords,
         page_num: page,
         page_size: this.pageSize,
@@ -38,7 +38,7 @@ export default class Provider extends ProviderAdapter {
 
   requestPopular(page: number): Promise<Entity.MangaOutline[]> {
     return this.instance
-      .post('/twirp/comic.v1.Comic/ClassPage?device=pc&platform=web', {
+      .post('/ClassPage?device=pc&platform=web', {
         style_id: -1,
         area_id: -1,
         is_finish: -1,
@@ -52,7 +52,7 @@ export default class Provider extends ProviderAdapter {
 
   requestLatest(page: number): Promise<Entity.MangaOutline[]> {
     return this.instance
-      .post('/twirp/comic.v1.Comic/ClassPage?device=pc&platform=web', {
+      .post('/ClassPage?device=pc&platform=web', {
         style_id: 1013,
         area_id: -1,
         is_finish: -1,
@@ -66,7 +66,7 @@ export default class Provider extends ProviderAdapter {
 
   requestMangaDetail(mangaId: string): Promise<Entity.MangaDetail> {
     return this.instance
-      .post('/twirp/comic.v1.Comic/ComicDetail?device=h5&platform=h5', { comic_id: mangaId })
+      .post('/ComicDetail?device=h5&platform=h5', { comic_id: mangaId })
       .then((res) => parseMangaDetail(res.data.data))
       .then((detail) => {
         detail.providerId = this.name;
@@ -76,13 +76,13 @@ export default class Provider extends ProviderAdapter {
 
   requestChapterContent(mangaId: string, chapterId: string): Promise<string[]> {
     return this.instance
-      .post('/twirp/comic.v1.Comic/Index?device=h5&platform=h5', { ep_id: chapterId })
+      .post('/Index?device=h5&platform=h5', { ep_id: chapterId })
       .then((res) =>
         this.instance.get('https://i0.hdslb.com' + res.data.data, { responseType: 'arraybuffer' })
       )
       .then((res) => parseChapterContent(mangaId, chapterId, res.data))
       .then((json) =>
-        this.instance.post('/twirp/comic.v1.Comic/ImageToken?device=h5&platform=h5', {
+        this.instance.post('/ImageToken?device=h5&platform=h5', {
           urls: JSON.stringify(json.pics),
         })
       )
