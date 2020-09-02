@@ -2,7 +2,12 @@ import axios from 'axios';
 
 import * as Entity from '../../../library/entity';
 import { ProviderAdapter } from '../../adapter';
-import { parseMangaOutlines, parseMangaDetail, parseChapterContent } from './parse';
+import {
+  parseMangaOutlines,
+  parseMangaDetail,
+  parseChapterContent,
+  parseMangaOutlinesAlter,
+} from './parse';
 
 export default class Provider extends ProviderAdapter {
   readonly lang: string = 'zh';
@@ -32,11 +37,31 @@ export default class Provider extends ProviderAdapter {
   }
 
   requestPopular(page: number): Promise<Entity.MangaOutline[]> {
-    throw new Error('Method not implemented.');
+    return this.instance
+      .post('/twirp/comic.v1.Comic/ClassPage?device=pc&platform=web', {
+        style_id: -1,
+        area_id: -1,
+        is_finish: -1,
+        order: 0,
+        page_num: page,
+        page_size: this.pageSize,
+        is_free: -1,
+      })
+      .then((res) => parseMangaOutlinesAlter(res.data));
   }
 
   requestLatest(page: number): Promise<Entity.MangaOutline[]> {
-    throw new Error('Method not implemented.');
+    return this.instance
+      .post('/twirp/comic.v1.Comic/ClassPage?device=pc&platform=web', {
+        style_id: 1013,
+        area_id: -1,
+        is_finish: -1,
+        order: 1,
+        page_num: page,
+        page_size: this.pageSize,
+        is_free: -1,
+      })
+      .then((res) => parseMangaOutlinesAlter(res.data));
   }
 
   requestMangaDetail(id: string): Promise<Entity.MangaDetail> {

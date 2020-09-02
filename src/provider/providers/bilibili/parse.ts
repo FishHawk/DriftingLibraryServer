@@ -35,6 +35,22 @@ export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
   });
 }
 
+export function parseMangaOutlinesAlter(json: any): Entity.MangaOutline[] {
+  return json.data.map((it: any) => {
+    const metadata: Entity.MetadataOutline = {
+      title: it.title,
+      status: parseMangaStatus(it.is_finish),
+    };
+    const outline: Entity.MangaOutline = {
+      id: it.season_id,
+      thumb: it.vertical_cover,
+      updateTime: undefined,
+      metadata,
+    };
+    return outline;
+  });
+}
+
 export function parseMangaDetail(json: any): Entity.MangaDetail {
   // parse metadata
   const tag: Entity.Tag = { key: 'style', value: json.styles };
