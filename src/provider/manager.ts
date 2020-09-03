@@ -13,7 +13,7 @@ export class ProviderManager {
     this.registerProvider(new ProviderManhuaren());
   }
 
-  private registerProvider(provider: ProviderAdapter) {
+  protected registerProvider(provider: ProviderAdapter) {
     this.providers[provider.id] = provider;
   }
 

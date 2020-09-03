@@ -1,13 +1,13 @@
 import assert from 'assert';
-import Provider from '../src/provider/providers/manhuaren';
+import Provider from '../../src/provider/providers/bilibili';
 import { saveImageFile } from './util';
 
-describe('Provider test: manhuaren', function () {
+describe('Provider test: bilibili', function () {
   const provider = new Provider();
 
   it('test search', () => {
-    return provider.search(1, '龙珠超').then((result) => {
-      assert.equal(result[0].metadata.title, '龙珠超');
+    return provider.search(1, '迷宫饭').then((result) => {
+      assert.equal(result[0].metadata.title, '迷宫饭');
     });
   });
 
@@ -23,25 +23,25 @@ describe('Provider test: manhuaren', function () {
     });
   });
 
-  const mangaId: string = '18657';
-  const chapterId: string = '1012028';
+  const mangaId: string = '28284';
+  const chapterId: string = '466261';
 
   it('test request manga detail', () => {
     return provider.requestMangaDetail(mangaId).then((result) => {
-      assert.equal(result.metadata.title, '龙珠超');
+      assert.equal(result.metadata.title, '迷宫饭');
     });
   });
 
   it('test request chapter content', () => {
     return provider.requestChapterContent(mangaId, chapterId).then((result) => {
-      assert.equal(result.length, 45);
+      assert.equal(result.length, 42);
     });
   });
 
   it('test request image', () => {
     return provider.requestChapterContent(mangaId, chapterId).then((result) =>
       provider.requestImage(result[0]).then((result) => {
-        assert.equal(result.length, 283001);
+        assert.equal(result.length, 2008111);
         return saveImageFile(provider.name, result.slice());
       })
     );

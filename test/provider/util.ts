@@ -1,9 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
-import * as fsu from '../src/util/fs';
+import * as fsu from '../../src/util/fs';
 
 const isEnabled = true;
-const imageFileDir = './test/result';
+const imageFileDir = './test/provider/result';
 
 export async function saveImageFile(providerId: string, data: Buffer) {
   if (isEnabled) {

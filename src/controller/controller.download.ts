@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 
 import { DownloadService } from '../download/service.download';
-
-import { ControllerAdapter } from './adapter';
-import { check } from './validators';
-import { BadRequestError, NotFoundError, ConflictError } from './exceptions';
 import { ProviderManager } from '../provider/manager';
 import { ProviderAdapter } from '../provider/adapter';
+
+import { ControllerAdapter } from './adapter';
+import { BadRequestError, NotFoundError, ConflictError } from './exceptions';
+import { check } from './validators';
 
 export class ControllerDownload extends ControllerAdapter {
   constructor(
