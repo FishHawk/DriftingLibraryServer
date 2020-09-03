@@ -31,9 +31,8 @@ npm run build
 ### 运行
 
 ```bash
-export APP_PORT=8080					# 服务器端口号，应当在1024到65535之间，例如8080。
-export APP_LIBRARY_DIR=/home/xx/xx		# 库目录，存放漫画的文件夹路径，文件夹必须存在。
-npm run build
+export APP_PORT=8080                  # 服务器端口号，应当在1024到65535之间，例如8080。
+export APP_LIBRARY_DIR=/home/xx/xx    # 库目录，存放漫画的文件夹路径，文件夹必须存在。
 npm start
 ```
 
