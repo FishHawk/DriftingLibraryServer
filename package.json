@@ -7,6 +7,7 @@
   "author": "FishHawk",
   "license": "GPL-3.0-or-later",
   "scripts": {
+    "build": "./node_modules/.bin/tsc -p tsconfig.json",
     "start": "node out/index.js",
     "test": "./node_modules/mocha/bin/mocha -r ts-node/register test/**/*.test.ts"
   },
