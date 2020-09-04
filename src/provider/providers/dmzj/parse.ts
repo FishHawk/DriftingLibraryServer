@@ -16,7 +16,7 @@ export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
     const outline: Entity.MangaOutline = {
       id: it.id,
       thumb: it.cover,
-      updateTime: it.last_updatetime,
+      updateTime: it.last_updatetime * 1000,
       metadata: metadata,
     };
     return outline;
@@ -61,7 +61,7 @@ export function parseMangaDetail(json: any): Entity.MangaDetail {
   const detail: Entity.MangaDetail = {
     id: json.id,
     thumb: json.cover,
-    updateTime: json.last_updatetime,
+    updateTime: json.last_updatetime * 1000,
     metadata: metadata,
     collections,
   };
