@@ -30,12 +30,13 @@ export class SubscriptionService {
     });
 
     if (downloadTask === undefined) {
-      await this.db.downloadTaskRepository.create({
+      const task = this.db.downloadTaskRepository.create({
         providerId: subscription.providerId,
         sourceManga: subscription.sourceManga,
         targetManga: subscription.targetManga,
         isCreatedBySubscription: true,
       });
+      await this.db.downloadTaskRepository.save(task);
     } else if (downloadTask.status !== DownloadTaskStatus.Downloading) {
       downloadTask.status = DownloadTaskStatus.Waiting;
       await this.db.downloadTaskRepository.save(downloadTask);
@@ -62,11 +63,12 @@ export class SubscriptionService {
       true
     );
     if (task === undefined) return undefined;
-    const subscription = await this.db.subscriptionRepository.create({
+    const subscription = this.db.subscriptionRepository.create({
       providerId,
       sourceManga,
       targetManga,
     });
+    await this.db.subscriptionRepository.save(subscription);
     return subscription;
   }
 

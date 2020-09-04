@@ -208,7 +208,7 @@ export class DownloadService {
 
         if (isChapterError) hasChapterError = true;
         else {
-          await this.db.downloadChapterRepository.create({
+          await this.db.downloadChapterRepository.insert({
             task: task.id,
             chapter: chapter.id,
           });
