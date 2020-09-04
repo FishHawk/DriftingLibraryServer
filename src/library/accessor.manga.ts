@@ -42,7 +42,7 @@ export class AccessorManga {
 
     if (thumb !== undefined) {
       const thumbPath = path.join(this.dir, 'thumb.jpg');
-      return fs.writeFile(thumbPath, thumb);
+      await fs.writeFile(thumbPath, thumb);
     }
 
     for (const collection of detail.collections) {

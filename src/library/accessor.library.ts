@@ -28,14 +28,14 @@ export class AccessorLibrary {
   async createManga(mangaId: string): Promise<void> {
     if (!this.validateMangaId(mangaId)) return;
     const mangaDir = path.join(this.dir, mangaId);
-    if (fsu.isDirectoryExist(mangaDir)) return;
+    if (await fsu.isDirectoryExist(mangaDir)) return;
     return fs.mkdir(mangaDir);
   }
 
   async deleteManga(mangaId: string): Promise<void> {
     if (!this.validateMangaId(mangaId)) return;
     const mangaDir = path.join(this.dir, mangaId);
-    if (!fsu.isDirectoryExist(mangaDir)) return;
+    if (!await fsu.isDirectoryExist(mangaDir)) return;
     return fs.rmdir(mangaDir, { recursive: true });
   }
 

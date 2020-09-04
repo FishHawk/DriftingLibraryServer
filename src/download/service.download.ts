@@ -77,12 +77,13 @@ export class DownloadService {
     if (await this.library.isMangaExist(targetManga)) return undefined;
     await this.library.createManga(targetManga);
 
-    const task = await this.db.downloadTaskRepository.create({
+    const task = this.db.downloadTaskRepository.create({
       providerId,
       sourceManga,
       targetManga,
       isCreatedBySubscription,
     });
+    await this.db.downloadTaskRepository.save(task);
     this.start();
     return task;
   }
@@ -183,7 +184,7 @@ export class DownloadService {
     const mangaAccessor = await this.library.openManga(task.targetManga);
     if (mangaAccessor === undefined) throw Error('Manga not exist');
 
-    const detail = await this.downloadMangaDetail(provider, mangaAccessor, task.targetManga);
+    const detail = await this.downloadMangaDetail(provider, mangaAccessor, task.sourceManga);
 
     let hasChapterError = false;
     for (const collection of detail.collections) {
