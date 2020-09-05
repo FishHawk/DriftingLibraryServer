@@ -60,7 +60,7 @@ export async function searchLibrary(
 
     if (filter.check(entry)) {
       const accessor = new AccessorManga(libraryDir, mangaId);
-      const outline = await accessor.parseMangaOutline();
+      const outline = await accessor.getMangaOutline();
       result.push(outline);
       if (result.length >= limit) break;
     }

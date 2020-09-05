@@ -14,47 +14,31 @@ export class AccessorManga {
     this.dir = path.join(libraryDir, id);
   }
 
-  async parseMangaOutline(): Promise<Entity.MangaOutline> {
+  async getMangaOutline(): Promise<Entity.MangaOutline> {
     const mangaOutline: Entity.MangaOutline = {
       id: this.id,
-      thumb: await this.parseMangaThumb(),
-      updateTime: await this.parseMangaUpdateTime(),
-      metadata: await this.parseMangaMetadataOutline(),
+      thumb: await this.getThumb(),
+      updateTime: await this.getUpdateTime(),
+      metadata: await this.getMetadataOutline(),
     };
     return mangaOutline;
   }
 
-  async parseMangaDetail(): Promise<Entity.MangaDetail> {
+  async getMangaDetail(): Promise<Entity.MangaDetail> {
     const mangaDetail: Entity.MangaDetail = {
       id: this.id,
-      thumb: await this.parseMangaThumb(),
-      updateTime: await this.parseMangaUpdateTime(),
-      metadata: await this.parseMangaMetadataDetail(),
-      collections: await this.parseMangaCollections(),
+      thumb: await this.getThumb(),
+      updateTime: await this.getUpdateTime(),
+      metadata: await this.getMetadataDetail(),
+      collections: await this.getCollections(),
     };
     return mangaDetail;
   }
 
-  async updateMangaDetail(detail: Entity.MangaDetail, thumb: Buffer | undefined): Promise<void> {
-    //TODO: better check
-    const matedataPath = path.join(this.dir, 'metadata.json');
-    await fs.writeFile(matedataPath, JSON.stringify(detail.metadata));
-
-    if (thumb !== undefined) {
-      const thumbPath = path.join(this.dir, 'thumb.jpg');
-      await fs.writeFile(thumbPath, thumb);
-    }
-
-    for (const collection of detail.collections) {
-      const collectionDir = path.join(this.dir, collection.id);
-      if (!(await fsu.isDirectoryExist(collectionDir))) await fs.mkdir(collectionDir);
-
-      for (const chapter of collection.chapters) {
-        const chapterId = `${chapter.name} ${chapter.title}`;
-        const chapterDir = path.join(collectionDir, chapterId);
-        if (!(await fsu.isDirectoryExist(chapterDir))) await fs.mkdir(chapterDir);
-      }
-    }
+  async setMangaDetail(detail: Entity.MangaDetail, thumb: Buffer | undefined): Promise<void> {
+    await this.setMetadata(detail.metadata);
+    if (thumb !== undefined) await this.setThumb(thumb);
+    await this.setCollections(detail.collections);
   }
 
   async openChapter(collectionId: string, chapterId: string) {
@@ -67,7 +51,7 @@ export class AccessorManga {
     return new AccessorChapter(chapterDir);
   }
 
-  private async parseMangaThumb() {
+  private async getThumb() {
     const possibleThumbFileName = ['thumb.jpg', 'thumb.png', 'thumb.png'];
     for (const filename of possibleThumbFileName) {
       const filepath = path.join(this.dir, filename);
@@ -77,11 +61,22 @@ export class AccessorManga {
     return undefined;
   }
 
-  private async parseMangaUpdateTime() {
+  async setThumb(thumb: Buffer) {
+    // TODO: exam image type
+    const thumbPath = path.join(this.dir, 'thumb.jpg');
+    return await fs.writeFile(thumbPath, thumb);
+  }
+
+  private async getUpdateTime() {
     return fs.stat(this.dir).then((x) => x.mtime.getTime());
   }
+  // async refreshModifiedTime() {
+  //   const tempPath = path.join(this.dir, 'temp.json');
+  //   await fsp.open(tempPath, 'w').then((f) => f.close());
+  //   await fs.unlinkSync(tempPath);
+  // }
 
-  private async parseMangaMetadataOutline(): Promise<Entity.MetadataOutline> {
+  private async getMetadataOutline(): Promise<Entity.MetadataOutline> {
     const filepath = path.join(this.dir, 'metadata.json');
     return fsu.readJSON(filepath).then((json) => {
       // TODO: check json schema
@@ -90,7 +85,7 @@ export class AccessorManga {
     });
   }
 
-  private async parseMangaMetadataDetail(): Promise<Entity.MetadataDetail> {
+  private async getMetadataDetail(): Promise<Entity.MetadataDetail> {
     const filepath = path.join(this.dir, 'metadata.json');
     return fsu.readJSON(filepath).then((json) => {
       // TODO: check json schema
@@ -99,7 +94,12 @@ export class AccessorManga {
     });
   }
 
-  private async parseMangaCollections(): Promise<Entity.Collection[]> {
+  async setMetadata(metadata: Entity.MetadataDetail) {
+    const matedataPath = path.join(this.dir, 'metadata.json');
+    return fs.writeFile(matedataPath, JSON.stringify(metadata));
+  }
+
+  private async getCollections(): Promise<Entity.Collection[]> {
     const parseChapterId = (id: string): Entity.Chapter => {
       const sep = ' ';
       const sepPosition = id.indexOf(sep);
@@ -142,9 +142,18 @@ export class AccessorManga {
       return [collection];
     }
   }
-  // async refreshModifiedTime() {
-  //   const tempPath = path.join(this.dir, 'temp.json');
-  //   await fsp.open(tempPath, 'w').then((f) => f.close());
-  //   await fs.unlinkSync(tempPath);
-  // }
+
+  private async setCollections(collections: Entity.Collection[]): Promise<void> {
+    //TODO: better check
+    for (const collection of collections) {
+      const collectionDir = path.join(this.dir, collection.id);
+      if (!(await fsu.isDirectoryExist(collectionDir))) await fs.mkdir(collectionDir);
+
+      for (const chapter of collection.chapters) {
+        const chapterId = `${chapter.name} ${chapter.title}`;
+        const chapterDir = path.join(collectionDir, chapterId);
+        if (!(await fsu.isDirectoryExist(chapterDir))) await fs.mkdir(chapterDir);
+      }
+    }
+  }
 }

@@ -234,7 +234,7 @@ export class DownloadService {
     const detail = await provider.requestMangaDetail(mangaId);
     let thumb = undefined;
     if (detail.thumb !== undefined) thumb = await provider.requestImage(detail.thumb);
-    await accessor.updateMangaDetail(detail, thumb);
+    await accessor.setMangaDetail(detail, thumb);
     this.cancelIfNeed();
     return detail;
   }

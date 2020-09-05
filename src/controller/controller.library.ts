@@ -43,7 +43,7 @@ export class ControllerLibrary extends ControllerAdapter {
     const id = this.checkMangaId(req.params.id);
 
     const manga = await this.library.openManga(id);
-    const detail = await manga?.parseMangaDetail();
+    const detail = await manga?.getMangaDetail();
     if (detail === undefined) throw new NotFoundError('Not found: manga');
 
     return res.json(detail);
