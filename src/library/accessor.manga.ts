@@ -67,14 +67,13 @@ export class AccessorManga {
     return await fs.writeFile(thumbPath, thumb);
   }
 
-  private async getUpdateTime() {
-    return fs.stat(this.dir).then((x) => x.mtime.getTime());
+  private async getUpdateTime(): Promise<number> {
+    return fs.stat(this.dir).then((stat) => stat.mtime.getTime());
   }
-  // async refreshModifiedTime() {
-  //   const tempPath = path.join(this.dir, 'temp.json');
-  //   await fsp.open(tempPath, 'w').then((f) => f.close());
-  //   await fs.unlinkSync(tempPath);
-  // }
+
+  private async refreshUpdateTime(): Promise<void> {
+    return fs.stat(this.dir).then((stat) => fs.utimes(this.dir, stat.atime, Date.now()));
+  }
 
   private async getMetadataOutline(): Promise<Entity.MetadataOutline> {
     const filepath = path.join(this.dir, 'metadata.json');
