@@ -12,6 +12,7 @@
     "test": "./node_modules/mocha/bin/mocha -r ts-node/register test/**/*.test.ts"
   },
   "dependencies": {
+    "@types/multer": "^1.4.4",
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "cron": "^1.8.2",
@@ -19,6 +20,7 @@
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "moment": "^2.27.0",
+    "multer": "^1.4.2",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.3.4",
     "sqlite3": "^5.0.0",

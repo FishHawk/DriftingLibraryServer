@@ -51,7 +51,7 @@ export class AccessorManga {
     return new AccessorChapter(chapterDir);
   }
 
-  private async getThumb() {
+  private async getThumb(): Promise<string | undefined> {
     const possibleThumbFileName = ['thumb.jpg', 'thumb.png', 'thumb.png'];
     for (const filename of possibleThumbFileName) {
       const filepath = path.join(this.dir, filename);
@@ -62,6 +62,12 @@ export class AccessorManga {
   }
 
   async setThumb(thumb: Buffer) {
+    const existThumbFilename = await this.getThumb();
+    if (existThumbFilename != undefined) {
+      const existThumbPath = path.join(this.dir, existThumbFilename);
+      await fs.unlink(existThumbPath);
+    }
+
     // TODO: exam image type
     const thumbPath = path.join(this.dir, 'thumb.jpg');
     return await fs.writeFile(thumbPath, thumb);
