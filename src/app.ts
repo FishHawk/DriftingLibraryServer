@@ -14,7 +14,7 @@ import { AccessorLibrary } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './download/service.download';
 import { SubscriptionService } from './download/service.subscription';
-import { HttpError } from './controller/exceptions';
+import { HttpError } from './controller/exception';
 
 export class App {
   private readonly app: express.Application;

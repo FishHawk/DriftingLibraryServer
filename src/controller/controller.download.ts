@@ -3,10 +3,11 @@ import { Request, Response } from 'express';
 import { DownloadService } from '../download/service.download';
 import { ProviderManager } from '../provider/manager';
 import { ProviderAdapter } from '../provider/adapter';
+import { isObject, isString } from '../util/sanitizer';
 
 import { ControllerAdapter } from './adapter';
-import { BadRequestError, NotFoundError, ConflictError } from './exceptions';
-import { check } from './validators';
+import { BadRequestError, NotFoundError, ConflictError } from './exception';
+import { extractIntParam } from './extarct';
 
 export class ControllerDownload extends ControllerAdapter {
   constructor(
@@ -43,15 +44,13 @@ export class ControllerDownload extends ControllerAdapter {
   };
 
   createDownloadTask = async (req: Request, res: Response) => {
-    const providerId = this.checkProviderId(req.body.providerId);
-    const sourceManga = this.checkSourceMangaId(req.body.sourceManga);
-    const targetManga = this.checkTargetMangaId(req.body.targetManga);
-    this.checkProvider(providerId);
+    if (!this.bodySanitize(req.body)) return new BadRequestError('Illegal body');
+    this.checkProvider(req.body.providerId);
 
     const task = await this.downloadService.createDownloadTask(
-      providerId,
-      sourceManga,
-      targetManga
+      req.body.providerId,
+      req.body.sourceManga,
+      req.body.targetManga
     );
     if (task === undefined) throw new ConflictError('Already exists.');
 
@@ -59,60 +58,40 @@ export class ControllerDownload extends ControllerAdapter {
   };
 
   deleteDownloadTask = async (req: Request, res: Response) => {
-    const id = this.checkDownloadId(req.params.id);
-
+    const id = extractIntParam(req, 'id');
     const task = await this.downloadService.deleteDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
     return res.json(task);
   };
 
   startDownloadTask = async (req: Request, res: Response) => {
-    const id = this.checkDownloadId(req.params.id);
-
+    const id = extractIntParam(req, 'id');
     const task = await this.downloadService.startDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
     return res.json(task);
   };
 
   pauseDownloadTask = async (req: Request, res: Response) => {
-    const id = this.checkDownloadId(req.params.id);
-
+    const id = extractIntParam(req, 'id');
     const task = await this.downloadService.pauseDownloadTask(id);
     if (task === undefined) throw new NotFoundError('Not found.');
     return res.json(task);
   };
 
   /*
-   * Argument validation helper
+   * Body validation helper
    */
 
-  private checkDownloadId(id: any): number {
-    const checked = check(id)?.isString()?.toInt()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: download id');
-    return checked;
-  }
+  private readonly bodySanitize = isObject({
+    providerId: isString(),
+    sourceManga: isString(),
+    targetManga: isString(),
+  });
 
-  private checkProviderId(id: any): string {
-    const checked = check(id)?.isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: provider id');
-    return checked;
-  }
-
+  // TODO: should not be here
   private checkProvider(id: string): ProviderAdapter {
     const provider = this.providerManager.getProvider(id);
     if (provider === undefined) throw new BadRequestError('Unsupport provider');
     return provider;
-  }
-
-  private checkSourceMangaId(id: any): string {
-    const checked = check(id).isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: source manga id');
-    return checked;
-  }
-
-  private checkTargetMangaId(id: any): string {
-    const checked = check(id).isString()?.isFilename()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: target manga id');
-    return checked;
   }
 }

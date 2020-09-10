@@ -1,12 +1,13 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 
 import { SubscriptionService } from '../download/service.subscription';
 import { ProviderAdapter } from '../provider/adapter';
 import { ProviderManager } from '../provider/manager';
 
 import { ControllerAdapter } from './adapter';
-import { BadRequestError, NotFoundError, ConflictError } from './exceptions';
-import { check } from './validators';
+import { BadRequestError, NotFoundError, ConflictError } from './exception';
+import { isString, isObject } from '../util/sanitizer';
+import { extractIntParam } from './extarct';
 
 export class ControllerSubscription extends ControllerAdapter {
   constructor(
@@ -43,15 +44,13 @@ export class ControllerSubscription extends ControllerAdapter {
   };
 
   createSubscription = async (req: Request, res: Response) => {
-    const providerId = this.checkProviderId(req.body.providerId);
-    const sourceManga = this.checkSourceMangaId(req.body.sourceManga);
-    const targetManga = this.checkTargetMangaId(req.body.targetManga);
-    this.checkProvider(providerId);
+    if (!this.bodySanitizer(req.body)) return new BadRequestError('Illegal body');
+    this.checkProvider(req.body.providerId);
 
     const subscription = await this.subscribeService.createSubscription(
-      providerId,
-      sourceManga,
-      targetManga
+      req.body.providerId,
+      req.body.sourceManga,
+      req.body.targetManga
     );
     if (subscription === undefined) throw new ConflictError('Already exists.');
 
@@ -59,8 +58,7 @@ export class ControllerSubscription extends ControllerAdapter {
   };
 
   deleteSubscription = async (req: Request, res: Response) => {
-    const id = this.checkSubscriptionId(req.params.id);
-
+    const id = extractIntParam(req, 'id');
     const subscription = await this.subscribeService.deleteSubscription(id);
     if (subscription === undefined) throw new NotFoundError('Not found.');
 
@@ -68,8 +66,7 @@ export class ControllerSubscription extends ControllerAdapter {
   };
 
   enableSubscription = async (req: Request, res: Response) => {
-    const id = this.checkSubscriptionId(req.params.id);
-
+    const id = extractIntParam(req, 'id');
     const subscription = await this.subscribeService.enableSubscription(id);
     if (subscription === undefined) throw new NotFoundError('Not found.');
 
@@ -77,8 +74,7 @@ export class ControllerSubscription extends ControllerAdapter {
   };
 
   disableSubscription = async (req: Request, res: Response) => {
-    const id = this.checkSubscriptionId(req.params.id);
-
+    const id = extractIntParam(req, 'id');
     const subscription = await this.subscribeService.disableSubscription(id);
     if (subscription === undefined) throw new NotFoundError('Not found.');
 
@@ -89,33 +85,15 @@ export class ControllerSubscription extends ControllerAdapter {
    * Argument validation helper
    */
 
-  private checkSubscriptionId(id: any): number {
-    const checked = check(id)?.isString()?.toInt()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: subscription id');
-    return checked;
-  }
-
-  private checkProviderId(id: any): string {
-    const checked = check(id)?.isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: provider id');
-    return checked;
-  }
+  private readonly bodySanitizer = isObject({
+    providerId: isString(),
+    sourceManga: isString(),
+    targetManga: isString(),
+  });
 
   private checkProvider(id: string): ProviderAdapter {
     const provider = this.providerManager.getProvider(id);
     if (provider === undefined) throw new BadRequestError('Unsupport provider');
     return provider;
-  }
-
-  private checkSourceMangaId(id: any): string {
-    const checked = check(id).isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: source manga id');
-    return checked;
-  }
-
-  private checkTargetMangaId(id: any): string {
-    const checked = check(id).isString()?.isFilename()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: target manga id');
-    return checked;
   }
 }

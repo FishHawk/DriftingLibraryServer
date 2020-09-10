@@ -6,8 +6,8 @@ import { SubscriptionService } from '../download/service.subscription';
 import { AccessorLibrary } from '../library/accessor.library';
 
 import { ControllerAdapter } from './adapter';
-import { BadRequestError, NotFoundError } from './exceptions';
-import { check } from './validators';
+import { BadRequestError, NotFoundError } from './exception';
+import { extractIntQuery, extractStringQuery, extractStringParam } from './extarct';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -39,19 +39,16 @@ export class ControllerLibrary extends ControllerAdapter {
   }
 
   search = async (req: Request, res: Response) => {
-    const lastTime = check(req.query.lastTime).isString()?.toInt()?.min(0).to();
-    const limit = check(req.query.limit).setDefault('20').isString()?.toInt()?.limit(0, 20).to();
-    const keywords = check(req.query.keywords).setDefault('').isString()?.to();
-
-    if (limit === undefined) throw new BadRequestError('Illegal argument: limit');
-    if (keywords === undefined) throw new BadRequestError('Illegal argument: keywords');
+    const lastTime = extractIntQuery(req, 'lastTime');
+    const limit = extractIntQuery(req, 'limit', 20);
+    const keywords = extractStringQuery(req, 'keywords');
 
     const outlines = await this.library.search(lastTime, limit, keywords);
     return res.json(outlines);
   };
 
   getManga = async (req: Request, res: Response) => {
-    const id = this.checkMangaId(req.params.id);
+    const id = extractStringParam(req, 'id');
 
     const manga = await this.library.openManga(id);
     const detail = await manga?.getMangaDetail();
@@ -61,7 +58,7 @@ export class ControllerLibrary extends ControllerAdapter {
   };
 
   deleteManga = async (req: Request, res: Response) => {
-    const id = this.checkMangaId(req.params.id);
+    const id = extractStringParam(req, 'id');
 
     if (!(await this.library.isMangaExist(id))) throw new NotFoundError('Not found: manga');
     await this.library.deleteManga(id!);
@@ -72,7 +69,7 @@ export class ControllerLibrary extends ControllerAdapter {
   };
 
   patchMangaThumb = async (req: Request, res: Response) => {
-    const id = this.checkMangaId(req.params.id);
+    const id = extractStringParam(req, 'id');
     if (req.file === undefined) throw new BadRequestError('Illegal argument: thumb file');
 
     const manga = await this.library.openManga(id);
@@ -85,7 +82,7 @@ export class ControllerLibrary extends ControllerAdapter {
   };
 
   patchMangaMetadata = async (req: Request, res: Response) => {
-    const id = this.checkMangaId(req.params.id);
+    const id = extractStringParam(req, 'id');
 
     const manga = await this.library.openManga(id);
     if (manga === undefined) throw new NotFoundError('Not found: manga');
@@ -97,9 +94,9 @@ export class ControllerLibrary extends ControllerAdapter {
   };
 
   getChapter = async (req: Request, res: Response) => {
-    const id = this.checkMangaId(req.params.id);
-    const collectionId = this.checkCollectionId(req.query.collection);
-    const chapterId = this.checkChapterId(req.query.chapter);
+    const id = extractStringParam(req, 'id');
+    const collectionId = extractStringQuery(req, 'collection');
+    const chapterId = extractStringQuery(req, 'chapter');
 
     const manga = await this.library.openManga(id);
     const chapter = await manga?.openChapter(collectionId, chapterId);
@@ -108,28 +105,4 @@ export class ControllerLibrary extends ControllerAdapter {
 
     return res.json(content);
   };
-
-  /*
-   * Argument validation helper
-   */
-
-  private checkMangaId(id: any): string {
-    const checked = check(id).isString()?.isFilename()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: manga id');
-    return checked;
-  }
-
-  private checkCollectionId(id: any): string {
-    let checked = check(id).isString()?.isFilename()?.to();
-    if (checked === undefined) checked = check(id).isString()?.isEmpty()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: collection id');
-    return checked;
-  }
-
-  private checkChapterId(id: any): string {
-    let checked = check(id).isString()?.isFilename()?.to();
-    if (checked === undefined) checked = check(id).isString()?.isEmpty()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: chapter id');
-    return checked;
-  }
 }

@@ -2,12 +2,15 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
-import { validateFilename } from '../util/validate';
+import { validateFilename } from '../util/validate_filename';
+import { StringValidator } from '../util/validator';
 
 import * as Entity from './entity';
 import { AccessorChapter } from './accessor.chapter';
 
 export class AccessorManga {
+  static readonly filenameValidator = new StringValidator().isFilename();
+
   private readonly dir: string;
 
   constructor(libraryDir: string, private readonly id: string) {
@@ -43,8 +46,8 @@ export class AccessorManga {
 
   async openChapter(collectionId: string, chapterId: string) {
     // TODO: better check
-    if (collectionId.length !== 0 && !validateFilename(collectionId)) return undefined;
-    if (chapterId.length !== 0 && !validateFilename(chapterId)) return undefined;
+    if (!this.validateCollectionId(collectionId)) return undefined;
+    if (!this.validateChapterId(chapterId)) return undefined;
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
     if (!(await fsu.isDirectoryExist(chapterDir))) return undefined;
@@ -160,5 +163,12 @@ export class AccessorManga {
         if (!(await fsu.isDirectoryExist(chapterDir))) await fs.mkdir(chapterDir);
       }
     }
+  }
+
+  private validateCollectionId(collectionId: string) {
+    return collectionId.length === 0 || AccessorManga.filenameValidator.validate(collectionId);
+  }
+  private validateChapterId(chapterId: string) {
+    return chapterId.length === 0 || AccessorManga.filenameValidator.validate(chapterId);
   }
 }

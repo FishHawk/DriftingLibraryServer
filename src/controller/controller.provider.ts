@@ -4,8 +4,8 @@ import { ProviderAdapter } from '../provider/adapter';
 import { ProviderManager } from '../provider/manager';
 
 import { ControllerAdapter } from './adapter';
-import { BadRequestError } from './exceptions';
-import { check } from './validators';
+import { BadRequestError } from './exception';
+import { extractStringParam, extractStringQuery, extractIntQuery } from './extarct';
 
 export class ControllerProvider extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {
@@ -30,50 +30,50 @@ export class ControllerProvider extends ControllerAdapter {
   };
 
   search = async (req: Request, res: Response) => {
-    const provider = this.checkProvider(req.params.providerId);
-    const keywords = this.checkKeywords(req.query.keywords);
-    const page = this.checkPage(req.query.page);
+    const provider = this.getProvider(req);
+    const keywords = extractStringQuery(req, 'keywords');
+    const page = extractIntQuery(req, 'page');
 
     const outlines = await provider.search(page, keywords);
     return res.json(outlines);
   };
 
   getPopular = async (req: Request, res: Response) => {
-    const provider = this.checkProvider(req.params.providerId);
-    const page = this.checkPage(req.query.page);
+    const provider = this.getProvider(req);
+    const page = extractIntQuery(req, 'page');
 
     const outlines = await provider.requestPopular(page);
     return res.json(outlines);
   };
 
   getLatest = async (req: Request, res: Response) => {
-    const provider = this.checkProvider(req.params.providerId);
-    const page = this.checkPage(req.query.page);
+    const provider = this.getProvider(req);
+    const page = extractIntQuery(req, 'page');
 
     const outlines = await provider.requestLatest(page);
     return res.json(outlines);
   };
 
   getManga = async (req: Request, res: Response) => {
-    const provider = this.checkProvider(req.params.providerId);
-    const mangaId = this.checkMangaId(req.params.mangaId);
+    const provider = this.getProvider(req);
+    const mangaId = extractStringParam(req, 'mangaId');
 
     const detail = await provider.requestMangaDetail(mangaId);
     return res.json(detail);
   };
 
   getChapter = async (req: Request, res: Response) => {
-    const provider = this.checkProvider(req.params.providerId);
-    const mangaId = this.checkMangaId(req.params.mangaId);
-    const chapterId = this.checkChapterId(req.params.chapterId);
+    const provider = this.getProvider(req);
+    const mangaId = extractStringParam(req, 'mangaId');
+    const chapterId = extractStringParam(req, 'chapterId');
 
     const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
     return res.json(imageUrls);
   };
 
   getImage = async (req: Request, res: Response) => {
-    const provider = this.checkProvider(req.params.providerId);
-    const url = this.checkImageUrl(req.params.url);
+    const provider = this.getProvider(req);
+    const url = extractStringParam(req, 'url');
 
     const image = await provider.requestImage(url);
     return res.send(image);
@@ -83,46 +83,10 @@ export class ControllerProvider extends ControllerAdapter {
    * Argument validation helper
    */
 
-  private checkProviderId(id: any): string {
-    const checked = check(id)?.isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: provider id');
-    return checked;
-  }
-
-  private checkProvider(id: any): ProviderAdapter {
-    const checkedId = this.checkProviderId(id);
-    const provider = this.providerManager.getProvider(checkedId);
-    if (provider === undefined) throw new BadRequestError('Unsupport provider');
+  private getProvider(req: Request): ProviderAdapter {
+    const id = extractStringParam(req, 'providerId');
+    const provider = this.providerManager.getProvider(id);
+    if (provider === undefined) throw new BadRequestError('Illegal param: unsupport provider');
     return provider;
-  }
-
-  private checkPage(page: any): number {
-    const checked = check(page).setDefault('1').isString()?.toInt()?.min(1).to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: page');
-    return checked;
-  }
-
-  private checkKeywords(keywords: any): string {
-    const checked = check(keywords).setDefault('').isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: keywords');
-    return checked;
-  }
-
-  private checkMangaId(id: any): string {
-    const checked = check(id).isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: manga id');
-    return checked;
-  }
-
-  private checkChapterId(id: any): string {
-    const checked = check(id).isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: chapter id');
-    return checked;
-  }
-
-  private checkImageUrl(url: any): string {
-    const checked = check(url).isString()?.to();
-    if (checked === undefined) throw new BadRequestError('Illegal argument: image url');
-    return checked;
   }
 }

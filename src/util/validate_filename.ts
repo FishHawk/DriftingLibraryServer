@@ -11,4 +11,4 @@ function validateFilenameWin(filename: string) {
 }
 
 const isWin = process.platform === 'win32';
-export const validateFilename = isWin ? validateFilenameWin : validateFilenameLinux;
+export default isWin ? validateFilenameWin : validateFilenameLinux;

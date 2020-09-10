@@ -2,13 +2,15 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
-import { validateFilename } from '../util/validate';
+import { StringValidator } from '../util/validator';
 
 import * as Entity from './entity';
 import { AccessorManga } from './accessor.manga';
 import { searchLibrary } from './search';
 
 export class AccessorLibrary {
+  static readonly mangaIdValidator = new StringValidator().isFilename();
+
   constructor(readonly dir: string) {}
 
   async search(
@@ -35,7 +37,7 @@ export class AccessorLibrary {
   async deleteManga(mangaId: string): Promise<void> {
     if (!this.validateMangaId(mangaId)) return;
     const mangaDir = path.join(this.dir, mangaId);
-    if (!await fsu.isDirectoryExist(mangaDir)) return;
+    if (!(await fsu.isDirectoryExist(mangaDir))) return;
     return fs.rmdir(mangaDir, { recursive: true });
   }
 
@@ -45,6 +47,6 @@ export class AccessorLibrary {
   }
 
   private validateMangaId(mangaId: string) {
-    return validateFilename(mangaId);
+    return AccessorLibrary.mangaIdValidator.validate(mangaId);
   }
 }
