@@ -9,6 +9,7 @@ import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
 import { extractIntQuery, extractStringQuery, extractStringParam } from './extarct';
 import { AccessorMangaFailure } from '../library/accessor.manga';
+import { Get, Delete, Patch, UseBefore } from './decorator';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -19,44 +20,34 @@ export class ControllerLibrary extends ControllerAdapter {
     private readonly subscriptionService: SubscriptionService
   ) {
     super();
-
-    this.router.get('/library/search', this.wrap(this.search));
-
-    this.router.get('/library/manga/:mangaId', this.wrap(this.getManga));
-    this.router.delete('/library/manga/:mangaId', this.wrap(this.deleteManga));
-    this.router.patch('/library/manga/:mangaId/metadata', this.wrap(this.patchMangaMetadata));
-    this.router.patch(
-      '/library/manga/:mangaId/thumb',
-      upload.single('thumb'),
-      this.wrap(this.patchMangaThumb)
-    );
-
-    this.router.get('/library/chapter/:mangaId', this.wrap(this.getChapter));
-
-    this.router.use(
-      '/library/image',
-      express.static(this.library.dir, { dotfiles: 'ignore', fallthrough: false })
-    );
+    const staticMiddleware = express.static(this.library.dir, {
+      dotfiles: 'ignore',
+      fallthrough: false,
+    });
+    this.router.use('/library/image', staticMiddleware);
   }
 
-  search = async (req: Request, res: Response) => {
+  @Get('/library/search')
+  search(req: Request, res: Response) {
     const lastTime = extractIntQuery(req, 'lastTime');
     const limit = extractIntQuery(req, 'limit', 20);
     const keywords = extractStringQuery(req, 'keywords');
 
     return this.library.search(lastTime, limit, keywords).then((outlines) => res.json(outlines));
-  };
+  }
 
-  getManga = async (req: Request, res: Response) => {
+  @Get('/library/manga/:mangaId')
+  getManga(req: Request, res: Response) {
     const mangaId = extractStringParam(req, 'mangaId');
     return this.library
       .openManga(mangaId)
       .then((result) => result.onFailure(this.libraryFailureHandler))
       .then((manga) => manga.getMangaDetail())
       .then((detail) => res.json(detail));
-  };
+  }
 
-  deleteManga = async (req: Request, res: Response) => {
+  @Delete('/library/manga/:mangaId')
+  deleteManga(req: Request, res: Response) {
     const mangaId = extractStringParam(req, 'mangaId');
     return this.library
       .deleteManga(mangaId)
@@ -64,9 +55,10 @@ export class ControllerLibrary extends ControllerAdapter {
       .then(() => this.subscriptionService.deleteSubscriptionByMangaId(mangaId))
       .then(() => this.downloadService.deleteDownloadTaskByMangaId(mangaId))
       .then(() => res.json(mangaId));
-  };
+  }
 
-  patchMangaMetadata = async (req: Request, res: Response) => {
+  @Patch('/library/manga/:mangaId/metadata')
+  patchMangaMetadata(req: Request, res: Response) {
     const mangaId = extractStringParam(req, 'mangaId');
     return this.library
       .openManga(mangaId)
@@ -74,9 +66,11 @@ export class ControllerLibrary extends ControllerAdapter {
       .then((manga) => manga.setMetadata(req.body))
       .then((manga) => manga.getMangaDetail())
       .then((detail) => res.json(detail));
-  };
+  }
 
-  patchMangaThumb = async (req: Request, res: Response) => {
+  @UseBefore(upload.single('thumb'))
+  @Patch('/library/manga/:mangaId/thumb')
+  patchMangaThumb(req: Request, res: Response) {
     const mangaId = extractStringParam(req, 'mangaId');
     if (req.file === undefined) throw new BadRequestError('Illegal argument: thumb file');
 
@@ -86,9 +80,10 @@ export class ControllerLibrary extends ControllerAdapter {
       .then((manga) => manga.setThumb(req.file.buffer))
       .then((manga) => manga.getMangaDetail())
       .then((detail) => res.json(detail));
-  };
+  }
 
-  getChapter = async (req: Request, res: Response) => {
+  @Get('/library/chapter/:mangaId')
+  getChapter(req: Request, res: Response) {
     const mangaId = extractStringParam(req, 'mangaId');
     const collectionId = extractStringQuery(req, 'collection');
     const chapterId = extractStringQuery(req, 'chapter');
@@ -100,7 +95,7 @@ export class ControllerLibrary extends ControllerAdapter {
       .then((result) => result.onFailure(this.mangaFailureHandler))
       .then((chapter) => chapter.listImage())
       .then((content) => res.json(content));
-  };
+  }
 
   /*
    * Helper

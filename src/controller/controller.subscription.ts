@@ -8,6 +8,7 @@ import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError, ConflictError } from './exception';
 import { isString, isObject } from '../util/sanitizer';
 import { extractIntParam } from './extarct';
+import { Get, Patch, Post, Delete } from './decorator';
 
 export class ControllerSubscription extends ControllerAdapter {
   constructor(
@@ -15,71 +16,73 @@ export class ControllerSubscription extends ControllerAdapter {
     private readonly subscribeService: SubscriptionService
   ) {
     super();
-
-    this.router.get('/subscriptions', this.wrap(this.getAllSubscription));
-    this.router.patch('/subscriptions/enable', this.wrap(this.enableAllSubscription));
-    this.router.patch('/subscriptions/disable', this.wrap(this.disableAllSubscription));
-
-    this.router.post('/subscription', this.wrap(this.createSubscription));
-    this.router.delete('/subscription/:id', this.wrap(this.deleteSubscription));
-    this.router.patch('/subscription/:id/enable', this.wrap(this.enableSubscription));
-    this.router.patch('/subscription/:id/disable', this.wrap(this.disableSubscription));
   }
 
-  getAllSubscription = async (req: Request, res: Response) => {
-    const subscriptions = await this.subscribeService.getAllSubscription();
-    return res.json(subscriptions);
-  };
+  @Get('/subscriptions')
+  getAllSubscription(req: Request, res: Response) {
+    return this.subscribeService
+      .getAllSubscription()
+      .then((subscriptions) => res.json(subscriptions));
+  }
 
-  enableAllSubscription = async (req: Request, res: Response) => {
-    await this.subscribeService.enableAllSubscription();
-    const subscriptions = await this.subscribeService.getAllSubscription();
-    return res.json(subscriptions);
-  };
+  @Patch('/subscriptions/enable')
+  enableAllSubscription(req: Request, res: Response) {
+    return this.subscribeService
+      .enableAllSubscription()
+      .then(this.subscribeService.getAllSubscription)
+      .then((subscriptions) => res.json(subscriptions));
+  }
 
-  disableAllSubscription = async (req: Request, res: Response) => {
-    await this.subscribeService.disableAllSubscription();
-    const subscriptions = await this.subscribeService.getAllSubscription();
-    return res.json(subscriptions);
-  };
+  @Patch('/subscriptions/disable')
+  disableAllSubscription(req: Request, res: Response) {
+    return this.subscribeService
+      .disableAllSubscription()
+      .then(this.subscribeService.getAllSubscription)
+      .then((subscriptions) => res.json(subscriptions));
+  }
 
-  createSubscription = async (req: Request, res: Response) => {
+  @Post('/subscription')
+  createSubscription(req: Request, res: Response) {
     if (!this.bodySanitizer(req.body)) return new BadRequestError('Illegal body');
     this.checkProvider(req.body.providerId);
 
-    const subscription = await this.subscribeService.createSubscription(
-      req.body.providerId,
-      req.body.sourceManga,
-      req.body.targetManga
-    );
-    if (subscription === undefined) throw new ConflictError('Already exists.');
+    return this.subscribeService
+      .createSubscription(req.body.providerId, req.body.sourceManga, req.body.targetManga)
+      .then((subscription) => {
+        if (subscription === undefined) throw new ConflictError('Already exists.');
+        return res.json(subscription);
+      });
+  }
 
-    return res.json(subscription);
-  };
-
-  deleteSubscription = async (req: Request, res: Response) => {
+  @Delete('/subscription/:id')
+  deleteSubscription(req: Request, res: Response) {
     const id = extractIntParam(req, 'id');
-    const subscription = await this.subscribeService.deleteSubscription(id);
-    if (subscription === undefined) throw new NotFoundError('Not found.');
 
-    return res.json(subscription);
-  };
+    return this.subscribeService.deleteSubscription(id).then((subscription) => {
+      if (subscription === undefined) throw new NotFoundError('Not found.');
+      return res.json(subscription);
+    });
+  }
 
-  enableSubscription = async (req: Request, res: Response) => {
+  @Patch('/subscription/:id/enable')
+  enableSubscription(req: Request, res: Response) {
     const id = extractIntParam(req, 'id');
-    const subscription = await this.subscribeService.enableSubscription(id);
-    if (subscription === undefined) throw new NotFoundError('Not found.');
 
-    return res.json(subscription);
-  };
+    return this.subscribeService.enableSubscription(id).then((subscription) => {
+      if (subscription === undefined) throw new NotFoundError('Not found.');
+      return res.json(subscription);
+    });
+  }
 
-  disableSubscription = async (req: Request, res: Response) => {
+  @Patch('/subscription/:id/disable')
+  disableSubscription(req: Request, res: Response) {
     const id = extractIntParam(req, 'id');
-    const subscription = await this.subscribeService.disableSubscription(id);
-    if (subscription === undefined) throw new NotFoundError('Not found.');
 
-    return res.json(subscription);
-  };
+    return this.subscribeService.disableSubscription(id).then((subscription) => {
+      if (subscription === undefined) throw new NotFoundError('Not found.');
+      return res.json(subscription);
+    });
+  }
 
   /*
    * Argument validation helper

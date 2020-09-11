@@ -66,7 +66,7 @@ export class AccessorLibrary {
       return Result.failure(AccessorLibraryFailure.IllegalMangaId);
 
     const mangaDir = path.join(this.dir, mangaId);
-    if (await fsu.isDirectoryExist(mangaDir))
+    if (!await fsu.isDirectoryExist(mangaDir))
       return Result.failure(AccessorLibraryFailure.MangaNotFound);
 
     return Result.success(new AccessorManga(this.dir, mangaId));

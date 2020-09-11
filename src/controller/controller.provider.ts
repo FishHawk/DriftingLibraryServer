@@ -6,78 +6,62 @@ import { ProviderManager } from '../provider/manager';
 import { ControllerAdapter } from './adapter';
 import { BadRequestError } from './exception';
 import { extractStringParam, extractStringQuery, extractIntQuery } from './extarct';
+import { Get } from './decorator';
 
 export class ControllerProvider extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {
     super();
-
-    this.router.get('/providers', this.wrap(this.getProviders));
-    this.router.get('/provider/:providerId/search', this.wrap(this.search));
-    this.router.get('/provider/:providerId/popular', this.wrap(this.getPopular));
-    this.router.get('/provider/:providerId/latest', this.wrap(this.getLatest));
-
-    this.router.get('/provider/:providerId/manga/:mangaId', this.wrap(this.getManga));
-    this.router.get(
-      '/provider/:providerId/chapter/:mangaId/:chapterId',
-      this.wrap(this.getChapter)
-    );
-    this.router.get('/provider/:providerId/image/:url', this.wrap(this.getImage));
   }
 
-  getProviders = async (req: Request, res: Response) => {
+  @Get('/providers')
+  getProviders(req: Request, res: Response) {
     const providers = this.providerManager.getProviderInfoList();
     return res.json(providers);
-  };
+  }
 
-  search = async (req: Request, res: Response) => {
+  @Get('/provider/:providerId/search')
+  search(req: Request, res: Response) {
     const provider = this.getProvider(req);
     const keywords = extractStringQuery(req, 'keywords');
     const page = extractIntQuery(req, 'page');
+    return provider.search(page, keywords).then((outlines) => res.json(outlines));
+  }
 
-    const outlines = await provider.search(page, keywords);
-    return res.json(outlines);
-  };
-
-  getPopular = async (req: Request, res: Response) => {
+  @Get('/provider/:providerId/popular')
+  getPopular(req: Request, res: Response) {
     const provider = this.getProvider(req);
     const page = extractIntQuery(req, 'page');
+    return provider.requestPopular(page).then((outlines) => res.json(outlines));
+  }
 
-    const outlines = await provider.requestPopular(page);
-    return res.json(outlines);
-  };
-
-  getLatest = async (req: Request, res: Response) => {
+  @Get('/provider/:providerId/latest')
+  getLatest(req: Request, res: Response) {
     const provider = this.getProvider(req);
     const page = extractIntQuery(req, 'page');
+    return provider.requestLatest(page).then((outlines) => res.json(outlines));
+  }
 
-    const outlines = await provider.requestLatest(page);
-    return res.json(outlines);
-  };
-
-  getManga = async (req: Request, res: Response) => {
+  @Get('/provider/:providerId/manga/:mangaId')
+  getManga(req: Request, res: Response) {
     const provider = this.getProvider(req);
     const mangaId = extractStringParam(req, 'mangaId');
+    return provider.requestMangaDetail(mangaId).then((detail) => res.json(detail));
+  }
 
-    const detail = await provider.requestMangaDetail(mangaId);
-    return res.json(detail);
-  };
-
-  getChapter = async (req: Request, res: Response) => {
+  @Get('/provider/:providerId/chapter/:mangaId/:chapterId')
+  getChapter(req: Request, res: Response) {
     const provider = this.getProvider(req);
     const mangaId = extractStringParam(req, 'mangaId');
     const chapterId = extractStringParam(req, 'chapterId');
+    return provider.requestChapterContent(mangaId, chapterId).then((content) => res.json(content));
+  }
 
-    const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
-    return res.json(imageUrls);
-  };
-
-  getImage = async (req: Request, res: Response) => {
+  @Get('/provider/:providerId/image/:url')
+  getImage(req: Request, res: Response) {
     const provider = this.getProvider(req);
     const url = extractStringParam(req, 'url');
-
-    const image = await provider.requestImage(url);
-    return res.send(image);
-  };
+    return provider.requestImage(url).then((image) => res.send(image));
+  }
 
   /*
    * Argument validation helper

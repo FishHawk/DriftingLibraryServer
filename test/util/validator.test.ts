@@ -9,7 +9,7 @@ import {
   isObject,
   union,
   intersection,
-} from '../../src/util/sanitizers';
+} from '../../src/util/sanitizer';
 
 describe('Util test: validator', function () {
   describe('#isUndefined', function () {
