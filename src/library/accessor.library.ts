@@ -7,6 +7,16 @@ import { StringValidator } from '../util/validator';
 import * as Entity from './entity';
 import { AccessorManga } from './accessor.manga';
 import { searchLibrary } from './search';
+import { Result } from '../util/result';
+
+export enum AccessorLibraryFailure {
+  IllegalMangaId,
+  MangaAlreadyExist,
+  MangaNotFound,
+}
+
+type Failure1 = AccessorLibraryFailure.IllegalMangaId | AccessorLibraryFailure.MangaAlreadyExist;
+type Failure2 = AccessorLibraryFailure.IllegalMangaId | AccessorLibraryFailure.MangaNotFound;
 
 export class AccessorLibrary {
   static readonly mangaIdValidator = new StringValidator().isFilename();
@@ -27,23 +37,39 @@ export class AccessorLibrary {
     return fsu.isDirectoryExist(mangaDir);
   }
 
-  async createManga(mangaId: string): Promise<void> {
-    if (!this.validateMangaId(mangaId)) return;
+  async createManga(mangaId: string): Promise<Result<undefined, Failure1>> {
+    if (!this.validateMangaId(mangaId))
+      return Result.failure(AccessorLibraryFailure.IllegalMangaId);
+
     const mangaDir = path.join(this.dir, mangaId);
-    if (await fsu.isDirectoryExist(mangaDir)) return;
-    return fs.mkdir(mangaDir);
+    if (await fsu.isDirectoryExist(mangaDir))
+      return Result.failure(AccessorLibraryFailure.MangaAlreadyExist);
+
+    await fs.mkdir(mangaDir);
+    return Result.success(undefined);
   }
 
-  async deleteManga(mangaId: string): Promise<void> {
-    if (!this.validateMangaId(mangaId)) return;
+  async deleteManga(mangaId: string): Promise<Result<undefined, Failure2>> {
+    if (!this.validateMangaId(mangaId))
+      return Result.failure(AccessorLibraryFailure.IllegalMangaId);
+
     const mangaDir = path.join(this.dir, mangaId);
-    if (!(await fsu.isDirectoryExist(mangaDir))) return;
-    return fs.rmdir(mangaDir, { recursive: true });
+    if (!(await fsu.isDirectoryExist(mangaDir)))
+      return Result.failure(AccessorLibraryFailure.MangaNotFound);
+
+    await fs.rmdir(mangaDir, { recursive: true });
+    return Result.success(undefined);
   }
 
-  async openManga(mangaId: string) {
-    if (!(await this.isMangaExist(mangaId))) return undefined;
-    return new AccessorManga(this.dir, mangaId);
+  async openManga(mangaId: string): Promise<Result<AccessorManga, Failure2>> {
+    if (!this.validateMangaId(mangaId))
+      return Result.failure(AccessorLibraryFailure.IllegalMangaId);
+
+    const mangaDir = path.join(this.dir, mangaId);
+    if (await fsu.isDirectoryExist(mangaDir))
+      return Result.failure(AccessorLibraryFailure.MangaNotFound);
+
+    return Result.success(new AccessorManga(this.dir, mangaId));
   }
 
   private validateMangaId(mangaId: string) {

@@ -2,11 +2,17 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
-import { validateFilename } from '../util/validate_filename';
 import { StringValidator } from '../util/validator';
 
 import * as Entity from './entity';
 import { AccessorChapter } from './accessor.chapter';
+import { Result } from '../util/result';
+
+export enum AccessorMangaFailure {
+  IllegalCollectionId,
+  IllegalChapterId,
+  ChapterNotFound,
+}
 
 export class AccessorManga {
   static readonly filenameValidator = new StringValidator().isFilename();
@@ -44,14 +50,20 @@ export class AccessorManga {
     await this.setCollections(detail.collections);
   }
 
-  async openChapter(collectionId: string, chapterId: string) {
+  async openChapter(
+    collectionId: string,
+    chapterId: string
+  ): Promise<Result<AccessorChapter, AccessorMangaFailure>> {
     // TODO: better check
-    if (!this.validateCollectionId(collectionId)) return undefined;
-    if (!this.validateChapterId(chapterId)) return undefined;
+    if (!this.validateCollectionId(collectionId))
+      return Result.failure(AccessorMangaFailure.IllegalCollectionId);
+    if (!this.validateChapterId(chapterId))
+      return Result.failure(AccessorMangaFailure.IllegalChapterId);
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (!(await fsu.isDirectoryExist(chapterDir))) return undefined;
-    return new AccessorChapter(chapterDir);
+    if (!(await fsu.isDirectoryExist(chapterDir)))
+      return Result.failure(AccessorMangaFailure.ChapterNotFound);
+    return Result.success(new AccessorChapter(chapterDir));
   }
 
   private async getThumb(): Promise<string | undefined> {
@@ -73,7 +85,8 @@ export class AccessorManga {
 
     // TODO: exam image type
     const thumbPath = path.join(this.dir, 'thumb.jpg');
-    return await fs.writeFile(thumbPath, thumb);
+    await fs.writeFile(thumbPath, thumb);
+    return this;
   }
 
   private async getUpdateTime(): Promise<number> {
@@ -104,7 +117,8 @@ export class AccessorManga {
 
   async setMetadata(metadata: Entity.MetadataDetail) {
     const matedataPath = path.join(this.dir, 'metadata.json');
-    return fs.writeFile(matedataPath, JSON.stringify(metadata));
+    await fs.writeFile(matedataPath, JSON.stringify(metadata));
+    return this;
   }
 
   private async getCollections(): Promise<Entity.Collection[]> {

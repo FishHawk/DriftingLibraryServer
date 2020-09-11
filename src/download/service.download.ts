@@ -181,8 +181,11 @@ export class DownloadService {
     const provider = this.providerManager.getProvider(task.providerId);
     if (provider === undefined) throw Error('Provider not exist');
 
-    const mangaAccessor = await this.library.openManga(task.targetManga);
-    if (mangaAccessor === undefined) throw Error('Manga not exist');
+    const mangaAccessor = await this.library.openManga(task.targetManga).then((result) =>
+      result.onFailure((e) => {
+        throw Error('Manga not exist');
+      })
+    );
 
     const detail = await this.downloadMangaDetail(provider, mangaAccessor, task.sourceManga);
 
@@ -198,7 +201,13 @@ export class DownloadService {
 
         if (chapterTask !== undefined) continue;
         const chapterId = `${chapter.name} ${chapter.title}`;
-        const chapterAccessor = await mangaAccessor!.openChapter(collection.id, chapterId);
+        const chapterAccessor = await mangaAccessor
+          .openChapter(collection.id, chapterId)
+          .then((result) =>
+            result.onFailure((e) => {
+              throw Error('Chapter not exist');
+            })
+          );
         const isChapterError = await this.downloadChapter(
           provider,
           chapterAccessor!,
