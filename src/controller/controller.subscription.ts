@@ -1,6 +1,6 @@
 import { Response } from 'express';
 
-import { SubscriptionService } from '../download/service.subscription';
+import { SubscriptionService } from '../service/service.subscription';
 
 import { ControllerAdapter } from './adapter';
 import { NotFoundError, ConflictError } from './exception';

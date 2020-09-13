@@ -11,8 +11,8 @@ import { SubscriptionController } from './controller/controller.subscription';
 import { createSqliteDatabase, DatabaseAdapter } from './database/adapter';
 import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
-import { DownloadService } from './download/service.download';
-import { SubscriptionService } from './download/service.subscription';
+import { DownloadService } from './service/service.download';
+import { SubscriptionService } from './service/service.subscription';
 import { HttpError } from './controller/exception';
 
 export class App {

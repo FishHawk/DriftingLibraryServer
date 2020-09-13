@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer';
 
-import { DownloadService } from '../download/service.download';
-import { SubscriptionService } from '../download/service.subscription';
+import { DownloadService } from '../service/service.download';
+import { SubscriptionService } from '../service/service.subscription';
 import { LibraryAccessor, LibraryAccessorFailure } from '../library/accessor.library';
 import { MangaAccessorFailure } from '../library/accessor.manga';
 
