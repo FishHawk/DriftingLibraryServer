@@ -4,12 +4,13 @@ import multer from 'multer';
 import { DownloadService } from '../download/service.download';
 import { SubscriptionService } from '../download/service.subscription';
 import { AccessorLibrary, AccessorLibraryFailure } from '../library/accessor.library';
+import { AccessorMangaFailure } from '../library/accessor.manga';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
 import { extractIntQuery, extractStringQuery, extractStringParam } from './extarct';
-import { AccessorMangaFailure } from '../library/accessor.manga';
-import { Get, Delete, Patch, UseBefore } from './decorator';
+import { Get, Delete, Patch } from './decorator/action';
+import { UseBefore } from './decorator/middleware';
 
 const upload = multer({ storage: multer.memoryStorage() });
 

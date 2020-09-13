@@ -3,12 +3,12 @@ import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { SubscriptionService } from '../download/service.subscription';
 import { ProviderAdapter } from '../provider/adapter';
 import { ProviderManager } from '../provider/manager';
+import { isString, isObject } from '../util/sanitizer';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError, ConflictError } from './exception';
-import { isString, isObject } from '../util/sanitizer';
 import { extractIntParam } from './extarct';
-import { Get, Patch, Post, Delete } from './decorator';
+import { Get, Patch, Post, Delete } from './decorator/action';
 
 export class ControllerSubscription extends ControllerAdapter {
   constructor(

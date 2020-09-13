@@ -8,7 +8,7 @@ import { isObject, isString } from '../util/sanitizer';
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError, ConflictError } from './exception';
 import { extractIntParam } from './extarct';
-import { Get, Patch, Post, Delete } from './decorator';
+import { Get, Patch, Post, Delete } from './decorator/action';
 
 export class ControllerDownload extends ControllerAdapter {
   constructor(

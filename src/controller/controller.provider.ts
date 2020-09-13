@@ -6,7 +6,7 @@ import { ProviderManager } from '../provider/manager';
 import { ControllerAdapter } from './adapter';
 import { BadRequestError } from './exception';
 import { extractStringParam, extractStringQuery, extractIntQuery } from './extarct';
-import { Get } from './decorator';
+import { Get } from './decorator/action';
 
 export class ControllerProvider extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {
