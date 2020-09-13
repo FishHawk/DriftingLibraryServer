@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import bodyParser from 'body-parser';
 
 import { logger } from './logger';
 
@@ -41,8 +40,8 @@ export class App {
 
   private async initialize() {
     // Middlewares
-    this.app.use(bodyParser.json());
-    this.app.use(bodyParser.urlencoded({ extended: false }));
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: false }));
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       logger.info(`Request: ${req.method} ${req.url}`);
       next();
