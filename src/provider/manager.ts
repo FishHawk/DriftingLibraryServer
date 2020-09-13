@@ -1,5 +1,4 @@
-import { ProviderAdapter, ProviderInfo } from './adapter';
-
+import { ProviderAdapter, ProviderInfo } from './providers/adapter';
 import ProviderBilibili from './providers/bilibili';
 import ProviderDmzj from './providers/dmzj';
 import ProviderManhuaren from './providers/manhuaren';

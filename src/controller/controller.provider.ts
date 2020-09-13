@@ -1,6 +1,6 @@
 import { Response } from 'express';
 
-import { ProviderAdapter } from '../provider/adapter';
+import { ProviderAdapter } from '../provider/providers/adapter';
 import { ProviderManager } from '../provider/manager';
 
 import { ControllerAdapter } from './adapter';

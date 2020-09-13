@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import moment from 'moment';
 
 import * as Entity from '../../../library/entity';
-import { ProviderAdapter } from '../../adapter';
+import { ProviderAdapter } from '../adapter';
 import { parseMangaOutlines, parseMangaDetail, parseChapterContent } from './parse';
 
 export default class Provider extends ProviderAdapter {

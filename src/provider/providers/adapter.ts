@@ -1,4 +1,4 @@
-import { MangaOutline, MangaDetail } from '../library/entity';
+import { MangaOutline, MangaDetail } from '../../library/entity';
 
 export interface ProviderInfo {
   readonly id: string;

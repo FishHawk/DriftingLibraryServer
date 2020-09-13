@@ -2,7 +2,7 @@ import { logger } from '../logger';
 import { DatabaseAdapter } from '../database/adapter';
 import { DownloadTask, DownloadTaskStatus } from '../database/entity/download_task';
 
-import { ProviderAdapter } from '../provider/adapter';
+import { ProviderAdapter } from '../provider/providers/adapter';
 import { ProviderManager } from '../provider/manager';
 
 import { LibraryAccessor } from '../library/accessor.library';

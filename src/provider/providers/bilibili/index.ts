@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import * as Entity from '../../../library/entity';
-import { ProviderAdapter } from '../../adapter';
+import { ProviderAdapter } from '../adapter';
 import {
   parseMangaOutlines,
   parseMangaDetail,
