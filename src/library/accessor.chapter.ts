@@ -3,7 +3,7 @@ import path from 'path';
 
 import * as fsu from '../util/fs';
 
-export class AccessorChapter {
+export class ChapterAccessor {
   constructor(private readonly dir: string) {}
 
   async listImage(): Promise<string[]> {

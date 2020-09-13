@@ -7,7 +7,7 @@ import { NotFoundError, ConflictError } from './exception';
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, Body, Param } from './decorator/param';
 
-export class ControllerSubscription extends ControllerAdapter {
+export class SubscriptionController extends ControllerAdapter {
   constructor(private readonly subscribeService: SubscriptionService) {
     super();
   }

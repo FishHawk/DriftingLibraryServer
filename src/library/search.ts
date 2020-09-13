@@ -3,7 +3,7 @@ import path from 'path';
 
 import { readJSON } from '../util/fs';
 import { Filter, MatchEntry } from './filter';
-import { AccessorManga } from './accessor.manga';
+import { MangaAccessor } from './accessor.manga';
 
 async function listLibraryWithMtime(libraryDir: string) {
   return fs.readdir(libraryDir, { withFileTypes: true }).then((list) => {
@@ -59,7 +59,7 @@ export async function searchLibrary(
     const entry = await buildMatchEntry(libraryDir, mangaId);
 
     if (filter.check(entry)) {
-      const accessor = new AccessorManga(libraryDir, mangaId);
+      const accessor = new MangaAccessor(libraryDir, mangaId);
       const outline = await accessor.getMangaOutline();
       result.push(outline);
       if (result.length >= limit) break;

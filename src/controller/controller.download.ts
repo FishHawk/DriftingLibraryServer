@@ -8,7 +8,7 @@ import { NotFoundError, ConflictError } from './exception';
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, Body, Param } from './decorator/param';
 
-export class ControllerDownload extends ControllerAdapter {
+export class DownloadController extends ControllerAdapter {
   constructor(private readonly downloadService: DownloadService) {
     super();
   }

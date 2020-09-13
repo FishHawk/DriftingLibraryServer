@@ -1,13 +1,13 @@
 import { logger } from '../logger';
-import { DatabaseAdapter } from '../database/db_adapter';
+import { DatabaseAdapter } from '../database/adapter';
 import { DownloadTask, DownloadTaskStatus } from '../database/entity/download_task';
 
 import { ProviderAdapter } from '../provider/adapter';
 import { ProviderManager } from '../provider/manager';
 
-import { AccessorLibrary } from '../library/accessor.library';
-import { AccessorManga } from '../library/accessor.manga';
-import { AccessorChapter } from '../library/accessor.chapter';
+import { LibraryAccessor } from '../library/accessor.library';
+import { MangaAccessor } from '../library/accessor.manga';
+import { ChapterAccessor } from '../library/accessor.chapter';
 
 class AsyncTaskCancelError extends Error {
   constructor() {
@@ -21,7 +21,7 @@ class AsyncTaskCancelError extends Error {
 export class DownloadService {
   constructor(
     private readonly db: DatabaseAdapter,
-    private readonly library: AccessorLibrary,
+    private readonly library: LibraryAccessor,
     private readonly providerManager: ProviderManager
   ) {}
 
@@ -237,7 +237,7 @@ export class DownloadService {
 
   private async downloadMangaDetail(
     provider: ProviderAdapter,
-    accessor: AccessorManga,
+    accessor: MangaAccessor,
     mangaId: string
   ) {
     const detail = await provider.requestMangaDetail(mangaId);
@@ -250,7 +250,7 @@ export class DownloadService {
 
   private async downloadChapter(
     provider: ProviderAdapter,
-    accessor: AccessorChapter,
+    accessor: ChapterAccessor,
     mangaId: string,
     chapterId: string
   ) {

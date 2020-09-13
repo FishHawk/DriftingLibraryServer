@@ -5,16 +5,16 @@ import * as fsu from '../util/fs';
 import { StringValidator } from '../util/validator';
 
 import * as Entity from './entity';
-import { AccessorChapter } from './accessor.chapter';
+import { ChapterAccessor } from './accessor.chapter';
 import { Result } from '../util/result';
 
-export enum AccessorMangaFailure {
+export enum MangaAccessorFailure {
   IllegalCollectionId,
   IllegalChapterId,
   ChapterNotFound,
 }
 
-export class AccessorManga {
+export class MangaAccessor {
   static readonly filenameValidator = new StringValidator().isFilename();
 
   private readonly dir: string;
@@ -53,17 +53,17 @@ export class AccessorManga {
   async openChapter(
     collectionId: string,
     chapterId: string
-  ): Promise<Result<AccessorChapter, AccessorMangaFailure>> {
+  ): Promise<Result<ChapterAccessor, MangaAccessorFailure>> {
     // TODO: better check
     if (!this.validateCollectionId(collectionId))
-      return Result.failure(AccessorMangaFailure.IllegalCollectionId);
+      return Result.failure(MangaAccessorFailure.IllegalCollectionId);
     if (!this.validateChapterId(chapterId))
-      return Result.failure(AccessorMangaFailure.IllegalChapterId);
+      return Result.failure(MangaAccessorFailure.IllegalChapterId);
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
     if (!(await fsu.isDirectoryExist(chapterDir)))
-      return Result.failure(AccessorMangaFailure.ChapterNotFound);
-    return Result.success(new AccessorChapter(chapterDir));
+      return Result.failure(MangaAccessorFailure.ChapterNotFound);
+    return Result.success(new ChapterAccessor(chapterDir));
   }
 
   private async getThumb(): Promise<string | undefined> {
@@ -180,9 +180,9 @@ export class AccessorManga {
   }
 
   private validateCollectionId(collectionId: string) {
-    return collectionId.length === 0 || AccessorManga.filenameValidator.validate(collectionId);
+    return collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId);
   }
   private validateChapterId(chapterId: string) {
-    return chapterId.length === 0 || AccessorManga.filenameValidator.validate(chapterId);
+    return chapterId.length === 0 || MangaAccessor.filenameValidator.validate(chapterId);
   }
 }

@@ -3,13 +3,13 @@ import express, { Request, Response, NextFunction } from 'express';
 import { logger } from './logger';
 
 import { ControllerAdapter } from './controller/adapter';
-import { ControllerDownload } from './controller/controller.download';
-import { ControllerLibrary } from './controller/controller.library';
-import { ControllerProvider } from './controller/controller.provider';
-import { ControllerSubscription } from './controller/controller.subscription';
+import { DownloadController } from './controller/controller.download';
+import { LibraryController } from './controller/controller.library';
+import { ProviderController } from './controller/controller.provider';
+import { SubscriptionController } from './controller/controller.subscription';
 
-import { createSqliteDatabase, DatabaseAdapter } from './database/db_adapter';
-import { AccessorLibrary } from './library/accessor.library';
+import { createSqliteDatabase, DatabaseAdapter } from './database/adapter';
+import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './download/service.download';
 import { SubscriptionService } from './download/service.subscription';
@@ -21,7 +21,7 @@ export class App {
   private readonly libraryDir: string;
 
   private database!: DatabaseAdapter;
-  private libraryAccessor!: AccessorLibrary;
+  private libraryAccessor!: LibraryAccessor;
   private providerManager!: ProviderManager;
   private downloadService!: DownloadService;
   private subscribeService!: SubscriptionService;
@@ -49,7 +49,7 @@ export class App {
 
     // Components
     this.database = await createSqliteDatabase(this.libraryDir);
-    this.libraryAccessor = new AccessorLibrary(this.libraryDir);
+    this.libraryAccessor = new LibraryAccessor(this.libraryDir);
     this.providerManager = new ProviderManager();
 
     this.downloadService = new DownloadService(
@@ -61,10 +61,10 @@ export class App {
 
     // Controllers
     this.controllers = [
-      new ControllerLibrary(this.libraryAccessor, this.downloadService, this.subscribeService),
-      new ControllerProvider(this.providerManager),
-      new ControllerDownload(this.downloadService),
-      new ControllerSubscription(this.subscribeService),
+      new LibraryController(this.libraryAccessor, this.downloadService, this.subscribeService),
+      new ProviderController(this.providerManager),
+      new DownloadController(this.downloadService),
+      new SubscriptionController(this.subscribeService),
     ];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);

@@ -9,7 +9,7 @@ import { BadRequestError } from './exception';
 import { Get } from './decorator/action';
 import { Res, Param } from './decorator/param';
 
-export class ControllerProvider extends ControllerAdapter {
+export class ProviderController extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {
     super();
   }
