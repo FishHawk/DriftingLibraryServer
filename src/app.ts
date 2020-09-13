@@ -42,10 +42,7 @@ export class App {
     // Middlewares
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
-      logger.info(`Request: ${req.method} ${req.url}`);
-      next();
-    });
+    this.app.use(logMiddleware);
     this.app.get('/test', (req: Request, res: Response) => {
       res.send('Hello World!');
     });
@@ -74,13 +71,7 @@ export class App {
     });
 
     // Error handle
-    this.app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
-      logger.error(err.stack);
-      const status = err.status || 500;
-      const message = err.message || 'Unexceped error.';
-      res.status(status).send(message);
-    });
-
+    this.app.use(errorHandlerMiddleware);
     return this;
   }
 
@@ -90,3 +81,20 @@ export class App {
     });
   }
 }
+
+const logMiddleware = (req: Request, _res: Response, next: NextFunction) => {
+  logger.info(`Request: ${req.method} ${req.url}`);
+  next();
+};
+
+const errorHandlerMiddleware = (
+  err: HttpError,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+) => {
+  logger.error(err.stack);
+  const status = err.status || 500;
+  const message = err.message || 'Unexceped error.';
+  res.status(status).send(message);
+};
