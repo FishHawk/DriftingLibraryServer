@@ -1,55 +1,41 @@
-import { Request } from 'express';
-import { BadRequestError } from '../exception';
+import { pushParameterIndication } from './indication';
 
-// TODO: replace with decorator
+/* req & res */
+export const Req = (): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'req', index });
+};
+export const Res = (): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'res', index });
+};
 
-export function getStringParam(req: Request, key: string, defaultValue?: string): string {
-  const value = req.params[key];
-  if (typeof value === 'string') return value;
-  if (defaultValue) return defaultValue;
-  throw new BadRequestError(`Illegal param: ${key}`);
-}
+/* param */
+export const Param = (name: string): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'param', index, name });
+};
+export const RawParam = (): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'raw_param', index });
+};
 
-export function getIntParam(req: Request, key: string, defaultValue?: number): number {
-  const value = req.query[key];
-  if (typeof value === 'string') {
-    const valueInt = Number.parseInt(value);
-    if (!Number.isNaN(valueInt)) return valueInt;
-  }
-  if (defaultValue) return defaultValue;
-  throw new BadRequestError(`Illegal param: ${key}`);
-}
+/* query */
+export const Query = (name: string): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'query', index, name });
+};
+export const RawQuery = (): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'raw_query', index });
+};
 
-export function getStringQuery(req: Request, key: string, defaultValue?: string): string {
-  const value = req.query[key];
-  if (typeof value === 'string') return value;
-  if (defaultValue) return defaultValue;
-  throw new BadRequestError(`Illegal query: ${key}`);
-}
-
-export function getIntQuery(req: Request, key: string, defaultValue?: number): number {
-  const value = req.query[key];
-  if (typeof value === 'string') {
-    const valueInt = Number.parseInt(value);
-    if (!Number.isNaN(valueInt)) return valueInt;
-  }
-  if (defaultValue) return defaultValue;
-  throw new BadRequestError(`Illegal query: ${key}`);
-}
-
-export function getStringBodyField(req: Request, key: string, defaultValue?: string): string {
-  const value = req.body[key];
-  if (typeof value === 'string') return value;
-  if (defaultValue) return defaultValue;
-  throw new BadRequestError(`Illegal query: ${key}`);
-}
-
-export function getIntBodyField(req: Request, key: string, defaultValue?: number): number {
-  const value = req.body[key];
-  if (typeof value === 'string') {
-    const valueInt = Number.parseInt(value);
-    if (!Number.isNaN(valueInt)) return valueInt;
-  }
-  if (defaultValue) return defaultValue;
-  throw new BadRequestError(`Illegal query: ${key}`);
-}
+/* body */
+export const Body = (name: string): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'body', index, name });
+};
+export const RawBody = (): ParameterDecorator => {
+  return (target, key, index): void =>
+    pushParameterIndication(target, { method: key, type: 'raw_body', index });
+};

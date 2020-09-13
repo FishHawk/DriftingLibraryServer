@@ -1,12 +1,13 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 import { ProviderAdapter } from '../provider/adapter';
 import { ProviderManager } from '../provider/manager';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError } from './exception';
+
 import { Get } from './decorator/action';
-import { getStringParam, getStringQuery, getIntQuery } from './decorator/param';
+import { Res, Param } from './decorator/param';
 
 export class ControllerProvider extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {
@@ -14,52 +15,72 @@ export class ControllerProvider extends ControllerAdapter {
   }
 
   @Get('/providers')
-  getProviders(req: Request, res: Response) {
+  getProviders(@Res() res: Response) {
     const providers = this.providerManager.getProviderInfoList();
     return res.json(providers);
   }
 
   @Get('/provider/:providerId/search')
-  search(req: Request, res: Response) {
-    const provider = this.getProvider(req);
-    const keywords = getStringQuery(req, 'keywords');
-    const page = getIntQuery(req, 'page');
+  search(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Param('keywords') keywords: string,
+    @Param('page') page: number
+  ) {
+    const provider = this.getProvider(providerId);
     return provider.search(page, keywords).then((outlines) => res.json(outlines));
   }
 
   @Get('/provider/:providerId/popular')
-  getPopular(req: Request, res: Response) {
-    const provider = this.getProvider(req);
-    const page = getIntQuery(req, 'page');
+  getPopular(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Param('page') page: number
+  ) {
+    const provider = this.getProvider(providerId);
     return provider.requestPopular(page).then((outlines) => res.json(outlines));
   }
 
   @Get('/provider/:providerId/latest')
-  getLatest(req: Request, res: Response) {
-    const provider = this.getProvider(req);
-    const page = getIntQuery(req, 'page');
+  getLatest(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Param('page') page: number
+  ) {
+    const provider = this.getProvider(providerId);
     return provider.requestLatest(page).then((outlines) => res.json(outlines));
   }
 
   @Get('/provider/:providerId/manga/:mangaId')
-  getManga(req: Request, res: Response) {
-    const provider = this.getProvider(req);
-    const mangaId = getStringParam(req, 'mangaId');
+  getManga(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Param('mangaId') mangaId: string
+  ) {
+    const provider = this.getProvider(providerId);
     return provider.requestMangaDetail(mangaId).then((detail) => res.json(detail));
   }
 
   @Get('/provider/:providerId/chapter/:mangaId/:chapterId')
-  getChapter(req: Request, res: Response) {
-    const provider = this.getProvider(req);
-    const mangaId = getStringParam(req, 'mangaId');
-    const chapterId = getStringParam(req, 'chapterId');
-    return provider.requestChapterContent(mangaId, chapterId).then((content) => res.json(content));
+  getChapter(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Param('mangaId') mangaId: string,
+    @Param('chapterId') chapterId: string
+  ) {
+    const provider = this.getProvider(providerId);
+    return provider
+      .requestChapterContent(mangaId, chapterId)
+      .then((content) => res.json(content));
   }
 
   @Get('/provider/:providerId/image/:url')
-  getImage(req: Request, res: Response) {
-    const provider = this.getProvider(req);
-    const url = getStringParam(req, 'url');
+  getImage(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Param('url') url: string
+  ) {
+    const provider = this.getProvider(providerId);
     return provider.requestImage(url).then((image) => res.send(image));
   }
 
@@ -67,10 +88,10 @@ export class ControllerProvider extends ControllerAdapter {
    * Argument validation helper
    */
 
-  private getProvider(req: Request): ProviderAdapter {
-    const id = getStringParam(req, 'providerId');
+  private getProvider(id: string): ProviderAdapter {
     const provider = this.providerManager.getProvider(id);
-    if (provider === undefined) throw new BadRequestError('Illegal param: unsupport provider');
+    if (provider === undefined)
+      throw new BadRequestError('Illegal param: unsupport provider');
     return provider;
   }
 }

@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 import { DownloadService } from '../download/service.download';
 
 import { ControllerAdapter } from './adapter';
 import { NotFoundError, ConflictError } from './exception';
+
 import { Get, Patch, Post, Delete } from './decorator/action';
-import { getIntParam, getStringBodyField } from './decorator/param';
+import { Res, Body, Param } from './decorator/param';
 
 export class ControllerDownload extends ControllerAdapter {
   constructor(private readonly downloadService: DownloadService) {
@@ -13,12 +14,12 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   @Get('/downloads')
-  getAllDownloadTask(req: Request, res: Response) {
+  getAllDownloadTask(@Res() res: Response) {
     return this.downloadService.getAllDownloadTask().then((tasks) => res.json(tasks));
   }
 
   @Patch('/downloads/start')
-  async startAllDownloadTask(req: Request, res: Response) {
+  async startAllDownloadTask(@Res() res: Response) {
     return this.downloadService
       .startAllDownloadTask()
       .then(this.downloadService.getAllDownloadTask)
@@ -26,7 +27,7 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   @Patch('/downloads/pause')
-  pauseAllDownloadTask(req: Request, res: Response) {
+  pauseAllDownloadTask(@Res() res: Response) {
     return this.downloadService
       .pauseAllDownloadTask()
       .then(this.downloadService.getAllDownloadTask)
@@ -34,10 +35,12 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   @Post('/download')
-  createDownloadTask(req: Request, res: Response) {
-    const providerId = getStringBodyField(req, 'providerId');
-    const sourceManga = getStringBodyField(req, 'sourceManga');
-    const targetManga = getStringBodyField(req, 'targetManga');
+  createDownloadTask(
+    @Res() res: Response,
+    @Body('providerId') providerId: string,
+    @Body('sourceManga') sourceManga: string,
+    @Body('targetManga') targetManga: string
+  ) {
     return this.downloadService
       .createDownloadTask(providerId, sourceManga, targetManga)
       .then((task) => {
@@ -47,8 +50,7 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   @Delete('/download/:id')
-  deleteDownloadTask(req: Request, res: Response) {
-    const id = getIntParam(req, 'id');
+  deleteDownloadTask(@Res() res: Response, @Param('id') id: number) {
     this.downloadService.deleteDownloadTask(id).then((task) => {
       if (task === undefined) throw new NotFoundError('Not found.');
       return res.json(task);
@@ -56,8 +58,7 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   @Patch('/download/:id/start')
-  startDownloadTask(req: Request, res: Response) {
-    const id = getIntParam(req, 'id');
+  startDownloadTask(@Res() res: Response, @Param('id') id: number) {
     return this.downloadService.startDownloadTask(id).then((task) => {
       if (task === undefined) throw new NotFoundError('Not found.');
       return res.json(task);
@@ -65,8 +66,7 @@ export class ControllerDownload extends ControllerAdapter {
   }
 
   @Patch('/download/:id/pause')
-  pauseDownloadTask(req: Request, res: Response) {
-    const id = getIntParam(req, 'id');
+  pauseDownloadTask(@Res() res: Response, @Param('id') id: number) {
     this.downloadService.pauseDownloadTask(id).then((task) => {
       if (task === undefined) throw new NotFoundError('Not found.');
       return res.json(task);

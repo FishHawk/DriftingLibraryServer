@@ -2,12 +2,12 @@ import 'reflect-metadata';
 import { RequestHandler } from 'express';
 import { pushMiddlewareIndication } from './indication';
 
-export const UseBefore = (...middlewares: RequestHandler[]): MethodDecorator => {
+export const UseBefore = (middleware: RequestHandler): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushMiddlewareIndication(target, { method: key, useBefore: middlewares, useAfter: [] });
+    pushMiddlewareIndication(target, { method: key, type: 'before', middleware });
 };
 
-export const UseAfter = (...middlewares: RequestHandler[]): MethodDecorator => {
+export const UseAfter = (middleware: RequestHandler): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushMiddlewareIndication(target, { method: key, useBefore: [], useAfter: middlewares });
+    pushMiddlewareIndication(target, { method: key, type: 'after', middleware });
 };
