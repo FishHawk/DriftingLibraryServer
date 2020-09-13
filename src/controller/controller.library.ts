@@ -8,7 +8,7 @@ import { AccessorMangaFailure } from '../library/accessor.manga';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
-import { extractIntQuery, extractStringQuery, extractStringParam } from './extarct';
+import { getIntQuery, getStringQuery, getStringParam } from './decorator/param';
 import { Get, Delete, Patch } from './decorator/action';
 import { UseBefore } from './decorator/middleware';
 
@@ -30,16 +30,16 @@ export class ControllerLibrary extends ControllerAdapter {
 
   @Get('/library/search')
   search(req: Request, res: Response) {
-    const lastTime = extractIntQuery(req, 'lastTime');
-    const limit = extractIntQuery(req, 'limit', 20);
-    const keywords = extractStringQuery(req, 'keywords');
+    const lastTime = getIntQuery(req, 'lastTime');
+    const limit = getIntQuery(req, 'limit', 20);
+    const keywords = getStringQuery(req, 'keywords');
 
     return this.library.search(lastTime, limit, keywords).then((outlines) => res.json(outlines));
   }
 
   @Get('/library/manga/:mangaId')
   getManga(req: Request, res: Response) {
-    const mangaId = extractStringParam(req, 'mangaId');
+    const mangaId = getStringParam(req, 'mangaId');
     return this.library
       .openManga(mangaId)
       .then((result) => result.onFailure(this.libraryFailureHandler))
@@ -49,7 +49,7 @@ export class ControllerLibrary extends ControllerAdapter {
 
   @Delete('/library/manga/:mangaId')
   deleteManga(req: Request, res: Response) {
-    const mangaId = extractStringParam(req, 'mangaId');
+    const mangaId = getStringParam(req, 'mangaId');
     return this.library
       .deleteManga(mangaId)
       .then((result) => result.onFailure(this.libraryFailureHandler))
@@ -60,7 +60,7 @@ export class ControllerLibrary extends ControllerAdapter {
 
   @Patch('/library/manga/:mangaId/metadata')
   patchMangaMetadata(req: Request, res: Response) {
-    const mangaId = extractStringParam(req, 'mangaId');
+    const mangaId = getStringParam(req, 'mangaId');
     return this.library
       .openManga(mangaId)
       .then((result) => result.onFailure(this.libraryFailureHandler))
@@ -72,7 +72,7 @@ export class ControllerLibrary extends ControllerAdapter {
   @UseBefore(upload.single('thumb'))
   @Patch('/library/manga/:mangaId/thumb')
   patchMangaThumb(req: Request, res: Response) {
-    const mangaId = extractStringParam(req, 'mangaId');
+    const mangaId = getStringParam(req, 'mangaId');
     if (req.file === undefined) throw new BadRequestError('Illegal argument: thumb file');
 
     return this.library
@@ -85,9 +85,9 @@ export class ControllerLibrary extends ControllerAdapter {
 
   @Get('/library/chapter/:mangaId')
   getChapter(req: Request, res: Response) {
-    const mangaId = extractStringParam(req, 'mangaId');
-    const collectionId = extractStringQuery(req, 'collection');
-    const chapterId = extractStringQuery(req, 'chapter');
+    const mangaId = getStringParam(req, 'mangaId');
+    const collectionId = getStringQuery(req, 'collection');
+    const chapterId = getStringQuery(req, 'chapter');
 
     return this.library
       .openManga(mangaId)

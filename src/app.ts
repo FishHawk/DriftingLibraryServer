@@ -67,8 +67,8 @@ export class App {
     this.controllers = [
       new ControllerLibrary(this.libraryAccessor, this.downloadService, this.subscribeService),
       new ControllerProvider(this.providerManager),
-      new ControllerDownload(this.providerManager, this.downloadService),
-      new ControllerSubscription(this.providerManager, this.subscribeService),
+      new ControllerDownload(this.downloadService),
+      new ControllerSubscription(this.subscribeService),
     ];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);
