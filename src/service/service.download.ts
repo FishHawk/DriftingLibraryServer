@@ -106,7 +106,7 @@ export class DownloadService {
       task.status === DownloadTaskStatus.Error
     ) {
       task.status = DownloadTaskStatus.Waiting;
-      this.db.downloadTaskRepository.save(task);
+      await this.db.downloadTaskRepository.save(task);
       this.start();
     }
     return ok(task);
@@ -122,7 +122,7 @@ export class DownloadService {
     ) {
       this.cancelTask(id);
       task.status = DownloadTaskStatus.Paused;
-      this.db.downloadTaskRepository.save(task);
+      await this.db.downloadTaskRepository.save(task);
     }
     return ok(task);
   }
@@ -150,9 +150,7 @@ export class DownloadService {
       if (task === undefined) break;
 
       try {
-        logger.info(
-          `Download: ${task.providerId}/${task.sourceManga} -> ${task.id}`
-        );
+        logger.info(`Download: ${task.providerId}/${task.sourceManga} -> ${task.id}`);
         this.currentTargetManga = task.id;
 
         task.status = DownloadTaskStatus.Downloading;

@@ -7,7 +7,7 @@ import { ControllerAdapter } from './adapter';
 import { BadRequestError } from './exception';
 
 import { Get } from './decorator/action';
-import { Res, Param } from './decorator/param';
+import { Res, Param, Query } from './decorator/param';
 
 export class ProviderController extends ControllerAdapter {
   constructor(private readonly providerManager: ProviderManager) {
@@ -24,8 +24,8 @@ export class ProviderController extends ControllerAdapter {
   search(
     @Res() res: Response,
     @Param('providerId') providerId: string,
-    @Param('keywords') keywords: string,
-    @Param('page') page: number
+    @Query('keywords') keywords: string,
+    @Query('page') page: number
   ) {
     return this.getProvider(providerId)
       .search(page, keywords)
@@ -36,7 +36,7 @@ export class ProviderController extends ControllerAdapter {
   getPopular(
     @Res() res: Response,
     @Param('providerId') providerId: string,
-    @Param('page') page: number
+    @Query('page') page: number
   ) {
     return this.getProvider(providerId)
       .requestPopular(page)
@@ -47,7 +47,7 @@ export class ProviderController extends ControllerAdapter {
   getLatest(
     @Res() res: Response,
     @Param('providerId') providerId: string,
-    @Param('page') page: number
+    @Query('page') page: number
   ) {
     return this.getProvider(providerId)
       .requestLatest(page)
