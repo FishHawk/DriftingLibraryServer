@@ -6,7 +6,7 @@ export class DownloadChapter {
   id!: number;
 
   @Column()
-  task!: number;
+  task!: string;
 
   @Column()
   chapter!: string;

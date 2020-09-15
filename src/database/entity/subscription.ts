@@ -1,18 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Subscription {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryColumn()
+  id!: string;
 
   @Column()
   providerId!: string;
 
   @Column()
   sourceManga!: string;
-
-  @Column()
-  targetManga!: string;
 
   @Column()
   isEnabled: boolean = true;

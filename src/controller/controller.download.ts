@@ -48,7 +48,7 @@ export class DownloadController extends ControllerAdapter {
   }
 
   @Delete('/download/:id')
-  deleteDownloadTask(@Res() res: Response, @Param('id') id: number) {
+  deleteDownloadTask(@Res() res: Response, @Param('id') id: string) {
     this.downloadService
       .deleteDownloadTask(id)
       .then((result) => result.whenFail(this.handleAccessFail))
@@ -56,7 +56,7 @@ export class DownloadController extends ControllerAdapter {
   }
 
   @Patch('/download/:id/start')
-  startDownloadTask(@Res() res: Response, @Param('id') id: number) {
+  startDownloadTask(@Res() res: Response, @Param('id') id: string) {
     return this.downloadService
       .startDownloadTask(id)
       .then((result) => result.whenFail(this.handleAccessFail))
@@ -64,7 +64,7 @@ export class DownloadController extends ControllerAdapter {
   }
 
   @Patch('/download/:id/pause')
-  pauseDownloadTask(@Res() res: Response, @Param('id') id: number) {
+  pauseDownloadTask(@Res() res: Response, @Param('id') id: string) {
     this.downloadService
       .pauseDownloadTask(id)
       .then((result) => result.whenFail(this.handleAccessFail))

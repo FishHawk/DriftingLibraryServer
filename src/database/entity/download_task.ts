@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn  } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 export enum DownloadTaskStatus {
   Waiting = 'waiting',
@@ -9,17 +9,14 @@ export enum DownloadTaskStatus {
 
 @Entity()
 export class DownloadTask {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryColumn()
+  id!: string;
 
   @Column()
   providerId!: string;
 
   @Column()
   sourceManga!: string;
-
-  @Column()
-  targetManga!: string;
 
   @Column({ default: DownloadTaskStatus.Waiting })
   status!: string;

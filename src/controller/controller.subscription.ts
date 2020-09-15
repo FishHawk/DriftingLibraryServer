@@ -22,7 +22,7 @@ export class SubscriptionController extends ControllerAdapter {
   @Patch('/subscriptions/enable')
   enableAllSubscription(@Res() res: Response) {
     return this.subscribeService
-      .enableAllSubscription()
+      .toggleAllSubscription(true)
       .then(this.subscribeService.getAllSubscription)
       .then((subscriptions) => res.json(subscriptions));
   }
@@ -30,7 +30,7 @@ export class SubscriptionController extends ControllerAdapter {
   @Patch('/subscriptions/disable')
   disableAllSubscription(@Res() res: Response) {
     return this.subscribeService
-      .disableAllSubscription()
+      .toggleAllSubscription(false)
       .then(this.subscribeService.getAllSubscription)
       .then((subscriptions) => res.json(subscriptions));
   }
@@ -49,7 +49,7 @@ export class SubscriptionController extends ControllerAdapter {
   }
 
   @Delete('/subscription/:id')
-  deleteSubscription(@Res() res: Response, @Param('id') id: number) {
+  deleteSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
       .deleteSubscription(id)
       .then((result) => result.whenFail(this.handleAccessFail))
@@ -57,17 +57,17 @@ export class SubscriptionController extends ControllerAdapter {
   }
 
   @Patch('/subscription/:id/enable')
-  enableSubscription(@Res() res: Response, @Param('id') id: number) {
+  enableSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
-      .enableSubscription(id)
+      .toggleSubscription(id, true)
       .then((result) => result.whenFail(this.handleAccessFail))
       .then((subscription) => res.json(subscription));
   }
 
   @Patch('/subscription/:id/disable')
-  disableSubscription(@Res() res: Response, @Param('id') id: number) {
+  disableSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
-      .disableSubscription(id)
+      .toggleSubscription(id, false)
       .then((result) => result.whenFail(this.handleAccessFail))
       .then((subscription) => res.json(subscription));
   }
