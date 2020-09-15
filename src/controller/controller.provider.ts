@@ -27,8 +27,9 @@ export class ProviderController extends ControllerAdapter {
     @Param('keywords') keywords: string,
     @Param('page') page: number
   ) {
-    const provider = this.getProvider(providerId);
-    return provider.search(page, keywords).then((outlines) => res.json(outlines));
+    return this.getProvider(providerId)
+      .search(page, keywords)
+      .then((outlines) => res.json(outlines));
   }
 
   @Get('/provider/:providerId/popular')
@@ -37,8 +38,9 @@ export class ProviderController extends ControllerAdapter {
     @Param('providerId') providerId: string,
     @Param('page') page: number
   ) {
-    const provider = this.getProvider(providerId);
-    return provider.requestPopular(page).then((outlines) => res.json(outlines));
+    return this.getProvider(providerId)
+      .requestPopular(page)
+      .then((outlines) => res.json(outlines));
   }
 
   @Get('/provider/:providerId/latest')
@@ -47,8 +49,9 @@ export class ProviderController extends ControllerAdapter {
     @Param('providerId') providerId: string,
     @Param('page') page: number
   ) {
-    const provider = this.getProvider(providerId);
-    return provider.requestLatest(page).then((outlines) => res.json(outlines));
+    return this.getProvider(providerId)
+      .requestLatest(page)
+      .then((outlines) => res.json(outlines));
   }
 
   @Get('/provider/:providerId/manga/:mangaId')
@@ -57,8 +60,9 @@ export class ProviderController extends ControllerAdapter {
     @Param('providerId') providerId: string,
     @Param('mangaId') mangaId: string
   ) {
-    const provider = this.getProvider(providerId);
-    return provider.requestMangaDetail(mangaId).then((detail) => res.json(detail));
+    return this.getProvider(providerId)
+      .requestMangaDetail(mangaId)
+      .then((detail) => res.json(detail));
   }
 
   @Get('/provider/:providerId/chapter/:mangaId/:chapterId')
@@ -68,8 +72,7 @@ export class ProviderController extends ControllerAdapter {
     @Param('mangaId') mangaId: string,
     @Param('chapterId') chapterId: string
   ) {
-    const provider = this.getProvider(providerId);
-    return provider
+    return this.getProvider(providerId)
       .requestChapterContent(mangaId, chapterId)
       .then((content) => res.json(content));
   }
@@ -80,8 +83,9 @@ export class ProviderController extends ControllerAdapter {
     @Param('providerId') providerId: string,
     @Param('url') url: string
   ) {
-    const provider = this.getProvider(providerId);
-    return provider.requestImage(url).then((image) => res.send(image));
+    return this.getProvider(providerId)
+      .requestImage(url)
+      .then((image) => res.send(image));
   }
 
   /*

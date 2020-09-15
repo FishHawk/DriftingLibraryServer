@@ -3,8 +3,8 @@ import multer from 'multer';
 
 import { DownloadService } from '../service/service.download';
 import { SubscriptionService } from '../service/service.subscription';
-import { LibraryAccessor, LibraryAccessorFailure } from '../library/accessor.library';
-import { MangaAccessorFailure } from '../library/accessor.manga';
+import { LibraryAccessor } from '../library/accessor.library';
+import { MangaAccessor } from '../library/accessor.manga';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
@@ -47,7 +47,7 @@ export class LibraryController extends ControllerAdapter {
   getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     return this.library
       .openManga(mangaId)
-      .then((result) => result.onFailure(this.libraryFailureHandler))
+      .then((result) => result.whenFail(this.handleLibraryFail))
       .then((manga) => manga.getMangaDetail())
       .then((detail) => res.json(detail));
   }
@@ -56,7 +56,7 @@ export class LibraryController extends ControllerAdapter {
   deleteManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     return this.library
       .deleteManga(mangaId)
-      .then((result) => result.onFailure(this.libraryFailureHandler))
+      .then((result) => result.whenFail(this.handleLibraryFail))
       .then(() => this.subscriptionService.deleteSubscriptionByMangaId(mangaId))
       .then(() => this.downloadService.deleteDownloadTaskByMangaId(mangaId))
       .then(() => res.json(mangaId));
@@ -70,7 +70,7 @@ export class LibraryController extends ControllerAdapter {
   ) {
     return this.library
       .openManga(mangaId)
-      .then((result) => result.onFailure(this.libraryFailureHandler))
+      .then((result) => result.whenFail(this.handleLibraryFail))
       .then((manga) => manga.setMetadata(body))
       .then((manga) => manga.getMangaDetail())
       .then((detail) => res.json(detail));
@@ -86,7 +86,7 @@ export class LibraryController extends ControllerAdapter {
     if (req.file === undefined) throw new BadRequestError('Illegal argument: thumb file');
     return this.library
       .openManga(mangaId)
-      .then((result) => result.onFailure(this.libraryFailureHandler))
+      .then((result) => result.whenFail(this.handleLibraryFail))
       .then((manga) => manga.setThumb(req.file.buffer))
       .then((manga) => manga.getMangaDetail())
       .then((detail) => res.json(detail));
@@ -101,31 +101,31 @@ export class LibraryController extends ControllerAdapter {
   ) {
     return this.library
       .openManga(mangaId)
-      .then((result) => result.onFailure(this.libraryFailureHandler))
+      .then((result) => result.whenFail(this.handleLibraryFail))
       .then((manga) => manga.openChapter(collectionId, chapterId))
-      .then((result) => result.onFailure(this.mangaFailureHandler))
+      .then((result) => result.whenFail(this.handleMangaFail))
       .then((chapter) => chapter.listImage())
       .then((content) => res.json(content));
   }
 
   /*
-   * Helper
+   * Handle failure
    */
 
-  private libraryFailureHandler(e: LibraryAccessorFailure): never {
-    if (e === LibraryAccessorFailure.IllegalMangaId)
+  private handleLibraryFail(f: LibraryAccessor.AccessFail): never {
+    if (f === LibraryAccessor.AccessFail.IllegalMangaId)
       throw new BadRequestError('Illegal error: manga id');
-    else if (e === LibraryAccessorFailure.MangaNotFound)
+    else if (f === LibraryAccessor.AccessFail.MangaNotFound)
       throw new NotFoundError('Not found: manga');
     throw new Error();
   }
 
-  private mangaFailureHandler(e: MangaAccessorFailure): never {
-    if (e === MangaAccessorFailure.IllegalCollectionId)
+  private handleMangaFail(e: MangaAccessor.Fail): never {
+    if (e === MangaAccessor.Fail.IllegalCollectionId)
       throw new BadRequestError('Illegal error: collection id');
-    else if (e === MangaAccessorFailure.IllegalChapterId)
+    else if (e === MangaAccessor.Fail.IllegalChapterId)
       throw new BadRequestError('Illegal error: chapter id');
-    else if (e === MangaAccessorFailure.ChapterNotFound)
+    else if (e === MangaAccessor.Fail.ChapterNotFound)
       throw new NotFoundError('Not found: chapter');
     throw new Error();
   }

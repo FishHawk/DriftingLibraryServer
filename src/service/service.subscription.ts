@@ -2,8 +2,9 @@ import { CronJob } from 'cron';
 
 import { logger } from '../logger';
 import { DatabaseAdapter } from '../database/adapter';
-import * as Entity from '../database/entity';
+import { Subscription } from '../database/entity';
 import { DownloadTaskStatus } from '../database/entity/download_task';
+import { Result, fail, ok } from '../util/result';
 
 import { DownloadService } from './service.download';
 
@@ -15,16 +16,15 @@ export class SubscriptionService {
     new CronJob('0 0 4 * * *', this.updateAllSubscription, null, true, 'Asia/Chongqing');
   }
 
-  async updateAllSubscription() {
-    const subscriptions = await this.db.subscriptionRepository.find({ where: { isEnable: true } });
-    for (const subscription of subscriptions) {
-      await this.updateSubscription(subscription);
-    }
-    this.downloadService.start();
+  private async updateAllSubscription() {
+    logger.info('Update subscription');
+    const subscriptions = await this.db.subscriptionRepository.find({
+      where: { isEnable: true },
+    });
+    return Promise.all(subscriptions.map(this.updateSubscription));
   }
 
-  async updateSubscription(subscription: Entity.Subscription) {
-    logger.info('Update subscription');
+  private async updateSubscription(subscription: Subscription) {
     const downloadTask = await this.db.downloadTaskRepository.findOne({
       where: { targetManga: subscription.targetManga },
     });
@@ -48,65 +48,89 @@ export class SubscriptionService {
   }
 
   async enableAllSubscription() {
-    await this.db.subscriptionRepository.update({ isEnabled: true }, { isEnabled: false });
+    await this.db.subscriptionRepository.update(
+      { isEnabled: true },
+      { isEnabled: false }
+    );
   }
 
   async disableAllSubscription() {
-    await this.db.subscriptionRepository.update({ isEnabled: false }, { isEnabled: true });
+    await this.db.subscriptionRepository.update(
+      { isEnabled: false },
+      { isEnabled: true }
+    );
   }
 
-  async createSubscription(providerId: string, sourceManga: string, targetManga: string) {
-    const task = await this.downloadService.createDownloadTask(
+  async createSubscription(
+    providerId: string,
+    sourceManga: string,
+    targetManga: string
+  ): Promise<Result<Subscription, CreateFail>> {
+    const maybeFail = await this.downloadService.createDownloadTask(
       providerId,
       sourceManga,
       targetManga,
       true
     );
-    if (task === undefined) return undefined;
+    if (maybeFail.isFail()) return fail(maybeFail.extract());
+
     const subscription = this.db.subscriptionRepository.create({
       providerId,
       sourceManga,
       targetManga,
     });
     await this.db.subscriptionRepository.save(subscription);
-    return subscription;
+    return ok(subscription);
   }
 
-  async deleteSubscription(id: number) {
+  async deleteSubscription(id: number): Promise<Result<Subscription, AccessFail>> {
     const subscription = await this.db.subscriptionRepository.findOne(id);
-    if (subscription !== undefined) {
-      await this.downloadService.deleteDownloadTaskByMangaId(subscription.targetManga);
-      await this.db.subscriptionRepository.remove(subscription);
-    }
-    return subscription;
+    if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
+
+    await this.downloadService.deleteDownloadTaskByMangaId(subscription.targetManga);
+    await this.db.subscriptionRepository.remove(subscription);
+    return ok(subscription);
   }
 
-  async deleteSubscriptionByMangaId(mangaId: string) {
+  async deleteSubscriptionByMangaId(
+    mangaId: string
+  ): Promise<Result<Subscription, AccessFail>> {
     const subscription = await this.db.subscriptionRepository.findOne({
       targetManga: mangaId,
     });
-    if (subscription !== undefined) {
-      await this.downloadService.deleteDownloadTaskByMangaId(subscription.targetManga);
-      await this.db.subscriptionRepository.remove(subscription);
-    }
-    return subscription;
+    if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
+
+    await this.downloadService.deleteDownloadTaskByMangaId(subscription.targetManga);
+    await this.db.subscriptionRepository.remove(subscription);
+    return ok(subscription);
   }
 
-  async enableSubscription(id: number) {
+  async enableSubscription(id: number): Promise<Result<Subscription, AccessFail>> {
     const subscription = await this.db.subscriptionRepository.findOne(id);
-    if (subscription !== undefined) {
-      subscription.isEnabled = true;
-      await this.db.subscriptionRepository.save(subscription);
-    }
-    return subscription;
+    if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
+
+    subscription.isEnabled = true;
+    await this.db.subscriptionRepository.save(subscription);
+    return ok(subscription);
   }
 
-  async disableSubscription(id: number) {
+  async disableSubscription(id: number): Promise<Result<Subscription, AccessFail>> {
     const subscription = await this.db.subscriptionRepository.findOne(id);
-    if (subscription !== undefined) {
-      subscription.isEnabled = false;
-      await this.db.subscriptionRepository.save(subscription);
-    }
-    return subscription;
+    if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
+
+    subscription.isEnabled = false;
+    await this.db.subscriptionRepository.save(subscription);
+    return ok(subscription);
   }
 }
+
+/* fail */
+export namespace SubscriptionService {
+  export enum AccessFail {
+    SubscriptionNotFound,
+  }
+
+  export import CreateFail = DownloadService.CreateFail;
+}
+import CreateFail = SubscriptionService.CreateFail;
+import AccessFail = SubscriptionService.AccessFail;

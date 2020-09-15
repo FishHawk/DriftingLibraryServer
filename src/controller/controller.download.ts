@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { DownloadService } from '../service/service.download';
 
 import { ControllerAdapter } from './adapter';
-import { NotFoundError, ConflictError } from './exception';
+import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, Body, Param } from './decorator/param';
@@ -43,33 +43,53 @@ export class DownloadController extends ControllerAdapter {
   ) {
     return this.downloadService
       .createDownloadTask(providerId, sourceManga, targetManga)
-      .then((task) => {
-        if (task === undefined) throw new ConflictError('Already exists.');
-        return res.json(task);
-      });
+      .then((result) => result.whenFail(this.handleCreateFail))
+      .then((task) => res.json(task));
   }
 
   @Delete('/download/:id')
   deleteDownloadTask(@Res() res: Response, @Param('id') id: number) {
-    this.downloadService.deleteDownloadTask(id).then((task) => {
-      if (task === undefined) throw new NotFoundError('Not found.');
-      return res.json(task);
-    });
+    this.downloadService
+      .deleteDownloadTask(id)
+      .then((result) => result.whenFail(this.handleAccessFail))
+      .then((task) => res.json(task));
   }
 
   @Patch('/download/:id/start')
   startDownloadTask(@Res() res: Response, @Param('id') id: number) {
-    return this.downloadService.startDownloadTask(id).then((task) => {
-      if (task === undefined) throw new NotFoundError('Not found.');
-      return res.json(task);
-    });
+    return this.downloadService
+      .startDownloadTask(id)
+      .then((result) => result.whenFail(this.handleAccessFail))
+      .then((task) => res.json(task));
   }
 
   @Patch('/download/:id/pause')
   pauseDownloadTask(@Res() res: Response, @Param('id') id: number) {
-    this.downloadService.pauseDownloadTask(id).then((task) => {
-      if (task === undefined) throw new NotFoundError('Not found.');
-      return res.json(task);
-    });
+    this.downloadService
+      .pauseDownloadTask(id)
+      .then((result) => result.whenFail(this.handleAccessFail))
+      .then((task) => res.json(task));
+  }
+
+  /*
+   * Handle failure
+   */
+
+  private handleCreateFail(f: DownloadService.CreateFail): never {
+    if (f === DownloadService.CreateFail.UnsupportedProvider)
+      throw new BadRequestError('Illegal error: target manga id');
+    if (f === DownloadService.CreateFail.IlligalTargetMangaId)
+      throw new BadRequestError('Illegal error: target manga id');
+    if (f === DownloadService.CreateFail.MangaAlreadyExist)
+      throw new ConflictError('Already exist: target manga');
+    if (f === DownloadService.CreateFail.TaskAlreadyExist)
+      throw new ConflictError('Already exist: download task');
+    throw new Error();
+  }
+
+  private handleAccessFail(f: DownloadService.AccessFail): never {
+    if (f === DownloadService.AccessFail.TaskNotFound)
+      throw new NotFoundError('Not found: download task');
+    throw new Error();
   }
 }

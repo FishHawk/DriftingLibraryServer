@@ -2,17 +2,11 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
+import { Result, ok, fail } from '../util/result';
 import { StringValidator } from '../util/validator';
 
 import * as Entity from './entity';
 import { ChapterAccessor } from './accessor.chapter';
-import { Result } from '../util/result';
-
-export enum MangaAccessorFailure {
-  IllegalCollectionId,
-  IllegalChapterId,
-  ChapterNotFound,
-}
 
 export class MangaAccessor {
   static readonly filenameValidator = new StringValidator().isFilename();
@@ -44,7 +38,10 @@ export class MangaAccessor {
     return mangaDetail;
   }
 
-  async setMangaDetail(detail: Entity.MangaDetail, thumb: Buffer | undefined): Promise<void> {
+  async setMangaDetail(
+    detail: Entity.MangaDetail,
+    thumb: Buffer | undefined
+  ): Promise<void> {
     await this.setMetadata(detail.metadata);
     if (thumb !== undefined) await this.setThumb(thumb);
     await this.setCollections(detail.collections);
@@ -53,17 +50,15 @@ export class MangaAccessor {
   async openChapter(
     collectionId: string,
     chapterId: string
-  ): Promise<Result<ChapterAccessor, MangaAccessorFailure>> {
+  ): Promise<Result<ChapterAccessor, Fail>> {
     // TODO: better check
-    if (!this.validateCollectionId(collectionId))
-      return Result.failure(MangaAccessorFailure.IllegalCollectionId);
-    if (!this.validateChapterId(chapterId))
-      return Result.failure(MangaAccessorFailure.IllegalChapterId);
+    if (!this.validateCollectionId(collectionId)) return IllegalCollectionId;
+    if (!this.validateChapterId(chapterId)) return IllegalChapterId;
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (!(await fsu.isDirectoryExist(chapterDir)))
-      return Result.failure(MangaAccessorFailure.ChapterNotFound);
-    return Result.success(new ChapterAccessor(chapterDir));
+    if (!(await fsu.isDirectoryExist(chapterDir))) return ChapterNotFound;
+
+    return ok(new ChapterAccessor(chapterDir));
   }
 
   private async getThumb(): Promise<string | undefined> {
@@ -180,9 +175,25 @@ export class MangaAccessor {
   }
 
   private validateCollectionId(collectionId: string) {
-    return collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId);
+    return (
+      collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId)
+    );
   }
   private validateChapterId(chapterId: string) {
     return chapterId.length === 0 || MangaAccessor.filenameValidator.validate(chapterId);
   }
 }
+
+/* fail */
+export namespace MangaAccessor {
+  export enum Fail {
+    IllegalCollectionId,
+    IllegalChapterId,
+    ChapterNotFound,
+  }
+}
+
+import Fail = MangaAccessor.Fail;
+const IllegalCollectionId = fail(Fail.IllegalCollectionId as const);
+const IllegalChapterId = fail(Fail.IllegalChapterId as const);
+const ChapterNotFound = fail(Fail.ChapterNotFound as const);

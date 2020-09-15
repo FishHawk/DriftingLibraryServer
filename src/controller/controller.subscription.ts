@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { SubscriptionService } from '../service/service.subscription';
 
 import { ControllerAdapter } from './adapter';
-import { NotFoundError, ConflictError } from './exception';
+import { NotFoundError, ConflictError, BadRequestError } from './exception';
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, Body, Param } from './decorator/param';
 
@@ -44,33 +44,53 @@ export class SubscriptionController extends ControllerAdapter {
   ) {
     return this.subscribeService
       .createSubscription(providerId, sourceManga, targetManga)
-      .then((subscription) => {
-        if (subscription === undefined) throw new ConflictError('Already exists.');
-        return res.json(subscription);
-      });
+      .then((result) => result.whenFail(this.handleCreateFail))
+      .then((subscription) => res.json(subscription));
   }
 
   @Delete('/subscription/:id')
   deleteSubscription(@Res() res: Response, @Param('id') id: number) {
-    return this.subscribeService.deleteSubscription(id).then((subscription) => {
-      if (subscription === undefined) throw new NotFoundError('Not found.');
-      return res.json(subscription);
-    });
+    return this.subscribeService
+      .deleteSubscription(id)
+      .then((result) => result.whenFail(this.handleAccessFail))
+      .then((subscription) => res.json(subscription));
   }
 
   @Patch('/subscription/:id/enable')
   enableSubscription(@Res() res: Response, @Param('id') id: number) {
-    return this.subscribeService.enableSubscription(id).then((subscription) => {
-      if (subscription === undefined) throw new NotFoundError('Not found.');
-      return res.json(subscription);
-    });
+    return this.subscribeService
+      .enableSubscription(id)
+      .then((result) => result.whenFail(this.handleAccessFail))
+      .then((subscription) => res.json(subscription));
   }
 
   @Patch('/subscription/:id/disable')
   disableSubscription(@Res() res: Response, @Param('id') id: number) {
-    return this.subscribeService.disableSubscription(id).then((subscription) => {
-      if (subscription === undefined) throw new NotFoundError('Not found.');
-      return res.json(subscription);
-    });
+    return this.subscribeService
+      .disableSubscription(id)
+      .then((result) => result.whenFail(this.handleAccessFail))
+      .then((subscription) => res.json(subscription));
+  }
+
+  /*
+   * Handle failure
+   */
+
+  private handleCreateFail(f: SubscriptionService.CreateFail): never {
+    if (f === SubscriptionService.CreateFail.UnsupportedProvider)
+      throw new BadRequestError('Illegal error: target manga id');
+    if (f === SubscriptionService.CreateFail.IlligalTargetMangaId)
+      throw new BadRequestError('Illegal error: target manga id');
+    if (f === SubscriptionService.CreateFail.MangaAlreadyExist)
+      throw new ConflictError('Already exist: Target manga');
+    if (f === SubscriptionService.CreateFail.TaskAlreadyExist)
+      throw new ConflictError('Already exist: download task');
+    throw new Error();
+  }
+
+  private handleAccessFail(f: SubscriptionService.AccessFail): never {
+    if (f === SubscriptionService.AccessFail.SubscriptionNotFound)
+      throw new NotFoundError('Not found: download subscription');
+    throw new Error();
   }
 }
