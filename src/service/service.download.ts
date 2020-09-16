@@ -1,4 +1,3 @@
-import { logger } from '../logger';
 import { DatabaseAdapter } from '../database/adapter';
 import { DownloadTask, DownloadTaskStatus } from '../database/entity/download_task';
 
@@ -9,6 +8,7 @@ import { LibraryAccessor } from '../library/accessor.library';
 import { MangaAccessor } from '../library/accessor.manga';
 import { ChapterAccessor } from '../library/accessor.chapter';
 
+import { logger } from '../util/logger';
 import { fail, Result, ok } from '../util/result';
 
 class AsyncTaskCancelError extends Error {

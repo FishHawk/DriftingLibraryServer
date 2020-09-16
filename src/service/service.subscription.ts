@@ -1,16 +1,16 @@
 import { CronJob } from 'cron';
+import { Repository } from 'typeorm';
 
-import { logger } from '../logger';
-import { DatabaseAdapter } from '../database/adapter';
 import { Subscription } from '../database/entity';
-import { DownloadTaskStatus } from '../database/entity/download_task';
+
+import { logger } from '../util/logger';
 import { Result, fail, ok } from '../util/result';
 
 import { DownloadService } from './service.download';
 
 export class SubscriptionService {
   constructor(
-    private readonly db: DatabaseAdapter,
+    private readonly repository: Repository<Subscription>,
     private readonly downloadService: DownloadService
   ) {
     new CronJob('0 0 4 * * *', this.updateAllSubscription, null, true, 'Asia/Chongqing');
@@ -18,40 +18,31 @@ export class SubscriptionService {
 
   private async updateAllSubscription() {
     logger.info('Update subscription');
-    const subscriptions = await this.db.subscriptionRepository.find({
+    const subscriptions = await this.repository.find({
       where: { isEnable: true },
     });
     return Promise.all(subscriptions.map(this.updateSubscription));
   }
 
   private async updateSubscription(subscription: Subscription) {
-    const downloadTask = await this.db.downloadTaskRepository.findOne({
-      where: { id: subscription.id },
-    });
-
-    if (downloadTask === undefined) {
-      const task = this.db.downloadTaskRepository.create({
-        providerId: subscription.providerId,
-        sourceManga: subscription.sourceManga,
-        id: subscription.id,
-        isCreatedBySubscription: true,
-      });
-      await this.db.downloadTaskRepository.save(task);
-    } else if (downloadTask.status !== DownloadTaskStatus.Downloading) {
-      downloadTask.status = DownloadTaskStatus.Waiting;
-      await this.db.downloadTaskRepository.save(downloadTask);
+    const result = await this.downloadService.startDownloadTask(subscription.id);
+    if (result.isFail()) {
+      await this.downloadService.createDownloadTask(
+        subscription.providerId,
+        subscription.sourceManga,
+        subscription.id,
+        true
+      );
     }
   }
 
-  getAllSubscription() {
-    return this.db.subscriptionRepository.find();
+  /* Api */
+  async getAllSubscription() {
+    return this.repository.find();
   }
 
-  toggleAllSubscription(isEnabled: boolean) {
-    return this.db.subscriptionRepository.update(
-      { isEnabled: !isEnabled },
-      { isEnabled }
-    );
+  async toggleAllSubscription(isEnabled: boolean) {
+    return this.repository.update({ isEnabled: !isEnabled }, { isEnabled });
   }
 
   async createSubscription(
@@ -67,21 +58,21 @@ export class SubscriptionService {
     );
     if (maybeFail.isFail()) return fail(maybeFail.extract());
 
-    const subscription = this.db.subscriptionRepository.create({
+    const subscription = this.repository.create({
       providerId,
       sourceManga,
       id: targetManga,
     });
-    await this.db.subscriptionRepository.save(subscription);
+    await this.repository.save(subscription);
     return ok(subscription);
   }
 
   async deleteSubscription(id: string): Promise<Result<Subscription, AccessFail>> {
-    const subscription = await this.db.subscriptionRepository.findOne(id);
+    const subscription = await this.repository.findOne(id);
     if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
 
     await this.downloadService.deleteDownloadTask(subscription.id);
-    await this.db.subscriptionRepository.remove(subscription);
+    await this.repository.remove(subscription);
     return ok(subscription);
   }
 
@@ -89,11 +80,11 @@ export class SubscriptionService {
     id: string,
     isEnabled: boolean
   ): Promise<Result<Subscription, AccessFail>> {
-    const subscription = await this.db.subscriptionRepository.findOne(id);
+    const subscription = await this.repository.findOne(id);
     if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
 
     subscription.isEnabled = isEnabled;
-    await this.db.subscriptionRepository.save(subscription);
+    await this.repository.save(subscription);
     return ok(subscription);
   }
 }

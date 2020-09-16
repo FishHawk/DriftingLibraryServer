@@ -1,19 +1,19 @@
 import express, { Request, Response, NextFunction } from 'express';
 
-import { logger } from './logger';
-
 import { ControllerAdapter } from './controller/adapter';
 import { DownloadController } from './controller/controller.download';
 import { LibraryController } from './controller/controller.library';
 import { ProviderController } from './controller/controller.provider';
 import { SubscriptionController } from './controller/controller.subscription';
+import { HttpError } from './controller/exception';
 
 import { createSqliteDatabase, DatabaseAdapter } from './database/adapter';
 import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './service/service.download';
 import { SubscriptionService } from './service/service.subscription';
-import { HttpError } from './controller/exception';
+
+import { logger } from './util/logger';
 
 export class App {
   private readonly app: express.Application;
@@ -57,11 +57,18 @@ export class App {
       this.libraryAccessor,
       this.providerManager
     );
-    this.subscribeService = new SubscriptionService(this.database, this.downloadService);
+    this.subscribeService = new SubscriptionService(
+      this.database.subscriptionRepository,
+      this.downloadService
+    );
 
     // Controllers
     this.controllers = [
-      new LibraryController(this.libraryAccessor, this.downloadService, this.subscribeService),
+      new LibraryController(
+        this.libraryAccessor,
+        this.downloadService,
+        this.subscribeService
+      ),
       new ProviderController(this.providerManager),
       new DownloadController(this.downloadService),
       new SubscriptionController(this.subscribeService),

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import dotenv from 'dotenv';
 
-import { logger } from './logger';
+import { logger } from './util/logger';
 import { App } from './app';
 
 /*
