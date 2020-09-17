@@ -1,20 +1,37 @@
-export async function pool<A, T>(
+interface PoolValue<T> {
+  isValue: true;
+  index: number;
+  value: T;
+}
+
+interface PoolError {
+  isValue: false;
+  index: number;
+  error: unknown;
+}
+
+type PoolReturn<T> = PoolValue<T> | PoolError;
+
+const a: PoolReturn<number> = { isValue: false, index: 1, error: 1 } as PoolReturn<number>
+if (!a.isValue)a
+else a
+
+export async function* pool<A, T>(
   poolLimit: number,
   values: A[],
   fn: (a: A) => Promise<T>
-): Promise<(T | undefined)[]> {
-  const ret: Promise<T | undefined>[] = [];
+): AsyncGenerator<PoolReturn<T>, void> {
   const executing: Promise<any>[] = [];
 
-  for (const a of values) {
-    const p = fn(a).catch(() => undefined);
-    ret.push(p);
-
-    if (poolLimit <= values.length) {
-      const e: Promise<any> = p.then(() => executing.splice(executing.indexOf(e), 1));
-      executing.push(e);
-      if (executing.length >= poolLimit) await Promise.race(executing);
-    }
+  for (const [index, input] of values.entries()) {
+    const promise = fn(input)
+      .then((value) => ({ isValue: true, index, value }))
+      .catch((error) => ({ isValue: false, index, error }))
+      .finally(() => executing.splice(executing.indexOf(promise), 1));
+    executing.push(promise);
+    if (executing.length >= poolLimit) yield await Promise.race(executing);
   }
-  return Promise.all(ret);
+  while (executing.length > 0) {
+    yield await Promise.race(executing);
+  }
 }

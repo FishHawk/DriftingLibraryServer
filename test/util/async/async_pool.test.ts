@@ -3,51 +3,59 @@ import { pool } from '../../../src/util/async/async_pool';
 
 describe('Util test: async pool', function () {
   it('should run all promises in parallel when the pool is large enough', async () => {
-    const results: number[] = [];
-    const timeout = (i: number) =>
-      new Promise((resolve) =>
-        setTimeout(() => {
-          results.push(i);
-          resolve();
-        }, i)
-      );
-    await pool(2, [100, 500, 300, 200], timeout);
-    assert.deepEqual(results, [100, 300, 500, 200]);
+    const indexList: number[] = [];
+    const valueList: number[] = [];
+
+    function timeout(i: number): Promise<number> {
+      return new Promise((resolve) => setTimeout(() => resolve(i), i));
+    }
+
+    for await (const x of pool(2, [10, 50, 30, 20], timeout)) {
+      if (x.isValue) {
+        valueList.push(x.value);
+        indexList.push(x.index);
+      }
+    }
+
+    assert.deepEqual(indexList, [0, 2, 1, 3]);
+    assert.deepEqual(valueList, [10, 30, 50, 20]);
   });
 
-  it('should limit running promises when the pool is not big enough', async () => {
-    const results: number[] = [];
-    const timeout = (i: number) =>
-      new Promise((resolve) =>
-        setTimeout(() => {
-          results.push(i);
-          resolve();
-        }, i)
-      );
-    await pool(5, [100, 500, 300, 200], timeout);
-    assert.deepEqual(results, [100, 200, 300, 500]);
+  it('should limit running promises when the pool is not large enough', async () => {
+    const indexList: number[] = [];
+    const valueList: number[] = [];
+
+    function timeout(i: number): Promise<number> {
+      return new Promise((resolve) => setTimeout(() => resolve(i), i));
+    }
+
+    for await (const x of pool(4, [10, 50, 30, 20], timeout)) {
+      if (x.isValue) {
+        valueList.push(x.value);
+        indexList.push(x.index);
+      }
+    }
+
+    assert.deepEqual(indexList, [0, 3, 2, 1]);
+    assert.deepEqual(valueList, [10, 20, 30, 50]);
   });
 
-  it('should return value when resolve', async function () {
-    const timeout = (i: number) =>
-      new Promise((resolve) =>
-        setTimeout(() => {
-          resolve(i);
-        }, i)
-      );
-    const results = await pool(2, [100, 500, 300, 200], timeout);
-    assert.deepEqual(results, [100, 500, 300, 200]);
-  });
+  it('should return error when reject', async function () {
+    const indexList: number[] = [];
+    const errorList: number[] = [];
 
-  it('should return undefined when reject', async function () {
-    const timeout = (i: number) =>
-      new Promise((resolve, reject) =>
-        setTimeout(() => {
-          if (i == 300) reject();
-          else resolve(i);
-        }, i)
-      );
-    const results = await pool(2, [100, 500, 300, 200], timeout);
-    assert.deepEqual(results, [100, 500, undefined, 200]);
+    function timeout(i: number): Promise<number> {
+      return new Promise((_resolve, reject) => setTimeout(() => reject(i), i));
+    }
+
+    for await (const x of pool(4, [10, 50, 30, 20], timeout)) {
+      if (x.isValue == false) {
+        errorList.push(x.error as number);
+        indexList.push(x.index);
+      }
+    }
+
+    assert.deepEqual(indexList, [0, 3, 2, 1]);
+    assert.deepEqual(errorList, [10, 20, 30, 50]);
   });
 });
