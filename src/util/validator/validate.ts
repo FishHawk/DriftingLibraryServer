@@ -1,4 +1,4 @@
-const relativePathRegex = /^\.\.?$/;
+const relativePathRegex = /^\.\.?/;
 
 const unixForbiddenCharRegex = /[\/\x00]/g;
 function validateFilenameLinux(filename: string) {
@@ -11,4 +11,4 @@ function validateFilenameWin(filename: string) {
 }
 
 const isWin = process.platform === 'win32';
-export default isWin ? validateFilenameWin : validateFilenameLinux;
+export const validateFilename = isWin ? validateFilenameWin : validateFilenameLinux;

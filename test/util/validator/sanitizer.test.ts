@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { assert } from 'chai';
 import {
   isUndefined,
   isNull,
@@ -9,58 +9,58 @@ import {
   isObject,
   union,
   intersection,
-} from '../../src/util/sanitizer';
+} from '../../../src/util/validator/sanitizer';
 
-describe('Util test: validator', function () {
+describe('Util test: sanitizer', function () {
   describe('#isUndefined', function () {
     const sanitizer = isUndefined();
     it('should return true when value is undefined', () => {
-      assert.equal(sanitizer(undefined), true);
+      assert.isTrue(sanitizer(undefined));
     });
     it('should return false when value is not undefined', () => {
-      assert.equal(sanitizer(0), false);
+      assert.isFalse(sanitizer(0));
     });
   });
 
   describe('#isNull', function () {
     const sanitizer = isNull();
     it('should return true when value is null', () => {
-      assert.equal(sanitizer(null), true);
+      assert.isTrue(sanitizer(null));
     });
     it('should return false when value is not null', () => {
-      assert.equal(sanitizer(undefined), false);
+      assert.isFalse(sanitizer(undefined));
     });
   });
 
   describe('#isString', function () {
     const sanitizer = isString();
     it('should return true when value is string', () => {
-      assert.equal(sanitizer('0'), true);
+      assert.isTrue(sanitizer('0'));
     });
     it('should return false when value is not string', () => {
-      assert.equal(sanitizer(0), false);
+      assert.isFalse(sanitizer(0));
     });
   });
 
   describe('#isNumber', function () {
     const sanitizer = isNumber();
     it('should return true when value is number', () => {
-      assert.equal(sanitizer(0), true);
+      assert.isTrue(sanitizer(0));
     });
     it('should return false when value is not number', () => {
-      assert.equal(sanitizer('0'), false);
+      assert.isFalse(sanitizer('0'));
     });
   });
 
   describe('#isBoolean', function () {
     const sanitizer = isBoolean();
     it('should return true when value is boolean', () => {
-      assert.equal(sanitizer(true), true);
-      assert.equal(sanitizer(false), true);
+      assert.isTrue(sanitizer(true));
+      assert.isTrue(sanitizer(false));
     });
     it('should return false when value is not boolean', () => {
-      assert.equal(sanitizer(0), false);
-      assert.equal(sanitizer('true'), false);
+      assert.isFalse(sanitizer(0));
+      assert.isFalse(sanitizer('true'));
     });
   });
 
@@ -73,13 +73,13 @@ describe('Util test: validator', function () {
     const mixedArray = [1, '2', 3];
 
     it('should return true when value is typed array', () => {
-      assert.equal(sanitizerSA(stringArray), true);
-      assert.equal(sanitizerNA(numberArray), true);
+      assert.isTrue(sanitizerSA(stringArray));
+      assert.isTrue(sanitizerNA(numberArray));
     });
     it('should return false when value is not typed array', () => {
-      assert.equal(sanitizerSA(numberArray), false);
-      assert.equal(sanitizerNA(stringArray), false);
-      assert.equal(sanitizerNA(mixedArray), false);
+      assert.isFalse(sanitizerSA(numberArray));
+      assert.isFalse(sanitizerNA(stringArray));
+      assert.isFalse(sanitizerNA(mixedArray));
     });
   });
 
@@ -90,26 +90,25 @@ describe('Util test: validator', function () {
     it('should return true when value is typed object', () => {
       const objA = { s: 'string' };
       const objB = { a: objA };
-      assert.equal(sanitizerA(objA), true);
-      assert.equal(sanitizerB(objB), true);
+      assert.isTrue(sanitizerA(objA));
+      assert.isTrue(sanitizerB(objB));
     });
     it('should return true when value has more property', () => {
       const objA: unknown = { s: 'string', n: 0 };
-      assert.equal(sanitizerA(objA), true);
+      assert.isTrue(sanitizerA(objA));
     });
     it('should return false when value has less property', () => {
       const objA: unknown = {};
-      assert.equal(sanitizerA(objA), false);
+      assert.isFalse(sanitizerA(objA));
     });
     it('should return false when value has wrong typed property', () => {
       const objA: unknown = { s: 0 };
-      assert.equal(sanitizerA(objA), false);
+      assert.isFalse(sanitizerA(objA));
     });
-
     it('should return false when value has more property and enable strict mode', () => {
       const sanitizerA = isObject({ s: isString() }, true);
       const objA: unknown = { s: 'string', n: 0 };
-      assert.equal(sanitizerA(objA), false);
+      assert.isFalse(sanitizerA(objA));
     });
   });
 
@@ -117,11 +116,11 @@ describe('Util test: validator', function () {
     const sanitizer = union([isString(), isNumber()]);
 
     it('should return true when value is one of union type', () => {
-      assert.equal(sanitizer(0), true);
-      assert.equal(sanitizer('0'), true);
+      assert.isTrue(sanitizer(0));
+      assert.isTrue(sanitizer('0'));
     });
     it('should return false when value is not one of union type', () => {
-      assert.equal(sanitizer(true), false);
+      assert.isFalse(sanitizer(true));
     });
   });
 
@@ -138,11 +137,11 @@ describe('Util test: validator', function () {
     const sanitizer = intersection([sanitizerA, sanitizerB]);
 
     it('should return true when value is intersection type', () => {
-      assert.equal(sanitizer({ s: '0', n: 0 }), true);
+      assert.isTrue(sanitizer({ s: '0', n: 0 }));
     });
     it('should return false when value is not intersection type', () => {
-      assert.equal(sanitizer({ s: '0' }), false);
-      assert.equal(sanitizer({ n: 0 }), false);
+      assert.isFalse(sanitizer({ s: '0' }));
+      assert.isFalse(sanitizer({ n: 0 }));
     });
   });
 });

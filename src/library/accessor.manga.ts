@@ -3,7 +3,7 @@ import path from 'path';
 
 import * as fsu from '../util/fs';
 import { Result, ok, fail } from '../util/result';
-import { StringValidator } from '../util/validator';
+import { StringValidator } from '../util/validator/validator';
 
 import * as Entity from './entity';
 import { ChapterAccessor } from './accessor.chapter';

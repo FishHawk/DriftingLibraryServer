@@ -1,4 +1,4 @@
-import validateFilename from './validate_filename';
+import { validateFilename } from './validate';
 
 export class Validator<T> {
   protected rules: ((v: T) => boolean)[] = [];

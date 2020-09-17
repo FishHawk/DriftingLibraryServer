@@ -1,4 +1,3 @@
-import { rejects } from 'assert';
 import { assert } from 'chai';
 import { retry } from '../../../src/util/async/async_retry';
 
