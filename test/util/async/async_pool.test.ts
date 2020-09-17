@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { asyncPool } from '../../src/util/async_pool';
+import { pool } from '../../../src/util/async/async_pool';
 
 describe('Util test: async pool', function () {
   it('should run all promises in parallel when the pool is large enough', async () => {
@@ -11,7 +11,7 @@ describe('Util test: async pool', function () {
           resolve();
         }, i)
       );
-    await asyncPool(2, [100, 500, 300, 200], timeout);
+    await pool(2, [100, 500, 300, 200], timeout);
     assert.deepEqual(results, [100, 300, 500, 200]);
   });
 
@@ -24,7 +24,7 @@ describe('Util test: async pool', function () {
           resolve();
         }, i)
       );
-    await asyncPool(5, [100, 500, 300, 200], timeout);
+    await pool(5, [100, 500, 300, 200], timeout);
     assert.deepEqual(results, [100, 200, 300, 500]);
   });
 
@@ -35,7 +35,7 @@ describe('Util test: async pool', function () {
           resolve(i);
         }, i)
       );
-    const results = await asyncPool(2, [100, 500, 300, 200], timeout);
+    const results = await pool(2, [100, 500, 300, 200], timeout);
     assert.deepEqual(results, [100, 500, 300, 200]);
   });
 
@@ -47,7 +47,7 @@ describe('Util test: async pool', function () {
           else resolve(i);
         }, i)
       );
-    const results = await asyncPool(2, [100, 500, 300, 200], timeout);
+    const results = await pool(2, [100, 500, 300, 200], timeout);
     assert.deepEqual(results, [100, 500, undefined, 200]);
   });
 });

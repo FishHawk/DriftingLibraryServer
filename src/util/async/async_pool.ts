@@ -1,4 +1,4 @@
-export async function asyncPool<A, T>(
+export async function pool<A, T>(
   poolLimit: number,
   values: A[],
   fn: (a: A) => Promise<T>
