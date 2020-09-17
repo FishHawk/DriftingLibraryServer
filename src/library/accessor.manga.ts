@@ -17,7 +17,7 @@ export class MangaAccessor {
     this.dir = path.join(libraryDir, id);
   }
 
-  async getMangaOutline(): Promise<Entity.MangaOutline> {
+  async getOutline(): Promise<Entity.MangaOutline> {
     const mangaOutline: Entity.MangaOutline = {
       id: this.id,
       thumb: await this.getThumb(),
@@ -27,7 +27,7 @@ export class MangaAccessor {
     return mangaOutline;
   }
 
-  async getMangaDetail(): Promise<Entity.MangaDetail> {
+  async getDetail(): Promise<Entity.MangaDetail> {
     const mangaDetail: Entity.MangaDetail = {
       id: this.id,
       thumb: await this.getThumb(),
@@ -38,25 +38,36 @@ export class MangaAccessor {
     return mangaDetail;
   }
 
-  async setMangaDetail(
-    detail: Entity.MangaDetail,
-    thumb: Buffer | undefined
-  ): Promise<void> {
-    await this.setMetadata(detail.metadata);
-    if (thumb !== undefined) await this.setThumb(thumb);
+  async setMangaDetail(detail: Entity.MangaDetail, thumb: Buffer | undefined): Promise<void> {
+    await this.updateMetadata(detail.metadata);
+    if (thumb !== undefined) await this.updateThumb(thumb);
     await this.setCollections(detail.collections);
   }
 
-  async openChapter(
+  async createChapter(
     collectionId: string,
     chapterId: string
-  ): Promise<Result<ChapterAccessor, Fail>> {
-    // TODO: better check
-    if (!this.validateCollectionId(collectionId)) return IllegalCollectionId;
-    if (!this.validateChapterId(chapterId)) return IllegalChapterId;
+  ): Promise<Result<ChapterAccessor, CreateFail>> {
+    if (!this.validateCollectionId(collectionId)) return fail(CreateFail.IllegalCollectionId);
+    if (!this.validateChapterId(chapterId)) return fail(CreateFail.IllegalChapterId);
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (!(await fsu.isDirectoryExist(chapterDir))) return ChapterNotFound;
+    if (await fsu.isDirectoryExist(chapterDir)) return fail(CreateFail.ChapterAlreadyExist);
+
+    await fs.mkdir(chapterDir);
+    return ok(new ChapterAccessor(chapterDir));
+  }
+
+  async getChapter(
+    collectionId: string,
+    chapterId: string
+  ): Promise<Result<ChapterAccessor, AccessFail>> {
+    // TODO: better check
+    if (!this.validateCollectionId(collectionId)) return fail(AccessFail.IllegalCollectionId);
+    if (!this.validateChapterId(chapterId)) return fail(AccessFail.IllegalChapterId);
+
+    const chapterDir = path.join(this.dir, collectionId, chapterId);
+    if (!(await fsu.isDirectoryExist(chapterDir))) return fail(AccessFail.ChapterNotFound);
 
     return ok(new ChapterAccessor(chapterDir));
   }
@@ -71,7 +82,7 @@ export class MangaAccessor {
     return undefined;
   }
 
-  async setThumb(thumb: Buffer) {
+  async updateThumb(thumb: Buffer) {
     const existThumbFilename = await this.getThumb();
     if (existThumbFilename != undefined) {
       const existThumbPath = path.join(this.dir, existThumbFilename);
@@ -110,7 +121,7 @@ export class MangaAccessor {
     });
   }
 
-  async setMetadata(metadata: Entity.MetadataDetail) {
+  async updateMetadata(metadata: Entity.MetadataDetail) {
     const matedataPath = path.join(this.dir, 'metadata.json');
     await fs.writeFile(matedataPath, JSON.stringify(metadata));
     return this;
@@ -175,9 +186,7 @@ export class MangaAccessor {
   }
 
   private validateCollectionId(collectionId: string) {
-    return (
-      collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId)
-    );
+    return collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId);
   }
   private validateChapterId(chapterId: string) {
     return chapterId.length === 0 || MangaAccessor.filenameValidator.validate(chapterId);
@@ -186,14 +195,18 @@ export class MangaAccessor {
 
 /* fail */
 export namespace MangaAccessor {
-  export enum Fail {
+  export enum AccessFail {
     IllegalCollectionId,
     IllegalChapterId,
     ChapterNotFound,
   }
+
+  export enum CreateFail {
+    IllegalCollectionId,
+    IllegalChapterId,
+    ChapterAlreadyExist,
+  }
 }
 
-import Fail = MangaAccessor.Fail;
-const IllegalCollectionId = fail(Fail.IllegalCollectionId as const);
-const IllegalChapterId = fail(Fail.IllegalChapterId as const);
-const ChapterNotFound = fail(Fail.ChapterNotFound as const);
+import AccessFail = MangaAccessor.AccessFail;
+import CreateFail = MangaAccessor.CreateFail;

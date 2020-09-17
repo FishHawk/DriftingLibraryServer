@@ -33,10 +33,10 @@ export class LibraryAccessor {
     if (!this.validateMangaId(mangaId)) return fail(AccessFail.IllegalMangaId);
     const mangaDir = path.join(this.dir, mangaId);
     if (!(await fsu.isDirectoryExist(mangaDir))) return fail(AccessFail.MangaNotFound);
-    return fs.rmdir(mangaDir, { recursive: true }).then(() => ok());
+    return fs.rmdir(mangaDir).then(() => ok());
   }
 
-  async openManga(mangaId: string): Promise<Result<MangaAccessor, AccessFail>> {
+  async getManga(mangaId: string): Promise<Result<MangaAccessor, AccessFail>> {
     if (!this.validateMangaId(mangaId)) return fail(AccessFail.IllegalMangaId);
     const mangaDir = path.join(this.dir, mangaId);
     if (!(await fsu.isDirectoryExist(mangaDir))) return fail(AccessFail.MangaNotFound);

@@ -47,9 +47,9 @@ export class LibraryController extends ControllerAdapter {
   @Get('/library/manga/:mangaId')
   getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     return this.library
-      .openManga(mangaId)
+      .getManga(mangaId)
       .then((result) => result.whenFail(this.handleLibraryFail))
-      .then((manga) => manga.getMangaDetail())
+      .then((manga) => manga.getDetail())
       .then((detail) => res.json(detail));
   }
 
@@ -70,10 +70,10 @@ export class LibraryController extends ControllerAdapter {
     @RawBody() body: any
   ) {
     return this.library
-      .openManga(mangaId)
+      .getManga(mangaId)
       .then((result) => result.whenFail(this.handleLibraryFail))
-      .then((manga) => manga.setMetadata(body))
-      .then((manga) => manga.getMangaDetail())
+      .then((manga) => manga.updateMetadata(body))
+      .then((manga) => manga.getDetail())
       .then((detail) => res.json(detail));
   }
 
@@ -86,10 +86,10 @@ export class LibraryController extends ControllerAdapter {
   ) {
     if (req.file === undefined) throw new BadRequestError('Illegal argument: thumb file');
     return this.library
-      .openManga(mangaId)
+      .getManga(mangaId)
       .then((result) => result.whenFail(this.handleLibraryFail))
-      .then((manga) => manga.setThumb(req.file.buffer))
-      .then((manga) => manga.getMangaDetail())
+      .then((manga) => manga.updateThumb(req.file.buffer))
+      .then((manga) => manga.getDetail())
       .then((detail) => res.json(detail));
   }
 
@@ -101,9 +101,9 @@ export class LibraryController extends ControllerAdapter {
     @Query('chapter') chapterId: string
   ) {
     return this.library
-      .openManga(mangaId)
+      .getManga(mangaId)
       .then((result) => result.whenFail(this.handleLibraryFail))
-      .then((manga) => manga.openChapter(collectionId, chapterId))
+      .then((manga) => manga.getChapter(collectionId, chapterId))
       .then((result) => result.whenFail(this.handleMangaFail))
       .then((chapter) => chapter.listImage())
       .then((content) => res.json(content));
@@ -121,12 +121,12 @@ export class LibraryController extends ControllerAdapter {
     throw new Error();
   }
 
-  private handleMangaFail(e: MangaAccessor.Fail): never {
-    if (e === MangaAccessor.Fail.IllegalCollectionId)
+  private handleMangaFail(e: MangaAccessor.AccessFail): never {
+    if (e === MangaAccessor.AccessFail.IllegalCollectionId)
       throw new BadRequestError('Illegal error: collection id');
-    else if (e === MangaAccessor.Fail.IllegalChapterId)
+    else if (e === MangaAccessor.AccessFail.IllegalChapterId)
       throw new BadRequestError('Illegal error: chapter id');
-    else if (e === MangaAccessor.Fail.ChapterNotFound)
+    else if (e === MangaAccessor.AccessFail.ChapterNotFound)
       throw new NotFoundError('Not found: chapter');
     throw new Error();
   }

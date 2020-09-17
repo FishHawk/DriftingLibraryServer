@@ -3,11 +3,11 @@ import express from 'express';
 import request from 'supertest';
 
 import { ProviderManager } from '../../src/provider/manager';
-import { ControllerProvider } from '../../src/controller/controller.provider';
+import { ProviderController } from '../../src/controller/controller.provider';
 
 describe('Controller test: provider', function () {
   const providerManager = new ProviderManager();
-  const controller = new ControllerProvider(providerManager);
+  const controller = new ProviderController(providerManager);
 
   const app = express();
   app.use(controller.router);

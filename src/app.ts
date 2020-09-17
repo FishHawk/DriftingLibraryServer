@@ -64,11 +64,7 @@ export class App {
 
     // Controllers
     this.controllers = [
-      new LibraryController(
-        this.libraryAccessor,
-        this.downloadService,
-        this.subscribeService
-      ),
+      new LibraryController(this.libraryAccessor, this.downloadService, this.subscribeService),
       new ProviderController(this.providerManager),
       new DownloadController(this.downloadService),
       new SubscriptionController(this.subscribeService),

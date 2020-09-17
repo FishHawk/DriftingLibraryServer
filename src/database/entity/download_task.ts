@@ -8,7 +8,7 @@ export enum DownloadTaskStatus {
 }
 
 @Entity()
-export class DownloadTask {
+export class DownloadDesc {
   @PrimaryColumn()
   id!: string;
 

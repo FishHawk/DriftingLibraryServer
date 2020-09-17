@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class DownloadChapter {
+export class DownloadChapterDesc {
   @PrimaryGeneratedColumn()
   id!: number;
 

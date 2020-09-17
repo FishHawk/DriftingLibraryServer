@@ -1,5 +1,5 @@
 import { DatabaseAdapter } from '../database/adapter';
-import { DownloadTask, DownloadTaskStatus } from '../database/entity/download_task';
+import { DownloadDesc, DownloadTaskStatus } from '../database/entity/download_task';
 
 import { ProviderAdapter } from '../provider/providers/adapter';
 import { ProviderManager } from '../provider/manager';
@@ -30,102 +30,6 @@ export class DownloadService {
   private isRunning = false;
   private isCancelled = false;
   private currentTargetManga: string | undefined = undefined;
-
-  async getAllDownloadTask() {
-    return this.db.downloadTaskRepository.find();
-  }
-
-  async startAllDownloadTask() {
-    await this.db.downloadTaskRepository.update(
-      { status: DownloadTaskStatus.Paused },
-      { status: DownloadTaskStatus.Waiting }
-    );
-    await this.db.downloadTaskRepository.update(
-      { status: DownloadTaskStatus.Error },
-      { status: DownloadTaskStatus.Waiting }
-    );
-    this.start();
-  }
-
-  async pauseAllDownloadTask() {
-    await this.db.downloadTaskRepository.update(
-      { status: DownloadTaskStatus.Waiting },
-      { status: DownloadTaskStatus.Paused }
-    );
-    await this.db.downloadTaskRepository.update(
-      { status: DownloadTaskStatus.Downloading },
-      { status: DownloadTaskStatus.Paused }
-    );
-  }
-
-  async createDownloadTask(
-    providerId: string,
-    sourceManga: string,
-    targetManga: string,
-    isCreatedBySubscription: boolean = false
-  ): Promise<Result<DownloadTask, CreateFail>> {
-    if (this.providerManager.getProvider(providerId) === undefined)
-      return fail(CreateFail.UnsupportedProvider);
-
-    const result = (await this.library.createManga(targetManga)).whenFail((f) => {
-      if (f === LibraryAccessor.CreateFail.IllegalMangaId)
-        return CreateFail.IlligalTargetMangaId;
-      if (f === LibraryAccessor.CreateFail.MangaAlreadyExist)
-        return CreateFail.MangaAlreadyExist;
-    });
-    if (result !== undefined) return fail(result);
-
-    const task = this.db.downloadTaskRepository.create({
-      providerId,
-      sourceManga,
-      id: targetManga,
-      isCreatedBySubscription,
-    });
-    await this.db.downloadTaskRepository.save(task);
-    this.start();
-    return ok(task);
-  }
-
-  async deleteDownloadTask(id: string): Promise<Result<DownloadTask, AccessFail>> {
-    const task = await this.db.downloadTaskRepository.findOne(id);
-    if (task === undefined) return fail(AccessFail.TaskNotFound);
-
-    this.cancelTask(id);
-    if (!task.isCreatedBySubscription)
-      await this.db.downloadChapterRepository.delete({ task: id });
-    await this.db.downloadTaskRepository.remove(task);
-    return ok(task);
-  }
-
-  async startDownloadTask(id: string): Promise<Result<DownloadTask, AccessFail>> {
-    const task = await this.db.downloadTaskRepository.findOne(id);
-    if (task === undefined) return fail(AccessFail.TaskNotFound);
-
-    if (
-      task.status === DownloadTaskStatus.Paused ||
-      task.status === DownloadTaskStatus.Error
-    ) {
-      task.status = DownloadTaskStatus.Waiting;
-      await this.db.downloadTaskRepository.save(task);
-      this.start();
-    }
-    return ok(task);
-  }
-
-  async pauseDownloadTask(id: string): Promise<Result<DownloadTask, AccessFail>> {
-    const task = await this.db.downloadTaskRepository.findOne(id);
-    if (task === undefined) return fail(AccessFail.TaskNotFound);
-
-    if (
-      task.status === DownloadTaskStatus.Downloading ||
-      task.status === DownloadTaskStatus.Waiting
-    ) {
-      this.cancelTask(id);
-      task.status = DownloadTaskStatus.Paused;
-      await this.db.downloadTaskRepository.save(task);
-    }
-    return ok(task);
-  }
 
   private start(): void {
     if (this.isRunning) return;
@@ -172,23 +76,19 @@ export class DownloadService {
     }
   }
 
-  private async downloadManga(task: DownloadTask) {
+  private async downloadManga(task: DownloadDesc) {
     await this.library.createManga(task.id);
 
     const provider = this.providerManager.getProvider(task.providerId);
     if (provider === undefined) throw Error('Provider not exist');
 
-    const mangaAccessor = await this.library.openManga(task.id).then((result) =>
+    const mangaAccessor = await this.library.getManga(task.id).then((result) =>
       result.whenFail((e) => {
         throw Error('Manga not exist');
       })
     );
 
-    const detail = await this.downloadMangaDetail(
-      provider,
-      mangaAccessor,
-      task.sourceManga
-    );
+    const detail = await this.downloadMangaDetail(provider, mangaAccessor, task.sourceManga);
 
     let hasChapterError = false;
     for (const collection of detail.collections) {
@@ -203,7 +103,7 @@ export class DownloadService {
         if (chapterTask !== undefined) continue;
         const chapterId = `${chapter.name} ${chapter.title}`;
         const chapterAccessor = await mangaAccessor
-          .openChapter(collection.id, chapterId)
+          .getChapter(collection.id, chapterId)
           .then((result) =>
             result.whenFail((e) => {
               throw Error('Chapter not exist');
@@ -275,6 +175,97 @@ export class DownloadService {
       this.cancelIfNeed();
     }
     return hasImageError;
+  }
+
+  /* api */
+  async getAllDownloadTask() {
+    return this.db.downloadTaskRepository.find();
+  }
+
+  async startAllDownloadTask() {
+    await this.db.downloadTaskRepository.update(
+      { status: DownloadTaskStatus.Paused },
+      { status: DownloadTaskStatus.Waiting }
+    );
+    await this.db.downloadTaskRepository.update(
+      { status: DownloadTaskStatus.Error },
+      { status: DownloadTaskStatus.Waiting }
+    );
+    this.start();
+  }
+
+  async pauseAllDownloadTask() {
+    await this.db.downloadTaskRepository.update(
+      { status: DownloadTaskStatus.Waiting },
+      { status: DownloadTaskStatus.Paused }
+    );
+    await this.db.downloadTaskRepository.update(
+      { status: DownloadTaskStatus.Downloading },
+      { status: DownloadTaskStatus.Paused }
+    );
+  }
+
+  async createDownloadTask(
+    providerId: string,
+    sourceManga: string,
+    targetManga: string,
+    isCreatedBySubscription: boolean = false
+  ): Promise<Result<DownloadDesc, CreateFail>> {
+    if (this.providerManager.getProvider(providerId) === undefined)
+      return fail(CreateFail.UnsupportedProvider);
+
+    const result = (await this.library.createManga(targetManga)).whenFail((f) => {
+      if (f === LibraryAccessor.CreateFail.IllegalMangaId) return CreateFail.IlligalTargetMangaId;
+      if (f === LibraryAccessor.CreateFail.MangaAlreadyExist) return CreateFail.MangaAlreadyExist;
+    });
+    if (result !== undefined) return fail(result);
+
+    const task = this.db.downloadTaskRepository.create({
+      providerId,
+      sourceManga,
+      id: targetManga,
+      isCreatedBySubscription,
+    });
+    await this.db.downloadTaskRepository.save(task);
+    this.start();
+    return ok(task);
+  }
+
+  async deleteDownloadTask(id: string): Promise<Result<DownloadDesc, AccessFail>> {
+    const task = await this.db.downloadTaskRepository.findOne(id);
+    if (task === undefined) return fail(AccessFail.TaskNotFound);
+
+    this.cancelTask(id);
+    if (!task.isCreatedBySubscription) await this.db.downloadChapterRepository.delete({ task: id });
+    await this.db.downloadTaskRepository.remove(task);
+    return ok(task);
+  }
+
+  async startDownloadTask(id: string): Promise<Result<DownloadDesc, AccessFail>> {
+    const task = await this.db.downloadTaskRepository.findOne(id);
+    if (task === undefined) return fail(AccessFail.TaskNotFound);
+
+    if (task.status === DownloadTaskStatus.Paused || task.status === DownloadTaskStatus.Error) {
+      task.status = DownloadTaskStatus.Waiting;
+      await this.db.downloadTaskRepository.save(task);
+      this.start();
+    }
+    return ok(task);
+  }
+
+  async pauseDownloadTask(id: string): Promise<Result<DownloadDesc, AccessFail>> {
+    const task = await this.db.downloadTaskRepository.findOne(id);
+    if (task === undefined) return fail(AccessFail.TaskNotFound);
+
+    if (
+      task.status === DownloadTaskStatus.Downloading ||
+      task.status === DownloadTaskStatus.Waiting
+    ) {
+      this.cancelTask(id);
+      task.status = DownloadTaskStatus.Paused;
+      await this.db.downloadTaskRepository.save(task);
+    }
+    return ok(task);
   }
 }
 

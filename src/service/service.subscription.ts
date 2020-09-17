@@ -36,7 +36,7 @@ export class SubscriptionService {
     }
   }
 
-  /* Api */
+  /* api */
   async getAllSubscription() {
     return this.repository.find();
   }
