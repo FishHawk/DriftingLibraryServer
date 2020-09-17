@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 
 import { logger } from './logger';
 
@@ -7,7 +7,10 @@ import { DownloadController } from './controller/controller.download';
 import { LibraryController } from './controller/controller.library';
 import { ProviderController } from './controller/controller.provider';
 import { SubscriptionController } from './controller/controller.subscription';
-import { HttpError } from './controller/exception';
+import { SystemController } from './controller/controller.system';
+
+import { logMiddleware } from './controller/middleware.log';
+import { errorHandleMiddleware } from './controller/middleware.error_handle';
 
 import { createSqliteDatabase, DatabaseAdapter } from './database/adapter';
 import { LibraryAccessor } from './library/accessor.library';
@@ -43,9 +46,6 @@ export class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(logMiddleware);
-    this.app.get('/test', (req: Request, res: Response) => {
-      res.send('Hello World!');
-    });
 
     // Components
     this.database = await createSqliteDatabase(this.libraryDir);
@@ -68,13 +68,14 @@ export class App {
       new ProviderController(this.providerManager),
       new DownloadController(this.downloadService),
       new SubscriptionController(this.subscribeService),
+      new SystemController(),
     ];
     this.controllers.forEach((controller) => {
       this.app.use('/', controller.router);
     });
 
     // Error handle
-    this.app.use(errorHandlerMiddleware);
+    this.app.use(errorHandleMiddleware);
     return this;
   }
 
@@ -84,20 +85,3 @@ export class App {
     });
   }
 }
-
-const logMiddleware = (req: Request, _res: Response, next: NextFunction) => {
-  logger.info(`Request: ${req.method} ${req.url}`);
-  next();
-};
-
-const errorHandlerMiddleware = (
-  err: HttpError,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-) => {
-  logger.error(err.stack);
-  const status = err.status || 500;
-  const message = err.message || 'Unexceped error.';
-  res.status(status).send(message);
-};

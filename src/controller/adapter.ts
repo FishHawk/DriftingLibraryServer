@@ -8,11 +8,7 @@ export abstract class ControllerAdapter {
   constructor() {
     const target = Object.getPrototypeOf(this);
     getMergedIndications(target).forEach((ind) => {
-      const paramtypes: Function[] = Reflect.getMetadata(
-        'design:paramtypes',
-        target,
-        ind.method
-      );
+      const paramtypes: Function[] = Reflect.getMetadata('design:paramtypes', target, ind.method);
       if (paramtypes.length !== ind.params.length)
         throw new Error(`unmatched parameter length of ${ind.method as string}`);
 
@@ -34,23 +30,16 @@ export abstract class ControllerAdapter {
         throw new Error('unknown parameter indication type');
       });
 
-      const middlewares = [
-        ...ind.useBefore,
-        this.wrap(ind.method, extractors),
-        ...ind.useAfter,
-      ];
+      const middlewares = [...ind.useBefore, this.wrap(ind.method, extractors), ...ind.useAfter];
       this.router[ind.type](ind.path, ...middlewares);
     });
   }
 
-  private wrap = (
-    method: string | symbol,
-    extractors: ParameterExtractor[]
-  ): RequestHandler => {
+  private wrap = (method: string | symbol, extractors: ParameterExtractor[]): RequestHandler => {
     return (req: Request, res: Response, next: NextFunction) => {
       const params = extractors.map((extract) => extract(req, res, next));
       const func: Function = (this as any)[method];
-      func.call(this, ...params).catch(next);
+      Promise.resolve(func.call(this, ...params)).catch(next);
     };
   };
 }
