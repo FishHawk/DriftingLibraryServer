@@ -31,7 +31,7 @@ export class App {
 
   private controllers!: ControllerAdapter[];
 
-  static async createApplication(port: number, libraryDir: string) {
+  public static async createApplication(port: number, libraryDir: string) {
     return new App(port, libraryDir).initialize();
   }
 
@@ -81,7 +81,7 @@ export class App {
 
   public listen() {
     this.app.listen(this.port, () => {
-      logger.info(`Init: Listen on http://localhost:${this.port}`);
+      logger.info(`Listen on http://localhost:${this.port}`);
     });
   }
 }

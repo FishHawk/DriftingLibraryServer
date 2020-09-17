@@ -12,7 +12,7 @@ export const errorHandleMiddleware = (
     logger.info(`Http error: ${err.status} ${err.message}`);
     res.status(err.status).send(err.message);
   } else {
-    logger.error(err);
-    res.status(500).send('Unexceped error.');
+    logger.error(`Unexpected error: ${err}`);
+    res.status(500).send('Unexpected error.');
   }
 };

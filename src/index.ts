@@ -34,7 +34,7 @@ function parseEnvPort(envPort: string | undefined): number {
   if (envPort !== undefined) {
     const port = Number.parseInt(envPort);
     if (port > 1023 && port <= 65535) {
-      logger.info(`Init: Config port ${port}`);
+      logger.info(`Config port ${port}`);
       return port;
     }
   }
@@ -45,7 +45,7 @@ function parseEnvPort(envPort: string | undefined): number {
 function parseEnvLibraryDir(envDir: string | undefined): string {
   if (envDir !== undefined) {
     if (fs.statSync(envDir).isDirectory()) {
-      logger.info(`Init: Config library dir ${envDir}`);
+      logger.info(`Config library dir ${envDir}`);
       return envDir;
     }
   }
