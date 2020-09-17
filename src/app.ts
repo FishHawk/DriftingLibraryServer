@@ -1,5 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 
+import { logger } from './logger';
+
 import { ControllerAdapter } from './controller/adapter';
 import { DownloadController } from './controller/controller.download';
 import { LibraryController } from './controller/controller.library';
@@ -12,8 +14,6 @@ import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './service/service.download';
 import { SubscriptionService } from './service/service.subscription';
-
-import { logger } from './util/logger';
 
 export class App {
   private readonly app: express.Application;

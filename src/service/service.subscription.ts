@@ -1,12 +1,10 @@
 import { CronJob } from 'cron';
 import { Repository } from 'typeorm';
 
+import { logger } from '../logger';
 import { Subscription } from '../database/entity';
-
-import { logger } from '../util/logger';
-import { Result, fail, ok } from '../util/result';
-
 import { DownloadService } from './service.download';
+import { Result, fail, ok } from '../util/result';
 
 export class SubscriptionService {
   constructor(
