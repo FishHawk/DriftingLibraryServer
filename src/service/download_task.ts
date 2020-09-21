@@ -1,11 +1,11 @@
+import { logger } from '../logger';
 import { DatabaseAdapter } from '../database/adapter';
 import { DownloadDesc, DownloadTaskStatus } from '../database/entity/download_task';
 import { ChapterAccessor } from '../library/accessor.chapter';
 import { MangaAccessor } from '../library/accessor.manga';
-import { logger } from '../logger';
 import { ProviderAdapter } from '../provider/providers/adapter';
 
-class AsyncTaskCancelError extends Error {
+export class AsyncTaskCancelError extends Error {
   constructor() {
     super();
     Error.captureStackTrace(this, this.constructor);

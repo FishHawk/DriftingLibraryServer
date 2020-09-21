@@ -1,22 +1,11 @@
 import { logger } from '../logger';
-
 import { DatabaseAdapter } from '../database/adapter';
 import { DownloadDesc, DownloadTaskStatus } from '../database/entity/download_task';
-
 import { ProviderManager } from '../provider/manager';
-
 import { LibraryAccessor } from '../library/accessor.library';
-
 import { fail, Result, ok } from '../util/result';
 
-class AsyncTaskCancelError extends Error {
-  constructor() {
-    super();
-    Error.captureStackTrace(this, this.constructor);
-    this.name = this.constructor.name;
-    this.message = 'Async task is cancelled.';
-  }
-}
+import { AsyncTaskCancelError, DownloadTask } from './download_task';
 
 export class DownloadService {
   constructor(
@@ -52,7 +41,7 @@ export class DownloadService {
         if (provider === undefined) throw Error('Provider not exist');
 
         const mangaAccessor = await this.library.getManga(desc.id).then((result) =>
-          result.whenFail((e) => {
+          result.whenFail(() => {
             throw Error('Manga not exist');
           })
         );
@@ -191,4 +180,3 @@ export namespace DownloadService {
 }
 import CreateFail = DownloadService.CreateFail;
 import AccessFail = DownloadService.AccessFail;
-import { DownloadTask } from './download_task';
