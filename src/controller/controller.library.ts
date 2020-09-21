@@ -37,7 +37,6 @@ export class LibraryController extends ControllerAdapter {
     @Query('limit') limit: number,
     @Query('keywords') keywords: string
   ) {
-    console.log(lastTime);
     return this.library
       .search(lastTime, limit, keywords)
       .then((outlines) => res.json(outlines));

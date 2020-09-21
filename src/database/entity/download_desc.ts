@@ -20,7 +20,4 @@ export class DownloadDesc {
 
   @Column({ default: DownloadStatus.Waiting })
   status!: string;
-
-  @Column()
-  isCreatedBySubscription!: boolean;
 }

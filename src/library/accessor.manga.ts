@@ -152,7 +152,8 @@ export class MangaAccessor {
     if (!this.validateChapterId(chapterId)) return undefined;
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (!(await fsu.isDirectoryExist(chapterDir))) await fs.mkdir(chapterDir);
+    if (!(await fsu.isDirectoryExist(chapterDir)))
+      await fs.mkdir(chapterDir, { recursive: true });
 
     const accessor = new ChapterAccessor(chapterDir);
     await accessor.setUncompleted();

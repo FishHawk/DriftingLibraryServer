@@ -74,7 +74,7 @@ async function downloadManga(
       );
 
       if (hasImageError) hasChapterError = true;
-      else await chapterAccessor.setUncompleted();
+      else await chapterAccessor.setCompleted();
     }
   }
   return !hasChapterError;
