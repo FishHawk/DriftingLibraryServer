@@ -88,10 +88,7 @@ export class ProviderController extends ControllerAdapter {
       .then((image) => res.send(image));
   }
 
-  /*
-   * Argument validation helper
-   */
-
+  /* validate argument */
   private getProvider(id: string): ProviderAdapter {
     const provider = this.providerManager.getProvider(id);
     if (provider === undefined)

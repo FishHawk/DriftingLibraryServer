@@ -29,18 +29,18 @@ export class LibraryAccessor {
     return fs.mkdir(mangaDir).then(() => ok());
   }
 
-  async deleteManga(mangaId: string): Promise<Result<void, AccessFail>> {
-    if (!this.validateMangaId(mangaId)) return fail(AccessFail.IllegalMangaId);
+  async deleteManga(mangaId: string) {
+    if (!this.validateMangaId(mangaId)) return undefined;
     const mangaDir = path.join(this.dir, mangaId);
-    if (!(await fsu.isDirectoryExist(mangaDir))) return fail(AccessFail.MangaNotFound);
-    return fs.rmdir(mangaDir).then(() => ok());
+    if (!(await fsu.isDirectoryExist(mangaDir))) return undefined;
+    return fs.rmdir(mangaDir).then(() => mangaId);
   }
 
-  async getManga(mangaId: string): Promise<Result<MangaAccessor, AccessFail>> {
-    if (!this.validateMangaId(mangaId)) return fail(AccessFail.IllegalMangaId);
+  async getManga(mangaId: string) {
+    if (!this.validateMangaId(mangaId)) return undefined;
     const mangaDir = path.join(this.dir, mangaId);
-    if (!(await fsu.isDirectoryExist(mangaDir))) return fail(AccessFail.MangaNotFound);
-    return ok(new MangaAccessor(this.dir, mangaId));
+    if (!(await fsu.isDirectoryExist(mangaDir))) return undefined;
+    return new MangaAccessor(this.dir, mangaId);
   }
 
   private validateMangaId(mangaId: string) {
@@ -50,15 +50,9 @@ export class LibraryAccessor {
 
 /* fail */
 export namespace LibraryAccessor {
-  export enum AccessFail {
-    IllegalMangaId,
-    MangaNotFound,
-  }
-
   export enum CreateFail {
     IllegalMangaId,
     MangaAlreadyExist,
   }
 }
-import AccessFail = LibraryAccessor.AccessFail;
 import CreateFail = LibraryAccessor.CreateFail;

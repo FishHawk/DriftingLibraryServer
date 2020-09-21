@@ -24,7 +24,7 @@ export class SubscriptionService {
 
   private async updateSubscription(subscription: Subscription) {
     const result = await this.downloadService.startDownloadTask(subscription.id);
-    if (result.isFail()) {
+    if (result === undefined) {
       await this.downloadService.createDownloadTask(
         subscription.providerId,
         subscription.sourceManga,
@@ -34,7 +34,7 @@ export class SubscriptionService {
     }
   }
 
-  /* api */
+  /* list api */
   async getAllSubscription() {
     return this.repository.find();
   }
@@ -43,6 +43,7 @@ export class SubscriptionService {
     return this.repository.update({ isEnabled: !isEnabled }, { isEnabled });
   }
 
+  /* item api */
   async createSubscription(
     providerId: string,
     sourceManga: string,
@@ -65,35 +66,27 @@ export class SubscriptionService {
     return ok(subscription);
   }
 
-  async deleteSubscription(id: string): Promise<Result<Subscription, AccessFail>> {
+  async deleteSubscription(id: string) {
     const subscription = await this.repository.findOne(id);
-    if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
-
-    await this.downloadService.deleteDownloadTask(subscription.id);
-    await this.repository.remove(subscription);
-    return ok(subscription);
+    if (subscription !== undefined) {
+      await this.downloadService.deleteDownloadTask(subscription.id);
+      await this.repository.remove(subscription);
+    }
+    return subscription;
   }
 
-  async toggleSubscription(
-    id: string,
-    isEnabled: boolean
-  ): Promise<Result<Subscription, AccessFail>> {
+  async toggleSubscription(id: string, isEnabled: boolean) {
     const subscription = await this.repository.findOne(id);
-    if (subscription === undefined) return fail(AccessFail.SubscriptionNotFound);
-
-    subscription.isEnabled = isEnabled;
-    await this.repository.save(subscription);
-    return ok(subscription);
+    if (subscription !== undefined) {
+      subscription.isEnabled = isEnabled;
+      await this.repository.save(subscription);
+    }
+    return subscription;
   }
 }
 
 /* fail */
 export namespace SubscriptionService {
-  export enum AccessFail {
-    SubscriptionNotFound,
-  }
-
   export import CreateFail = DownloadService.CreateFail;
 }
 import CreateFail = SubscriptionService.CreateFail;
-import AccessFail = SubscriptionService.AccessFail;

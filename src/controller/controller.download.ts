@@ -7,6 +7,7 @@ import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, Body, Param } from './decorator/param';
+import { DownloadDesc } from '../database/entity';
 
 export class DownloadController extends ControllerAdapter {
   constructor(private readonly downloadService: DownloadService) {
@@ -51,7 +52,7 @@ export class DownloadController extends ControllerAdapter {
   deleteDownloadTask(@Res() res: Response, @Param('id') id: string) {
     return this.downloadService
       .deleteDownloadTask(id)
-      .then((result) => result.whenFail(this.handleAccessFail))
+      .then(this.handleAccessFail)
       .then((task) => res.json(task));
   }
 
@@ -59,7 +60,7 @@ export class DownloadController extends ControllerAdapter {
   startDownloadTask(@Res() res: Response, @Param('id') id: string) {
     return this.downloadService
       .startDownloadTask(id)
-      .then((result) => result.whenFail(this.handleAccessFail))
+      .then(this.handleAccessFail)
       .then((task) => res.json(task));
   }
 
@@ -67,14 +68,11 @@ export class DownloadController extends ControllerAdapter {
   pauseDownloadTask(@Res() res: Response, @Param('id') id: string) {
     return this.downloadService
       .pauseDownloadTask(id)
-      .then((result) => result.whenFail(this.handleAccessFail))
+      .then(this.handleAccessFail)
       .then((task) => res.json(task));
   }
 
-  /*
-   * Handle failure
-   */
-
+  /* handle failure */
   private handleCreateFail(f: DownloadService.CreateFail): never {
     if (f === DownloadService.CreateFail.UnsupportedProvider)
       throw new BadRequestError('Illegal error: target manga id');
@@ -87,9 +85,8 @@ export class DownloadController extends ControllerAdapter {
     throw new Error();
   }
 
-  private handleAccessFail(f: DownloadService.AccessFail): never {
-    if (f === DownloadService.AccessFail.TaskNotFound)
-      throw new NotFoundError('Not found: download task');
-    throw new Error();
+  private handleAccessFail(v: DownloadDesc | undefined): DownloadDesc {
+    if (v === undefined) throw new NotFoundError('Not found: download task');
+    return v;
   }
 }

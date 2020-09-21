@@ -7,6 +7,7 @@ import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, Body, Param } from './decorator/param';
+import { Subscription } from '../database/entity';
 
 export class SubscriptionController extends ControllerAdapter {
   constructor(private readonly subscribeService: SubscriptionService) {
@@ -53,7 +54,7 @@ export class SubscriptionController extends ControllerAdapter {
   deleteSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
       .deleteSubscription(id)
-      .then((result) => result.whenFail(this.handleAccessFail))
+      .then(this.handleAccessFail)
       .then((subscription) => res.json(subscription));
   }
 
@@ -61,7 +62,7 @@ export class SubscriptionController extends ControllerAdapter {
   enableSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
       .toggleSubscription(id, true)
-      .then((result) => result.whenFail(this.handleAccessFail))
+      .then(this.handleAccessFail)
       .then((subscription) => res.json(subscription));
   }
 
@@ -69,29 +70,25 @@ export class SubscriptionController extends ControllerAdapter {
   disableSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
       .toggleSubscription(id, false)
-      .then((result) => result.whenFail(this.handleAccessFail))
+      .then(this.handleAccessFail)
       .then((subscription) => res.json(subscription));
   }
 
-  /*
-   * Handle failure
-   */
-
+  /* handle failure */
   private handleCreateFail(f: SubscriptionService.CreateFail): never {
     if (f === SubscriptionService.CreateFail.UnsupportedProvider)
       throw new BadRequestError('Illegal error: target manga id');
     if (f === SubscriptionService.CreateFail.IlligalTargetMangaId)
       throw new BadRequestError('Illegal error: target manga id');
     if (f === SubscriptionService.CreateFail.MangaAlreadyExist)
-      throw new ConflictError('Already exist: Target manga');
+      throw new ConflictError('Already exist: target manga');
     if (f === SubscriptionService.CreateFail.TaskAlreadyExist)
       throw new ConflictError('Already exist: download task');
     throw new Error();
   }
 
-  private handleAccessFail(f: SubscriptionService.AccessFail): never {
-    if (f === SubscriptionService.AccessFail.SubscriptionNotFound)
-      throw new NotFoundError('Not found: download subscription');
-    throw new Error();
+  private handleAccessFail(v: Subscription | undefined): Subscription {
+    if (v === undefined) throw new NotFoundError('Not found: subscription');
+    return v;
   }
 }
