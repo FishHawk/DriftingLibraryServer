@@ -6,22 +6,32 @@ import * as fsu from '../util/fs';
 export class ChapterAccessor {
   constructor(private readonly dir: string) {}
 
-  async listImage(): Promise<string[]> {
+  listImage() {
     return fsu.listImageFileWithNaturalOrder(this.dir);
   }
-
-  async readImage(filename: string): Promise<Buffer> {
+  readImage(filename: string) {
     const imagePath = path.join(this.dir, filename);
     return fs.readFile(imagePath);
   }
-
-  async writeImage(filename: string, data: Buffer) {
+  writeImage(filename: string, data: Buffer) {
     const imagePath = path.join(this.dir, filename);
     return fs.writeFile(imagePath, data);
   }
-
-  async isImageExist(filename: string): Promise<boolean> {
+  isImageExist(filename: string) {
     const imagePath = path.join(this.dir, filename);
     return fsu.isFileExist(imagePath);
+  }
+
+  isUncompleted() {
+    const markPath = path.join(this.dir, '.mark');
+    return fsu.isFileExist(markPath);
+  }
+  setUncompleted() {
+    const markPath = path.join(this.dir, '.mark');
+    return fs.writeFile(markPath, '');
+  }
+  setCompleted() {
+    const markPath = path.join(this.dir, '.mark');
+    return fs.unlink(markPath);
   }
 }

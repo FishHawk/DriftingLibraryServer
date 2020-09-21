@@ -4,7 +4,6 @@ import multer from 'multer';
 import { DownloadService } from '../service/service.download';
 import { SubscriptionService } from '../service/service.subscription';
 import { LibraryAccessor } from '../library/accessor.library';
-import { MangaAccessor } from '../library/accessor.manga';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
@@ -48,7 +47,7 @@ export class LibraryController extends ControllerAdapter {
   getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     return this.library
       .getManga(mangaId)
-      .then(this.handleAccessFail)
+      .then(this.handleMangaAccessFail)
       .then((manga) => manga.getDetail())
       .then((detail) => res.json(detail));
   }
@@ -57,7 +56,7 @@ export class LibraryController extends ControllerAdapter {
   deleteManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     return this.library
       .deleteManga(mangaId)
-      .then(this.handleAccessFail)
+      .then(this.handleMangaAccessFail)
       .then(() => this.subscriptionService.deleteSubscription(mangaId))
       .then(() => this.downloadService.deleteDownloadTask(mangaId))
       .then(() => res.json(mangaId));
@@ -71,8 +70,8 @@ export class LibraryController extends ControllerAdapter {
   ) {
     return this.library
       .getManga(mangaId)
-      .then(this.handleAccessFail)
-      .then((manga) => manga.updateMetadata(body))
+      .then(this.handleMangaAccessFail)
+      .then((manga) => manga.setMetadata(body))
       .then((manga) => manga.getDetail())
       .then((detail) => res.json(detail));
   }
@@ -87,8 +86,8 @@ export class LibraryController extends ControllerAdapter {
     if (req.file === undefined) throw new BadRequestError('Illegal argument: thumb file');
     return this.library
       .getManga(mangaId)
-      .then(this.handleAccessFail)
-      .then((manga) => manga.updateThumb(req.file.buffer))
+      .then(this.handleMangaAccessFail)
+      .then((manga) => manga.setThumb(req.file.buffer))
       .then((manga) => manga.getDetail())
       .then((detail) => res.json(detail));
   }
@@ -102,26 +101,21 @@ export class LibraryController extends ControllerAdapter {
   ) {
     return this.library
       .getManga(mangaId)
-      .then(this.handleAccessFail)
+      .then(this.handleMangaAccessFail)
       .then((manga) => manga.getChapter(collectionId, chapterId))
-      .then((result) => result.whenFail(this.handleMangaFail))
+      .then(this.handleChapterAccessFail)
       .then((chapter) => chapter.listImage())
       .then((content) => res.json(content));
   }
 
   /* handle failure */
-  private handleAccessFail<T>(v: T | undefined): T {
+  private handleMangaAccessFail<T>(v: T | undefined): T {
     if (v === undefined) throw new NotFoundError('Not found: manga');
     return v;
   }
 
-  private handleMangaFail(e: MangaAccessor.AccessFail): never {
-    if (e === MangaAccessor.AccessFail.IllegalCollectionId)
-      throw new BadRequestError('Illegal error: collection id');
-    else if (e === MangaAccessor.AccessFail.IllegalChapterId)
-      throw new BadRequestError('Illegal error: chapter id');
-    else if (e === MangaAccessor.AccessFail.ChapterNotFound)
-      throw new NotFoundError('Not found: chapter');
-    throw new Error();
+  private handleChapterAccessFail<T>(v: T | undefined): T {
+    if (v === undefined) throw new NotFoundError('Not found: chapter');
+    return v;
   }
 }

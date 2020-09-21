@@ -28,8 +28,7 @@ export class SubscriptionService {
       await this.downloadService.createDownloadTask(
         subscription.providerId,
         subscription.sourceManga,
-        subscription.id,
-        true
+        subscription.id
       );
     }
   }
@@ -52,8 +51,7 @@ export class SubscriptionService {
     const maybeFail = await this.downloadService.createDownloadTask(
       providerId,
       sourceManga,
-      targetManga,
-      true
+      targetManga
     );
     if (maybeFail.isFail()) return fail(maybeFail.extract());
 

@@ -53,7 +53,7 @@ export class App {
     this.providerManager = new ProviderManager();
 
     this.downloadService = new DownloadService(
-      this.database,
+      this.database.downloadDescRepository,
       this.libraryAccessor,
       this.providerManager
     );
@@ -64,7 +64,11 @@ export class App {
 
     /* controller */
     this.controllers = [
-      new LibraryController(this.libraryAccessor, this.downloadService, this.subscribeService),
+      new LibraryController(
+        this.libraryAccessor,
+        this.downloadService,
+        this.subscribeService
+      ),
       new ProviderController(this.providerManager),
       new DownloadController(this.downloadService),
       new SubscriptionController(this.subscribeService),

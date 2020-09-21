@@ -2,7 +2,6 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
-import { Result, ok, fail } from '../util/result';
 import { StringValidator } from '../util/validator/validator';
 
 import * as Entity from './entity';
@@ -13,7 +12,7 @@ export class MangaAccessor {
 
   private readonly dir: string;
 
-  constructor(libraryDir: string, private readonly id: string) {
+  constructor(libraryDir: string, readonly id: string) {
     this.dir = path.join(libraryDir, id);
   }
 
@@ -38,41 +37,7 @@ export class MangaAccessor {
     return mangaDetail;
   }
 
-  async setMangaDetail(detail: Entity.MangaDetail, thumb: Buffer | undefined): Promise<void> {
-    await this.updateMetadata(detail.metadata);
-    if (thumb !== undefined) await this.updateThumb(thumb);
-    await this.setCollections(detail.collections);
-  }
-
-  async createChapter(
-    collectionId: string,
-    chapterId: string
-  ): Promise<Result<ChapterAccessor, CreateFail>> {
-    if (!this.validateCollectionId(collectionId)) return fail(CreateFail.IllegalCollectionId);
-    if (!this.validateChapterId(chapterId)) return fail(CreateFail.IllegalChapterId);
-
-    const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (await fsu.isDirectoryExist(chapterDir)) return fail(CreateFail.ChapterAlreadyExist);
-
-    await fs.mkdir(chapterDir);
-    return ok(new ChapterAccessor(chapterDir));
-  }
-
-  async getChapter(
-    collectionId: string,
-    chapterId: string
-  ): Promise<Result<ChapterAccessor, AccessFail>> {
-    // TODO: better check
-    if (!this.validateCollectionId(collectionId)) return fail(AccessFail.IllegalCollectionId);
-    if (!this.validateChapterId(chapterId)) return fail(AccessFail.IllegalChapterId);
-
-    const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (!(await fsu.isDirectoryExist(chapterDir))) return fail(AccessFail.ChapterNotFound);
-
-    return ok(new ChapterAccessor(chapterDir));
-  }
-
-  private async getThumb(): Promise<string | undefined> {
+  private async getThumb() {
     const possibleThumbFileName = ['thumb.jpg', 'thumb.png', 'thumb.png'];
     for (const filename of possibleThumbFileName) {
       const filepath = path.join(this.dir, filename);
@@ -82,7 +47,7 @@ export class MangaAccessor {
     return undefined;
   }
 
-  async updateThumb(thumb: Buffer) {
+  async setThumb(thumb: Buffer) {
     const existThumbFilename = await this.getThumb();
     if (existThumbFilename != undefined) {
       const existThumbPath = path.join(this.dir, existThumbFilename);
@@ -99,7 +64,7 @@ export class MangaAccessor {
     return fs.stat(this.dir).then((stat) => stat.mtime.getTime());
   }
 
-  private async refreshUpdateTime(): Promise<void> {
+  private async setUpdateTime(): Promise<void> {
     return fs.stat(this.dir).then((stat) => fs.utimes(this.dir, stat.atime, Date.now()));
   }
 
@@ -121,7 +86,7 @@ export class MangaAccessor {
     });
   }
 
-  async updateMetadata(metadata: Entity.MetadataDetail) {
+  async setMetadata(metadata: Entity.MetadataDetail) {
     const matedataPath = path.join(this.dir, 'metadata.json');
     await fs.writeFile(matedataPath, JSON.stringify(metadata));
     return this;
@@ -171,42 +136,35 @@ export class MangaAccessor {
     }
   }
 
-  private async setCollections(collections: Entity.Collection[]): Promise<void> {
-    //TODO: better check
-    for (const collection of collections) {
-      const collectionDir = path.join(this.dir, collection.id);
-      if (!(await fsu.isDirectoryExist(collectionDir))) await fs.mkdir(collectionDir);
+  /* chapter */
+  async getChapter(collectionId: string, chapterId: string) {
+    if (!this.validateCollectionId(collectionId)) return undefined;
+    if (!this.validateChapterId(chapterId)) return undefined;
 
-      for (const chapter of collection.chapters) {
-        const chapterId = `${chapter.name} ${chapter.title}`;
-        const chapterDir = path.join(collectionDir, chapterId);
-        if (!(await fsu.isDirectoryExist(chapterDir))) await fs.mkdir(chapterDir);
-      }
-    }
+    const chapterDir = path.join(this.dir, collectionId, chapterId);
+    if (!(await fsu.isDirectoryExist(chapterDir))) return undefined;
+
+    return new ChapterAccessor(chapterDir);
+  }
+
+  async getOrCreateChapter(collectionId: string, chapterId: string) {
+    if (!this.validateCollectionId(collectionId)) return undefined;
+    if (!this.validateChapterId(chapterId)) return undefined;
+
+    const chapterDir = path.join(this.dir, collectionId, chapterId);
+    if (!(await fsu.isDirectoryExist(chapterDir))) await fs.mkdir(chapterDir);
+
+    const accessor = new ChapterAccessor(chapterDir);
+    await accessor.setUncompleted();
+    return accessor;
   }
 
   private validateCollectionId(collectionId: string) {
-    return collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId);
+    return (
+      collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId)
+    );
   }
   private validateChapterId(chapterId: string) {
     return chapterId.length === 0 || MangaAccessor.filenameValidator.validate(chapterId);
   }
 }
-
-/* fail */
-export namespace MangaAccessor {
-  export enum AccessFail {
-    IllegalCollectionId,
-    IllegalChapterId,
-    ChapterNotFound,
-  }
-
-  export enum CreateFail {
-    IllegalCollectionId,
-    IllegalChapterId,
-    ChapterAlreadyExist,
-  }
-}
-
-import AccessFail = MangaAccessor.AccessFail;
-import CreateFail = MangaAccessor.CreateFail;

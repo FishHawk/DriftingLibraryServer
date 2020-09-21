@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-export enum DownloadTaskStatus {
+export enum DownloadStatus {
   Waiting = 'waiting',
   Downloading = 'downloading',
   Paused = 'paused',
@@ -18,7 +18,7 @@ export class DownloadDesc {
   @Column()
   sourceManga!: string;
 
-  @Column({ default: DownloadTaskStatus.Waiting })
+  @Column({ default: DownloadStatus.Waiting })
   status!: string;
 
   @Column()

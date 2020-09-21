@@ -1,6 +1,4 @@
 import { logger } from '../logger';
-import { DatabaseAdapter } from '../database/adapter';
-import { DownloadDesc, DownloadTaskStatus } from '../database/entity/download_task';
 import { ChapterAccessor } from '../library/accessor.chapter';
 import { MangaAccessor } from '../library/accessor.manga';
 import { ProviderAdapter } from '../provider/providers/adapter';
@@ -14,6 +12,74 @@ export class AsyncTaskCancelError extends Error {
   }
 }
 
+export interface DownloadTask {
+  mangaId: string;
+  promise: Promise<boolean>;
+  cancel: (id: string) => void;
+}
+
+export function download(
+  provider: ProviderAdapter,
+  accessor: MangaAccessor,
+  mangaId: string
+): DownloadTask {
+  let isCancelled = false;
+
+  const cancel = (id: string) => {
+    if (mangaId === id) isCancelled = true;
+  };
+  const cancelIfNeed = () => {
+    if (isCancelled) throw new AsyncTaskCancelError();
+  };
+
+  return {
+    mangaId,
+    promise: downloadManga(provider, accessor, mangaId, cancelIfNeed),
+    cancel,
+  };
+}
+
+async function downloadManga(
+  provider: ProviderAdapter,
+  accessor: MangaAccessor,
+  mangaId: string,
+  cancelIfNeed: () => void
+) {
+  async function openChapter(collectionId: string, chapterId: string) {
+    cancelIfNeed();
+    const chapterAccessor = await accessor.getOrCreateChapter(collectionId, chapterId);
+    if (chapterAccessor === undefined) throw new Error('uncompatible chapter');
+    return chapterAccessor;
+  }
+
+  logger.info(`Download: ${provider.id}/${mangaId} -> ${accessor.id}`);
+
+  const detail = await downloadMangaDetail(provider, accessor, mangaId, cancelIfNeed);
+
+  let hasChapterError = false;
+  for (const collection of detail.collections) {
+    for (const chapter of collection.chapters) {
+      const collectionId = collection.id;
+      const chapterId = `${chapter.name} ${chapter.title}`;
+
+      const chapterAccessor = await openChapter(collectionId, chapterId);
+      if (!(await chapterAccessor.isUncompleted())) continue;
+
+      const hasImageError = await downloadChapter(
+        provider,
+        chapterAccessor,
+        detail.id,
+        chapter.id,
+        cancelIfNeed
+      );
+
+      if (hasImageError) hasChapterError = true;
+      else await chapterAccessor.setUncompleted();
+    }
+  }
+  return !hasChapterError;
+}
+
 async function downloadMangaDetail(
   provider: ProviderAdapter,
   accessor: MangaAccessor,
@@ -23,12 +89,12 @@ async function downloadMangaDetail(
   logger.info(`Download manga detail: ${mangaId}`);
   const detail = await provider.requestMangaDetail(mangaId);
   cancelIfNeed();
-  await accessor.updateMetadata(detail.metadata);
+  await accessor.setMetadata(detail.metadata);
 
   if (detail.thumb !== undefined) {
     const thumb = await provider.requestImage(detail.thumb);
     cancelIfNeed();
-    await accessor.updateThumb(thumb);
+    await accessor.setThumb(thumb);
   }
 
   return detail;
@@ -64,93 +130,4 @@ async function downloadChapter(
       });
   }
   return hasImageError;
-}
-
-export class DownloadTask {
-  private isCancelled: boolean = false;
-
-  constructor(
-    private readonly db: DatabaseAdapter,
-    private readonly mangaAccessor: MangaAccessor,
-    private readonly provider: ProviderAdapter,
-    private readonly desc: DownloadDesc
-  ) {}
-
-  async run() {
-    const detail = await downloadMangaDetail(
-      this.provider,
-      this.mangaAccessor,
-      this.desc.sourceManga,
-      this.cancelIfNeed
-    );
-
-    let hasChapterError = false;
-
-    for (const collection of detail.collections) {
-      for (const chapter of collection.chapters) {
-        if (await this.isChapterCompleted(chapter.id)) continue;
-
-        const collectionId = collection.id;
-        const chapterId = `${chapter.name} ${chapter.title}`;
-        const chapterAccessor = await this.createChapter(collectionId, chapterId);
-
-        const hasImageError = await downloadChapter(
-          this.provider,
-          chapterAccessor,
-          detail.id,
-          chapter.id,
-          this.cancelIfNeed
-        );
-
-        if (hasImageError) hasChapterError = true;
-        else await this.markChapterCompleted(chapter.id);
-      }
-    }
-
-    if (hasChapterError) {
-      this.desc.status = DownloadTaskStatus.Error;
-      await this.db.downloadTaskRepository.save(this.desc);
-    } else {
-      if (!this.desc.isCreatedBySubscription)
-        await this.db.downloadChapterRepository.delete({ task: this.desc.id });
-      await this.db.downloadTaskRepository.remove(this.desc);
-    }
-  }
-
-  cancel(mangaId: string): void {
-    if (this.desc.id === mangaId) this.isCancelled = true;
-  }
-
-  private isChapterCompleted(chapterId: string) {
-    this.cancelIfNeed();
-    return this.db.downloadChapterRepository
-      .findOne({
-        where: {
-          task: this.desc.id,
-          chapter: chapterId,
-        },
-      })
-      .then((task) => task !== undefined);
-  }
-
-  private markChapterCompleted(chapterId: string) {
-    this.cancelIfNeed();
-    return this.db.downloadChapterRepository.insert({
-      task: this.desc.id,
-      chapter: chapterId,
-    });
-  }
-
-  private createChapter(collectionId: string, chapterId: string) {
-    this.cancelIfNeed();
-    return this.mangaAccessor.createChapter(collectionId, chapterId).then((result) =>
-      result.whenFail(() => {
-        throw Error('Chapter not exist');
-      })
-    );
-  }
-
-  private cancelIfNeed() {
-    if (this.isCancelled) throw new AsyncTaskCancelError();
-  }
 }
