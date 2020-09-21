@@ -10,7 +10,8 @@ describe('Util test: async pool', function () {
       return new Promise((resolve) => setTimeout(() => resolve(i), i));
     }
 
-    for await (const x of pool(2, [10, 50, 30, 20], timeout)) {
+    const tasks = [10, 50, 30, 20].map((i) => () => timeout(i));
+    for await (const x of pool(tasks, 2)) {
       if (x.isValue) {
         valueList.push(x.value);
         indexList.push(x.index);
@@ -29,7 +30,8 @@ describe('Util test: async pool', function () {
       return new Promise((resolve) => setTimeout(() => resolve(i), i));
     }
 
-    for await (const x of pool(4, [10, 50, 30, 20], timeout)) {
+    const tasks = [10, 50, 30, 20].map((i) => () => timeout(i));
+    for await (const x of pool(tasks, 4)) {
       if (x.isValue) {
         valueList.push(x.value);
         indexList.push(x.index);
@@ -48,7 +50,8 @@ describe('Util test: async pool', function () {
       return new Promise((_resolve, reject) => setTimeout(() => reject(i), i));
     }
 
-    for await (const x of pool(4, [10, 50, 30, 20], timeout)) {
+    const tasks = [10, 50, 30, 20].map((i) => () => timeout(i));
+    for await (const x of pool(tasks, 4)) {
       if (x.isValue == false) {
         errorList.push(x.error as number);
         indexList.push(x.index);

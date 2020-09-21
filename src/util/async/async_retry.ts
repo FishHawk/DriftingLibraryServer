@@ -1,7 +1,7 @@
-export async function retry<T>(fn: () => Promise<T>, retries: number): Promise<T> {
+export async function retry<T>(task: () => Promise<T>, retries: number): Promise<T> {
   return new Promise((resolve, rejects) => {
     function attampt() {
-      fn().then(resolve).catch(onError);
+      task().then(resolve).catch(onError);
     }
     function onError(e: any) {
       retries--;
