@@ -3,12 +3,9 @@ import { logger } from '../logger';
 import { DatabaseAdapter } from '../database/adapter';
 import { DownloadDesc, DownloadTaskStatus } from '../database/entity/download_task';
 
-import { ProviderAdapter } from '../provider/providers/adapter';
 import { ProviderManager } from '../provider/manager';
 
 import { LibraryAccessor } from '../library/accessor.library';
-import { MangaAccessor } from '../library/accessor.manga';
-import { ChapterAccessor } from '../library/accessor.chapter';
 
 import { fail, Result, ok } from '../util/result';
 
@@ -29,8 +26,7 @@ export class DownloadService {
   ) {}
 
   private isRunning = false;
-  private isCancelled = false;
-  private currentTargetManga: string | undefined = undefined;
+  private currentDownloadTask: DownloadTask | undefined = undefined;
 
   private start(): void {
     if (this.isRunning) return;
@@ -38,144 +34,48 @@ export class DownloadService {
     this.downloadLoop().then(() => (this.isRunning = false));
   }
 
-  private cancelTask(manga: string): void {
-    if (this.currentTargetManga === manga) this.isCancelled = true;
-  }
-
-  private cancelIfNeed() {
-    if (this.isCancelled) throw new AsyncTaskCancelError();
-  }
-
   private async downloadLoop() {
     while (true) {
       //TODO: order by update timestamp
-      const task = await this.db.downloadTaskRepository.findOne({
+      const desc = await this.db.downloadTaskRepository.findOne({
         where: { status: DownloadTaskStatus.Waiting },
       });
-      if (task === undefined) break;
+      if (desc === undefined) break;
 
       try {
-        logger.info(`Download: ${task.providerId}/${task.sourceManga} -> ${task.id}`);
-        this.currentTargetManga = task.id;
+        logger.info(`Download: ${desc.providerId}/${desc.sourceManga} -> ${desc.id}`);
 
-        task.status = DownloadTaskStatus.Downloading;
-        await this.db.downloadTaskRepository.save(task);
+        desc.status = DownloadTaskStatus.Downloading;
+        await this.db.downloadTaskRepository.save(desc);
 
-        await this.downloadManga(task);
+        const provider = this.providerManager.getProvider(desc.providerId);
+        if (provider === undefined) throw Error('Provider not exist');
+
+        const mangaAccessor = await this.library.getManga(desc.id).then((result) =>
+          result.whenFail((e) => {
+            throw Error('Manga not exist');
+          })
+        );
+
+        this.currentDownloadTask = new DownloadTask(
+          this.db,
+          mangaAccessor,
+          provider,
+          desc
+        );
+        await this.currentDownloadTask.run();
       } catch (error) {
         if (error instanceof AsyncTaskCancelError) {
           logger.info(`Download is canceled`);
         } else {
           logger.error(`Download error: ${error.stack}`);
-          task.status = DownloadTaskStatus.Error;
-          await this.db.downloadTaskRepository.save(task);
+          desc.status = DownloadTaskStatus.Error;
+          await this.db.downloadTaskRepository.save(desc);
         }
       } finally {
-        this.isCancelled = false;
-        this.currentTargetManga = undefined;
+        this.currentDownloadTask = undefined;
       }
     }
-  }
-
-  private async downloadManga(task: DownloadDesc) {
-    await this.library.createManga(task.id);
-
-    const provider = this.providerManager.getProvider(task.providerId);
-    if (provider === undefined) throw Error('Provider not exist');
-
-    const mangaAccessor = await this.library.getManga(task.id).then((result) =>
-      result.whenFail((e) => {
-        throw Error('Manga not exist');
-      })
-    );
-
-    const detail = await this.downloadMangaDetail(provider, mangaAccessor, task.sourceManga);
-
-    let hasChapterError = false;
-    for (const collection of detail.collections) {
-      for (const chapter of collection.chapters) {
-        const chapterTask = await this.db.downloadChapterRepository.findOne({
-          where: {
-            task: task.id,
-            chapter: chapter.id,
-          },
-        });
-
-        if (chapterTask !== undefined) continue;
-        const chapterId = `${chapter.name} ${chapter.title}`;
-        const chapterAccessor = await mangaAccessor
-          .getChapter(collection.id, chapterId)
-          .then((result) =>
-            result.whenFail((e) => {
-              throw Error('Chapter not exist');
-            })
-          );
-        const isChapterError = await this.downloadChapter(
-          provider,
-          chapterAccessor!,
-          detail.id,
-          chapter.id
-        );
-
-        if (isChapterError) hasChapterError = true;
-        else {
-          await this.db.downloadChapterRepository.insert({
-            task: task.id,
-            chapter: chapter.id,
-          });
-        }
-      }
-    }
-
-    if (hasChapterError) {
-      task.status = DownloadTaskStatus.Error;
-      await this.db.downloadTaskRepository.save(task);
-    } else {
-      if (!task.isCreatedBySubscription)
-        await this.db.downloadChapterRepository.delete({ task: task.id });
-      await this.db.downloadTaskRepository.remove(task);
-    }
-  }
-
-  private async downloadMangaDetail(
-    provider: ProviderAdapter,
-    accessor: MangaAccessor,
-    mangaId: string
-  ) {
-    const detail = await provider.requestMangaDetail(mangaId);
-    let thumb = undefined;
-    if (detail.thumb !== undefined) thumb = await provider.requestImage(detail.thumb);
-    await accessor.setMangaDetail(detail, thumb);
-    this.cancelIfNeed();
-    return detail;
-  }
-
-  private async downloadChapter(
-    provider: ProviderAdapter,
-    accessor: ChapterAccessor,
-    mangaId: string,
-    chapterId: string
-  ) {
-    logger.info(`Download chapter: chapter:${chapterId}`);
-    const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
-    this.cancelIfNeed();
-
-    let hasImageError = false;
-    for (const [i, url] of imageUrls.entries()) {
-      const imageFilename = `${i}.jpg`;
-      if (await accessor.isImageExist(imageFilename)) continue;
-
-      try {
-        const data = await provider.requestImage(url);
-        await accessor.writeImage(imageFilename, data);
-      } catch (error) {
-        logger.error(`Image error at: ${provider.name}:${chapterId}:${i}`);
-        logger.error(`Image error: ${error.stack}`);
-        hasImageError = true;
-      }
-      this.cancelIfNeed();
-    }
-    return hasImageError;
   }
 
   /* api */
@@ -216,8 +116,10 @@ export class DownloadService {
       return fail(CreateFail.UnsupportedProvider);
 
     const result = (await this.library.createManga(targetManga)).whenFail((f) => {
-      if (f === LibraryAccessor.CreateFail.IllegalMangaId) return CreateFail.IlligalTargetMangaId;
-      if (f === LibraryAccessor.CreateFail.MangaAlreadyExist) return CreateFail.MangaAlreadyExist;
+      if (f === LibraryAccessor.CreateFail.IllegalMangaId)
+        return CreateFail.IlligalTargetMangaId;
+      if (f === LibraryAccessor.CreateFail.MangaAlreadyExist)
+        return CreateFail.MangaAlreadyExist;
     });
     if (result !== undefined) return fail(result);
 
@@ -236,8 +138,9 @@ export class DownloadService {
     const task = await this.db.downloadTaskRepository.findOne(id);
     if (task === undefined) return fail(AccessFail.TaskNotFound);
 
-    this.cancelTask(id);
-    if (!task.isCreatedBySubscription) await this.db.downloadChapterRepository.delete({ task: id });
+    this.currentDownloadTask?.cancel(id);
+    if (!task.isCreatedBySubscription)
+      await this.db.downloadChapterRepository.delete({ task: id });
     await this.db.downloadTaskRepository.remove(task);
     return ok(task);
   }
@@ -246,7 +149,10 @@ export class DownloadService {
     const task = await this.db.downloadTaskRepository.findOne(id);
     if (task === undefined) return fail(AccessFail.TaskNotFound);
 
-    if (task.status === DownloadTaskStatus.Paused || task.status === DownloadTaskStatus.Error) {
+    if (
+      task.status === DownloadTaskStatus.Paused ||
+      task.status === DownloadTaskStatus.Error
+    ) {
       task.status = DownloadTaskStatus.Waiting;
       await this.db.downloadTaskRepository.save(task);
       this.start();
@@ -262,7 +168,7 @@ export class DownloadService {
       task.status === DownloadTaskStatus.Downloading ||
       task.status === DownloadTaskStatus.Waiting
     ) {
-      this.cancelTask(id);
+      this.currentDownloadTask?.cancel(id);
       task.status = DownloadTaskStatus.Paused;
       await this.db.downloadTaskRepository.save(task);
     }
@@ -285,3 +191,4 @@ export namespace DownloadService {
 }
 import CreateFail = DownloadService.CreateFail;
 import AccessFail = DownloadService.AccessFail;
+import { DownloadTask } from './download_task';
