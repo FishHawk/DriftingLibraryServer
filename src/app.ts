@@ -42,12 +42,12 @@ export class App {
   }
 
   private async initialize() {
-    // Middlewares
+    /* middleware */
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(logMiddleware);
 
-    // Components
+    /* component */
     this.database = await createSqliteDatabase(this.libraryDir);
     this.libraryAccessor = new LibraryAccessor(this.libraryDir);
     this.providerManager = new ProviderManager();
@@ -62,7 +62,7 @@ export class App {
       this.downloadService
     );
 
-    // Controllers
+    /* controller */
     this.controllers = [
       new LibraryController(this.libraryAccessor, this.downloadService, this.subscribeService),
       new ProviderController(this.providerManager),
@@ -74,7 +74,7 @@ export class App {
       this.app.use('/', controller.router);
     });
 
-    // Error handle
+    /* error handle middleware */
     this.app.use(errorHandleMiddleware);
     return this;
   }
