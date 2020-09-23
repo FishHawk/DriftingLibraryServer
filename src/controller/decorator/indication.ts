@@ -16,28 +16,36 @@ function pushIndication<T>(target: Object, key: any, ind: T) {
 }
 
 /* action indication */
-type ActionType = 'all' | 'get' | 'post' | 'put' | 'delete' | 'patch' | 'options' | 'head';
-interface ActionIndication {
+type ActionType =
+  | 'all'
+  | 'get'
+  | 'post'
+  | 'put'
+  | 'delete'
+  | 'patch'
+  | 'options'
+  | 'head';
+interface ActionInd {
   readonly method: string | symbol;
   readonly path: string;
   readonly type: ActionType;
 }
 
 const IND_KEY_ACTION = 'action';
-export function pushActionIndication(target: Object, ind: ActionIndication) {
+export function pushActionIndication(target: Object, ind: ActionInd) {
   pushIndication(target, IND_KEY_ACTION, ind);
 }
 
 /* middleware indication */
 type MiddlewareType = 'before' | 'after';
-interface MiddlewareIndication {
+interface MiddlewareInd {
   readonly method: string | symbol;
   readonly type: MiddlewareType;
   readonly middleware: RequestHandler;
 }
 
 const IND_KEY_MIDDLEWARE = 'middleware';
-export function pushMiddlewareIndication(target: Object, ind: MiddlewareIndication) {
+export function pushMiddlewareIndication(target: Object, ind: MiddlewareInd) {
   pushIndication(target, IND_KEY_MIDDLEWARE, ind);
 }
 
@@ -51,7 +59,7 @@ type ParameterType =
   | 'raw_param'
   | 'raw_query'
   | 'raw_body';
-interface ParameterIndication {
+interface ParameterInd {
   readonly method: string | symbol;
   readonly type: ParameterType;
   readonly index: number;
@@ -59,24 +67,30 @@ interface ParameterIndication {
 }
 
 const IND_KEY_PARAMETER = 'parameter';
-export function pushParameterIndication(target: Object, ind: ParameterIndication) {
+export function pushParameterIndication(target: Object, ind: ParameterInd) {
   pushIndication(target, IND_KEY_PARAMETER, ind);
 }
 
 /* merged indication */
-type MergedIndication = ActionIndication & {
+export type MergedInd = ActionInd & {
   useBefore: RequestHandler[];
   useAfter: RequestHandler[];
-  params: ParameterIndication[];
+  params: ParameterInd[];
 };
 
-export function getMergedIndications(target: Object): MergedIndication[] {
-  const actionIndList: ActionIndication[] = getIndications(target, IND_KEY_ACTION);
-  const middlewareIndList: MiddlewareIndication[] = getIndications(target, IND_KEY_MIDDLEWARE);
-  const parameterIndList: ParameterIndication[] = getIndications(target, IND_KEY_PARAMETER);
+export function getMergedIndications(target: Object): MergedInd[] {
+  const actionIndList: ActionInd[] = getIndications(target, IND_KEY_ACTION);
+  const middlewareIndList: MiddlewareInd[] = getIndications(
+    target,
+    IND_KEY_MIDDLEWARE
+  );
+  const parameterIndList: ParameterInd[] = getIndications(
+    target,
+    IND_KEY_PARAMETER
+  );
 
   return actionIndList.map((indA) => {
-    const ind: MergedIndication = {
+    const ind: MergedInd = {
       ...indA,
       useBefore: middlewareIndList
         .filter((indM) => indM.method === indA.method && indM.type === 'before')
