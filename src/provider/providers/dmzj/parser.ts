@@ -6,7 +6,7 @@ function parseMangaStatus(json: any): Entity.Status {
   else return Entity.Status.Unknown;
 }
 
-export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
+function parseMangaOutlines(json: any): Entity.MangaOutline[] {
   return json.map((it: any) => {
     const metadata: Entity.MetadataOutline = {
       title: it.title,
@@ -23,7 +23,7 @@ export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
   });
 }
 
-export function parseMangaDetail(json: any): Entity.MangaDetail {
+function parseMangaDetail(json: any): Entity.MangaDetail {
   // parse metadata
   const authors = json.authors.map((it: any) => it.tag_name);
   const status = parseMangaStatus(json.status[0].tag_name);
@@ -68,6 +68,12 @@ export function parseMangaDetail(json: any): Entity.MangaDetail {
   return detail;
 }
 
-export function parseChapterContent(json: any): string[] {
+function parseChapterContent(json: any): string[] {
   return json.page_url;
 }
+
+export default {
+  parseMangaOutlines,
+  parseMangaDetail,
+  parseChapterContent,
+};

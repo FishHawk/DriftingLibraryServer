@@ -1,70 +1,96 @@
-import axios from 'axios';
+import { Option, ProviderAdapter } from '../adapter';
 
-import * as Entity from '../../../library/entity';
-import { ProviderAdapter } from '../adapter';
-import { parseMangaOutlines, parseMangaDetail, parseChapterContent } from './parse';
+import Api from './api';
+import Constant from './constant';
+import Parser from './parser';
 
 export default class Provider extends ProviderAdapter {
-  readonly id: string = 'dmzj';
-  readonly name: string = '动漫之家';
-  readonly lang: string = 'zh';
-  readonly isLatestSupport: boolean = true;
+  readonly id = 'dmzj';
+  readonly name = '动漫之家';
+  readonly lang = 'zh';
 
-  private readonly baseUrl = 'http://v3api.dmzj.com';
-  private readonly instance = axios.create({
-    baseURL: this.baseUrl,
-    timeout: 5000,
-    headers: {
-      Referer: 'http://www.dmzj.com/',
-      'User-Agent':
-        'Mozilla/5.0 (X11; Linux x86_64) ' +
-        'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-        'Chrome/56.0.2924.87 ' +
-        'Safari/537.36 ' +
-        'Tachiyomi/1.0',
+  readonly optionModels = {
+    popular: {
+      type: Constant.rankType.map((x) => x.name),
+      range: Constant.rankRange.map((x) => x.name),
     },
-  });
+    latest: {
+      type: Constant.latestType.map((x) => x.name),
+    },
+    category: {
+      genre: Constant.classifyGenre.map((x) => x.name),
+      reader: Constant.classifyReader.map((x) => x.name),
+      status: Constant.classifyStatus.map((x) => x.name),
+      area: Constant.classifyArea.map((x) => x.name),
+      sort: Constant.classifySort.map((x) => x.name),
+    },
+  };
 
-  search(page: number, keywords: string): Promise<Entity.MangaOutline[]> {
-    keywords = encodeURI(keywords);
-    return this.instance
-      .get(`/search/show/0/${keywords}/${page - 1}.json`)
-      .then((res) => parseMangaOutlines(res.data));
+  readonly api = new Api();
+
+  async search(page: number, keywords: string) {
+    return this.api
+      .search(page - 1, keywords)
+      .then((res) => Parser.parseMangaOutlines(res.data));
   }
 
-  requestPopular(page: number): Promise<Entity.MangaOutline[]> {
-    return this.instance
-      .get(`http://v2.api.dmzj.com/classify/0/0/${page - 1}.json`)
-      .then((res) => parseMangaOutlines(res.data));
+  async requestPopular(page: number, option: Option) {
+    if (!Provider.checkOptionIntegrity(option, this.optionModels.popular))
+      return undefined;
+
+    const type = Constant.rankType[option.type].value;
+    const range = Constant.rankRange[option.range].value;
+    return this.api
+      .getRank(page - 1, type, range)
+      .then((res) => Parser.parseMangaOutlines(res.data));
   }
 
-  requestLatest(page: number): Promise<Entity.MangaOutline[]> {
-    return this.instance
-      .get(`/latest/0/${page - 1}.json`)
-      .then((res) => parseMangaOutlines(res.data));
+  async requestLatest(page: number, option: Option) {
+    if (!Provider.checkOptionIntegrity(option, this.optionModels.latest))
+      return undefined;
+
+    const type = Constant.latestType[option.type].value;
+    return this.api
+      .getLatest(page - 1, type)
+      .then((res) => Parser.parseMangaOutlines(res.data));
   }
 
-  requestMangaDetail(mangaId: string): Promise<Entity.MangaDetail> {
-    return this.instance
-      .get(`/comic/comic_${mangaId}.json?version=2.7.019`)
-      .then((res) => parseMangaDetail(res.data))
+  async requestCategory(page: number, option: Option) {
+    if (!Provider.checkOptionIntegrity(option, this.optionModels.category))
+      return undefined;
+
+    const genre = Constant.classifyGenre[option.genre].value;
+    const reader = Constant.classifyReader[option.reader].value;
+    const status = Constant.classifyStatus[option.status].value;
+    const area = Constant.classifyArea[option.area].value;
+    const sort = Constant.classifySort[option.sort].value;
+    return this.api
+      .getClassify(page - 1, genre, reader, status, area, sort)
+      .then((res) => Parser.parseMangaOutlines(res.data));
+  }
+
+  async requestMangaDetail(mangaId: string) {
+    return this.api
+      .getComic(mangaId)
+      .then((res) => Parser.parseMangaDetail(res.data))
       .then((detail) => {
         detail.providerId = this.id;
         return detail;
       });
   }
 
-  requestChapterContent(mangaId: string, chapterId: string): Promise<string[]> {
-    return this.instance
-      .get(`/chapter/${mangaId}/${chapterId}.json`)
-      .then((res) => parseChapterContent(res.data));
+  async requestChapterContent(
+    mangaId: string,
+    chapterId: string
+  ): Promise<string[]> {
+    return this.api
+      .getChapter(mangaId, chapterId)
+      .then((res) => Parser.parseChapterContent(res.data));
   }
 
-  requestImage(url: string): Promise<Buffer> {
-    return this.instance({
-      method: 'get',
-      url: encodeURI(url),
-      responseType: 'arraybuffer',
-    }).then((res) => res.data);
+  async requestImage(url: string): Promise<Buffer> {
+    return this.api.instance
+      .get(encodeURI(url), { responseType: 'arraybuffer' })
+      .then((res) => res.data);
   }
 }

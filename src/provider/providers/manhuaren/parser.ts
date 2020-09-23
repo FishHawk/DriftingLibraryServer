@@ -8,21 +8,9 @@ function parseStatus(status: any): Entity.Status {
   else return Entity.Status.Unknown;
 }
 
-export function parseMangaOutlines(json: any): Entity.MangaOutline[] {
-  return json.map((it: any) => {
-    const metadata: Entity.MetadataOutline = {
-      title: it.mangaName,
-      authors: [it.mangaAuthor],
-      status: parseStatus(it.mangaIsOver),
-    };
-    const outline: Entity.MangaOutline = {
-      id: it.mangaId,
-      thumb: it.mangaCoverimageUrl,
-      updateTime: undefined,
-      metadata: metadata,
-    };
-    return outline;
-  });
+function parseUpdateTime(time: any): number | undefined {
+  if (time === undefined) return undefined;
+  return moment(time).valueOf();
 }
 
 function parseChapter(json: any): Entity.Chapter {
@@ -35,7 +23,24 @@ function parseChapter(json: any): Entity.Chapter {
   return chapter;
 }
 
-export function parseMangaDetail(json: any): Entity.MangaDetail {
+function parseMangaOutlines(json: any): Entity.MangaOutline[] {
+  return json.map((it: any) => {
+    const metadata: Entity.MetadataOutline = {
+      title: it.mangaName,
+      authors: it.mangaAuthor.split(','),
+      status: parseStatus(it.mangaIsOver),
+    };
+    const outline: Entity.MangaOutline = {
+      id: it.mangaId,
+      thumb: it.mangaCoverimageUrl,
+      updateTime: parseUpdateTime(it.mangaNewestTime),
+      metadata: metadata,
+    };
+    return outline;
+  });
+}
+
+function parseMangaDetail(json: any): Entity.MangaDetail {
   let thumb = json.mangaCoverimageUrl;
   if (
     thumb === undefined ||
@@ -47,7 +52,7 @@ export function parseMangaDetail(json: any): Entity.MangaDetail {
 
   // parse tag
   const tag: Entity.Tag = {
-    key: 'genre',
+    key: '',
     value: json.mangaTheme.split(' '),
   };
 
@@ -78,7 +83,7 @@ export function parseMangaDetail(json: any): Entity.MangaDetail {
   const detail: Entity.MangaDetail = {
     id: json.mangaId.toString(),
     thumb: thumb,
-    updateTime: moment(json.mangaNewestTime).valueOf(),
+    updateTime: parseUpdateTime(json.mangaNewestTime),
     metadata: metadata,
     collections: collections,
   };
@@ -86,8 +91,14 @@ export function parseMangaDetail(json: any): Entity.MangaDetail {
   return detail;
 }
 
-export function parseChapterContent(json: any): string[] {
+function parseChapterContent(json: any): string[] {
   const host = json.hostList[0];
   const query = json.query;
   return json.mangaSectionImages.map((it: any) => `${host}${it}${query}`);
 }
+
+export default {
+  parseMangaOutlines,
+  parseMangaDetail,
+  parseChapterContent,
+};

@@ -26,7 +26,6 @@ export class DownloadService {
 
   private async downloadLoop() {
     while (true) {
-      //TODO: order by update timestamp
       /* fetch next download desc */
       const desc = await this.repository.findOne({
         where: { status: DownloadStatus.Waiting },

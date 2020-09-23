@@ -8,8 +8,8 @@ export interface MetadataOutline {
 
 export interface MangaOutline {
   id: string;
-  thumb: string | undefined;
-  updateTime: number | undefined;
+  thumb?: string;
+  updateTime?: number;
 
   metadata: MetadataOutline;
 }

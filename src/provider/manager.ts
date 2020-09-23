@@ -1,4 +1,8 @@
-import { ProviderAdapter, ProviderInfo } from './providers/adapter';
+import {
+  ProviderAdapter,
+  ProviderDetail,
+  ProviderInfo,
+} from './providers/adapter';
 import ProviderBilibili from './providers/bilibili';
 import ProviderDmzj from './providers/dmzj';
 import ProviderManhuaren from './providers/manhuaren';
@@ -20,7 +24,7 @@ export class ProviderManager {
     return id in this.providers ? this.providers[id] : undefined;
   }
 
-  getProviderInfoList(): ProviderInfo[] {
-    return Object.values(this.providers).map((p) => p.getInfo());
+  getProviderList() {
+    return Object.values(this.providers);
   }
 }
