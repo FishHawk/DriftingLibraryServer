@@ -10,11 +10,12 @@ import { Get } from './decorator/action';
 import { Res, Param, Query, RawQuery } from './decorator/param';
 
 export class ProviderController extends ControllerAdapter {
+  protected readonly prefix = '/provider';
   constructor(private readonly providerManager: ProviderManager) {
     super();
   }
 
-  @Get('/providers')
+  @Get('/list')
   getProviders(@Res() res: Response) {
     const providers = this.providerManager
       .getProviderList()
@@ -22,7 +23,7 @@ export class ProviderController extends ControllerAdapter {
     return res.json(providers);
   }
 
-  @Get('/provider/:providerId/detail')
+  @Get('/item/:providerId/detail')
   getProviderDetail(
     @Res() res: Response,
     @Param('providerId') providerId: string
@@ -31,19 +32,17 @@ export class ProviderController extends ControllerAdapter {
     return res.json(detail);
   }
 
-  @Get('/provider/:providerId/search')
+  @Get('/item/:providerId/search')
   search(
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Query('keywords') keywords: string,
     @Query('page') page: number
   ) {
-    return this.getProvider(providerId)
-      .search(page, keywords)
-      .then((outlines) => res.json(outlines));
+    return this.getProvider(providerId).search(page, keywords).then(res.json);
   }
 
-  @Get('/provider/:providerId/popular')
+  @Get('/item/:providerId/popular')
   getPopular(
     @Res() res: Response,
     @Param('providerId') providerId: string,
@@ -56,7 +55,7 @@ export class ProviderController extends ControllerAdapter {
       .then(res.json);
   }
 
-  @Get('/provider/:providerId/latest')
+  @Get('/item/:providerId/latest')
   getLatest(
     @Res() res: Response,
     @Param('providerId') providerId: string,
@@ -69,7 +68,7 @@ export class ProviderController extends ControllerAdapter {
       .then(res.json);
   }
 
-  @Get('/provider/:providerId/category')
+  @Get('/item/:providerId/category')
   getCategory(
     @Res() res: Response,
     @Param('providerId') providerId: string,
@@ -82,7 +81,7 @@ export class ProviderController extends ControllerAdapter {
       .then(res.json);
   }
 
-  @Get('/provider/:providerId/manga/:mangaId')
+  @Get('/item/:providerId/manga/:mangaId')
   getManga(
     @Res() res: Response,
     @Param('providerId') providerId: string,
@@ -93,7 +92,7 @@ export class ProviderController extends ControllerAdapter {
       .then(res.json);
   }
 
-  @Get('/provider/:providerId/chapter/:mangaId/:chapterId')
+  @Get('/item/:providerId/chapter/:mangaId/:chapterId')
   getChapter(
     @Res() res: Response,
     @Param('providerId') providerId: string,
@@ -105,7 +104,7 @@ export class ProviderController extends ControllerAdapter {
       .then(res.json);
   }
 
-  @Get('/provider/:providerId/image/:url')
+  @Get('/item/:providerId/image/:url')
   getImage(
     @Res() res: Response,
     @Param('providerId') providerId: string,

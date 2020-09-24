@@ -10,32 +10,33 @@ import { Res, Body, Param } from './decorator/param';
 import { DownloadDesc } from '../database/entity';
 
 export class DownloadController extends ControllerAdapter {
+  protected readonly prefix = '/download';
   constructor(private readonly downloadService: DownloadService) {
     super();
   }
 
-  @Get('/downloads')
+  @Get('/list')
   getAllDownloadTask(@Res() res: Response) {
-    return this.downloadService.getAllDownloadTask().then((tasks) => res.json(tasks));
+    return this.downloadService.getAllDownloadTask().then(res.json);
   }
 
-  @Patch('/downloads/start')
+  @Patch('/list/start')
   async startAllDownloadTask(@Res() res: Response) {
     return this.downloadService
       .startAllDownloadTask()
       .then(this.downloadService.getAllDownloadTask)
-      .then((tasks) => res.json(tasks));
+      .then(res.json);
   }
 
-  @Patch('/downloads/pause')
+  @Patch('/list/pause')
   pauseAllDownloadTask(@Res() res: Response) {
     return this.downloadService
       .pauseAllDownloadTask()
       .then(this.downloadService.getAllDownloadTask)
-      .then((tasks) => res.json(tasks));
+      .then(res.json);
   }
 
-  @Post('/download')
+  @Post('/item')
   createDownloadTask(
     @Res() res: Response,
     @Body('providerId') providerId: string,
@@ -45,31 +46,31 @@ export class DownloadController extends ControllerAdapter {
     return this.downloadService
       .createDownloadTask(providerId, sourceManga, targetManga)
       .then((result) => result.whenFail(this.handleCreateFail))
-      .then((task) => res.json(task));
+      .then(res.json);
   }
 
-  @Delete('/download/:id')
+  @Delete('/item/:id')
   deleteDownloadTask(@Res() res: Response, @Param('id') id: string) {
     return this.downloadService
       .deleteDownloadTask(id)
       .then(this.handleAccessFail)
-      .then((task) => res.json(task));
+      .then(res.json);
   }
 
-  @Patch('/download/:id/start')
+  @Patch('/item/:id/start')
   startDownloadTask(@Res() res: Response, @Param('id') id: string) {
     return this.downloadService
       .startDownloadTask(id)
       .then(this.handleAccessFail)
-      .then((task) => res.json(task));
+      .then(res.json);
   }
 
-  @Patch('/download/:id/pause')
+  @Patch('/item/:id/pause')
   pauseDownloadTask(@Res() res: Response, @Param('id') id: string) {
     return this.downloadService
       .pauseDownloadTask(id)
       .then(this.handleAccessFail)
-      .then((task) => res.json(task));
+      .then(res.json);
   }
 
   /* handle failure */

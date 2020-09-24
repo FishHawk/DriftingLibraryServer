@@ -15,6 +15,7 @@ import { Req, Res, Query, Param, RawBody } from './decorator/param';
 const upload = multer({ storage: multer.memoryStorage() });
 
 export class LibraryController extends ControllerAdapter {
+  protected readonly prefix = '/library';
   constructor(
     private readonly library: LibraryAccessor,
     private readonly downloadService: DownloadService,
@@ -22,7 +23,7 @@ export class LibraryController extends ControllerAdapter {
   ) {
     super();
     this.router.use(
-      '/library/image',
+      '/image',
       express.static(this.library.dir, {
         dotfiles: 'ignore',
         fallthrough: false,
@@ -30,28 +31,26 @@ export class LibraryController extends ControllerAdapter {
     );
   }
 
-  @Get('/library/search')
+  @Get('/search')
   search(
     @Res() res: Response,
     @Query('lastTime') lastTime: number,
     @Query('limit') limit: number,
     @Query('keywords') keywords: string
   ) {
-    return this.library
-      .search(lastTime, limit, keywords)
-      .then((outlines) => res.json(outlines));
+    return this.library.search(lastTime, limit, keywords).then(res.json);
   }
 
-  @Get('/library/manga/:mangaId')
+  @Get('/manga/:mangaId')
   getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     return this.library
       .getManga(mangaId)
       .then(this.handleMangaAccessFail)
       .then((manga) => manga.getDetail())
-      .then((detail) => res.json(detail));
+      .then(res.json);
   }
 
-  @Delete('/library/manga/:mangaId')
+  @Delete('/manga/:mangaId')
   deleteManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     return this.library
       .deleteManga(mangaId)
@@ -61,7 +60,7 @@ export class LibraryController extends ControllerAdapter {
       .then(() => res.json(mangaId));
   }
 
-  @Patch('/library/manga/:mangaId/metadata')
+  @Patch('/manga/:mangaId/metadata')
   patchMangaMetadata(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
@@ -72,26 +71,27 @@ export class LibraryController extends ControllerAdapter {
       .then(this.handleMangaAccessFail)
       .then((manga) => manga.setMetadata(body))
       .then((manga) => manga.getDetail())
-      .then((detail) => res.json(detail));
+      .then(res.json);
   }
 
   @UseBefore(upload.single('thumb'))
-  @Patch('/library/manga/:mangaId/thumb')
+  @Patch('/manga/:mangaId/thumb')
   patchMangaThumb(
     @Res() res: Response,
     @Req() req: Request,
     @Param('mangaId') mangaId: string
   ) {
-    if (req.file === undefined) throw new BadRequestError('Illegal argument: thumb file');
+    if (req.file === undefined)
+      throw new BadRequestError('Illegal argument: thumb file');
     return this.library
       .getManga(mangaId)
       .then(this.handleMangaAccessFail)
       .then((manga) => manga.setThumb(req.file.buffer))
       .then((manga) => manga.getDetail())
-      .then((detail) => res.json(detail));
+      .then(res.json);
   }
 
-  @Get('/library/chapter/:mangaId')
+  @Get('/chapter/:mangaId')
   getChapter(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
@@ -104,7 +104,7 @@ export class LibraryController extends ControllerAdapter {
       .then((manga) => manga.getChapter(collectionId, chapterId))
       .then(this.handleChapterAccessFail)
       .then((chapter) => chapter.listImage())
-      .then((content) => res.json(content));
+      .then(res.json);
   }
 
   /* handle failure */

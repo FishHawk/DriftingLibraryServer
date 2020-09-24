@@ -7,6 +7,7 @@ import { Res } from './decorator/param';
 import { BadRequestError } from './exception';
 
 export class SystemController extends ControllerAdapter {
+  protected readonly prefix = '/';
   constructor() {
     super();
   }

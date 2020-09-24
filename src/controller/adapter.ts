@@ -4,13 +4,15 @@ import {
   Response,
   NextFunction,
   RequestHandler,
+  Application,
 } from 'express';
 
 import { BadRequestError } from './exception';
 import { getMergedIndications, MergedInd } from './decorator/indication';
 
 export abstract class ControllerAdapter {
-  readonly router = Router();
+  protected abstract readonly prefix: string;
+  protected readonly router = Router();
 
   constructor() {
     const target = Object.getPrototypeOf(this);
@@ -23,6 +25,10 @@ export abstract class ControllerAdapter {
       ];
       this.router[ind.type](ind.path, ...middlewares);
     });
+  }
+
+  bind(app: Application) {
+    app.use(this.prefix, this.router);
   }
 
   private wrap = (

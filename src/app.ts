@@ -75,7 +75,7 @@ export class App {
       new SystemController(),
     ];
     this.controllers.forEach((controller) => {
-      this.app.use('/', controller.router);
+      controller.bind(this.app);
     });
 
     /* error handle middleware */

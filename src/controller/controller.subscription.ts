@@ -10,18 +10,19 @@ import { Res, Body, Param } from './decorator/param';
 import { Subscription } from '../database/entity';
 
 export class SubscriptionController extends ControllerAdapter {
+  protected readonly prefix = '/subscription';
   constructor(private readonly subscribeService: SubscriptionService) {
     super();
   }
 
-  @Get('/subscriptions')
+  @Get('/list')
   getAllSubscription(@Res() res: Response) {
     return this.subscribeService
       .getAllSubscription()
       .then((subscriptions) => res.json(subscriptions));
   }
 
-  @Patch('/subscriptions/enable')
+  @Patch('/list/enable')
   enableAllSubscription(@Res() res: Response) {
     return this.subscribeService
       .toggleAllSubscription(true)
@@ -29,7 +30,7 @@ export class SubscriptionController extends ControllerAdapter {
       .then((subscriptions) => res.json(subscriptions));
   }
 
-  @Patch('/subscriptions/disable')
+  @Patch('/list/disable')
   disableAllSubscription(@Res() res: Response) {
     return this.subscribeService
       .toggleAllSubscription(false)
@@ -37,7 +38,7 @@ export class SubscriptionController extends ControllerAdapter {
       .then((subscriptions) => res.json(subscriptions));
   }
 
-  @Post('/subscription')
+  @Post('/item')
   createSubscription(
     @Res() res: Response,
     @Body('providerId') providerId: string,
@@ -50,7 +51,7 @@ export class SubscriptionController extends ControllerAdapter {
       .then((subscription) => res.json(subscription));
   }
 
-  @Delete('/subscription/:id')
+  @Delete('/item/:id')
   deleteSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
       .deleteSubscription(id)
@@ -58,7 +59,7 @@ export class SubscriptionController extends ControllerAdapter {
       .then((subscription) => res.json(subscription));
   }
 
-  @Patch('/subscription/:id/enable')
+  @Patch('/item/:id/enable')
   enableSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
       .toggleSubscription(id, true)
@@ -66,7 +67,7 @@ export class SubscriptionController extends ControllerAdapter {
       .then((subscription) => res.json(subscription));
   }
 
-  @Patch('/subscription/:id/disable')
+  @Patch('/item/:id/disable')
   disableSubscription(@Res() res: Response, @Param('id') id: string) {
     return this.subscribeService
       .toggleSubscription(id, false)
