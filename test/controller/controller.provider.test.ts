@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import express from 'express';
+import express, { Router } from 'express';
 import request from 'supertest';
 
 import { ProviderManager } from '../../src/provider/manager';
@@ -10,7 +10,7 @@ describe('Controller test: provider', function () {
   const controller = new ProviderController(providerManager);
 
   const app = express();
-  app.use(controller.router);
+  controller.bind(app);
 
   const providerId = 'dmzj';
 

@@ -2,6 +2,9 @@ import { logger } from '../logger';
 import { ChapterAccessor } from '../library/accessor.chapter';
 import { MangaAccessor } from '../library/accessor.manga';
 import { ProviderAdapter } from '../provider/providers/adapter';
+import { pool } from '../util/async/async_pool';
+
+const concurrent = 5;
 
 export class AsyncTaskCancelError extends Error {
   constructor() {
@@ -47,14 +50,22 @@ async function downloadManga(
 ) {
   async function openChapter(collectionId: string, chapterId: string) {
     cancelIfNeed();
-    const chapterAccessor = await accessor.getOrCreateChapter(collectionId, chapterId);
+    const chapterAccessor = await accessor.getOrCreateChapter(
+      collectionId,
+      chapterId
+    );
     if (chapterAccessor === undefined) throw new Error('uncompatible chapter');
     return chapterAccessor;
   }
 
   logger.info(`Download: ${provider.id}/${mangaId} -> ${accessor.id}`);
 
-  const detail = await downloadMangaDetail(provider, accessor, mangaId, cancelIfNeed);
+  const detail = await downloadMangaDetail(
+    provider,
+    accessor,
+    mangaId,
+    cancelIfNeed
+  );
 
   let hasChapterError = false;
   for (const collection of detail.collections) {
@@ -112,22 +123,30 @@ async function downloadChapter(
   cancelIfNeed();
 
   let hasImageError = false;
-  const imageTasks = imageUrls.map((url) => () => provider.requestImage(url));
 
-  for (const [i, task] of imageTasks.entries()) {
-    const imageFilename = `${i}.jpg`;
-    if (await accessor.isImageExist(imageFilename)) continue;
-
-    await task()
-      .catch((e) => {
-        logger.error(`Image error at: ${provider.name}:${chapterId}:${i}`);
-        logger.error(`Image error: ${e.stack}`);
-        hasImageError = true;
-      })
-      .then((image) => {
-        cancelIfNeed();
-        if (image != undefined) return accessor.writeImage(imageFilename, image);
-      });
+  const tasks = [];
+  for (const [i, url] of imageUrls.entries()) {
+    const filename = `${i}.jpg`;
+    if (!(await accessor.isImageExist(filename))) {
+      tasks.push(() =>
+        provider
+          .requestImage(url)
+          .then((image) => [filename, image] as [string, Buffer])
+      );
+    }
   }
+
+  for await (const x of pool(tasks, concurrent)) {
+    cancelIfNeed();
+    if (x.isValue) {
+      const [filename, image] = x.value;
+      accessor.writeImage(filename, image);
+    } else {
+      logger.error(`Image error at: ${provider.name}:${chapterId}:${x.index}`);
+      logger.error(`Image error: ${x.error}`);
+      hasImageError = true;
+    }
+  }
+
   return hasImageError;
 }

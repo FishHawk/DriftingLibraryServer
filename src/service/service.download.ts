@@ -54,11 +54,11 @@ export class DownloadService {
           desc.status = DownloadStatus.Error;
           await this.repository.save(desc);
         }
-      } catch (error) {
-        if (error instanceof AsyncTaskCancelError) {
+      } catch (e) {
+        if (e instanceof AsyncTaskCancelError) {
           logger.info(`Download is canceled`);
         } else {
-          logger.error(`Download error: ${error.stack}`);
+          logger.error(`Download error: ${e.stack}`);
           desc.status = DownloadStatus.Error;
           await this.repository.save(desc);
         }
