@@ -12,7 +12,7 @@ const port = parseEnvPort(process.env.APP_PORT);
 const libraryDir = parseEnvLibraryDir(process.env.APP_LIBRARY_DIR);
 
 /* start application */
-App.createApplication(port, libraryDir)
+App.createInstance(port, libraryDir)
   .then((app) => {
     app.listen();
   })

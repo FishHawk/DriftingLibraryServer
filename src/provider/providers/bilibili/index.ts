@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Option, ProviderAdapter } from '../adapter';
+import { Option, ProviderAdapter, ProviderConfig } from '../adapter';
 
 import Api from './api';
 import Constant from './constant';
@@ -25,6 +25,13 @@ export default class Provider extends ProviderAdapter {
   };
 
   readonly api = new Api();
+
+  applyConfig(config: ProviderConfig) {
+    const cookie = config['cookie'];
+    if (typeof cookie === 'string') {
+      this.api.instance.defaults.headers.cookie = `SESSDATA=${cookie}`;
+    }
+  }
 
   async search(page: number, keywords: string) {
     return this.api.search(page, keywords).then(Parser.parseSearchResponse);

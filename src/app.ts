@@ -19,9 +19,7 @@ import { DownloadService } from './service/service.download';
 import { SubscriptionService } from './service/service.subscription';
 
 export class App {
-  private readonly app: express.Application;
-  private readonly port: number;
-  private readonly libraryDir: string;
+  private readonly app = express();
 
   private database!: DatabaseAdapter;
   private libraryAccessor!: LibraryAccessor;
@@ -31,15 +29,14 @@ export class App {
 
   private controllers!: ControllerAdapter[];
 
-  public static async createApplication(port: number, libraryDir: string) {
+  public static async createInstance(port: number, libraryDir: string) {
     return new App(port, libraryDir).initialize();
   }
 
-  private constructor(port: number, libraryDir: string) {
-    this.app = express();
-    this.port = port;
-    this.libraryDir = libraryDir;
-  }
+  private constructor(
+    private readonly port: number,
+    private readonly libraryDir: string
+  ) {}
 
   private async initialize() {
     /* middleware */
@@ -50,7 +47,9 @@ export class App {
     /* component */
     this.database = await createSqliteDatabase(this.libraryDir);
     this.libraryAccessor = new LibraryAccessor(this.libraryDir);
-    this.providerManager = new ProviderManager();
+    this.providerManager = await ProviderManager.createInstance(
+      this.libraryDir
+    );
 
     this.downloadService = new DownloadService(
       this.database.downloadDescRepository,
