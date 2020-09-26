@@ -2,24 +2,21 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
+import { Image } from '../util/image';
 
 export class ChapterAccessor {
   constructor(private readonly dir: string) {}
 
-  listImage() {
-    return fsu.listImageFileWithNaturalOrder(this.dir);
+  listImage(withNaturalOrder: boolean) {
+    return fsu.listImageFile(this.dir, withNaturalOrder);
   }
   readImage(filename: string) {
     const imagePath = path.join(this.dir, filename);
     return fs.readFile(imagePath);
   }
-  writeImage(filename: string, data: Buffer) {
-    const imagePath = path.join(this.dir, filename);
-    return fs.writeFile(imagePath, data);
-  }
-  isImageExist(filename: string) {
-    const imagePath = path.join(this.dir, filename);
-    return fsu.isFileExist(imagePath);
+  writeImage(filename: string, image: Image) {
+    const imagePath = path.join(this.dir, `${filename}.${image.ext}`);
+    return fs.writeFile(imagePath, image.buffer);
   }
 
   isUncompleted() {

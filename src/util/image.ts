@@ -1,60 +1,46 @@
-interface MimePattern {
-  ext: string;
-  mime: string;
-  pattern: (number | undefined)[];
+const mimeToExt: Record<string, string | undefined> = {};
+const extToMine: Record<string, string | undefined> = {};
+
+function bindMimeToExt(ext: string, mime: string) {
+  mimeToExt[mime] = ext;
+  extToMine[ext] = mime;
 }
 
-const imageMimes: MimePattern[] = [
-  {
-    // JPEG images
-    ext: 'jpg',
-    mime: 'image/jpeg',
-    pattern: [0xff, 0xd8, 0xff],
-  },
-  {
-    // Portable Network Graphics
-    ext: 'png',
-    mime: 'image/png',
-    pattern: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-  },
-  {
-    // WEBP image
-    ext: 'webp',
-    mime: 'image/webp',
-    pattern: [
-      0x52,
-      0x49,
-      0x46,
-      0x46,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      0x57,
-      0x45,
-      0x42,
-      0x50,
-    ],
-  },
-];
-
-function check(buffer: Buffer, mime: MimePattern) {
-  return mime.pattern.every((p, i) => !p || buffer[i] === p);
-}
-
-export class UnknownImageTypeError {}
+bindMimeToExt('bmp', 'image/bmp');
+bindMimeToExt('jpeg', 'image/jpeg');
+bindMimeToExt('jpg', 'image/jpeg');
+bindMimeToExt('png', 'image/png');
+bindMimeToExt('gif', 'image/gif');
+bindMimeToExt('webp', 'image/webp');
 
 export class Image {
   private constructor(
-    private readonly ext: string,
-    private readonly mime: string,
-    private readonly buffer: Buffer
+    readonly mime: string,
+    readonly ext: string,
+    readonly buffer: Buffer
   ) {}
 
-  static fromBuffer(buffer: Buffer): Image {
-    for (const mime of imageMimes) {
-      if (check(buffer, mime)) return new Image(mime.ext, mime.mime, buffer);
-    }
-    throw new UnknownImageTypeError();
+  static fromMime(mime: string, buffer: Buffer) {
+    mime = mime.toLowerCase();
+    const ext = mimeToExt[mime];
+    if (ext === undefined) return undefined;
+    return new Image(mime, ext, buffer);
+  }
+
+  static fromExt(ext: string, buffer: Buffer) {
+    ext = ext.toLowerCase();
+    const mime = extToMine[ext];
+    if (mime === undefined) return undefined;
+    return new Image(mime, ext, buffer);
+  }
+
+  static isImageMimeType(mime: string) {
+    mime = mime.toLowerCase();
+    return mimeToExt[mime] !== undefined;
+  }
+
+  static isImageExtension(ext: string) {
+    ext = ext.toLowerCase();
+    return extToMine[ext] !== undefined;
   }
 }

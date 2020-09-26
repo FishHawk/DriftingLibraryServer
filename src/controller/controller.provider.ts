@@ -110,7 +110,9 @@ export class ProviderController extends ControllerAdapter {
     @Param('providerId') providerId: string,
     @Param('url') url: string
   ) {
-    return this.getProvider(providerId).requestImage(url).then(res.send);
+    return this.getProvider(providerId)
+      .requestImage(url)
+      .then((image) => res.type(image.mime).send(image.buffer));
   }
 
   /* validate argument */

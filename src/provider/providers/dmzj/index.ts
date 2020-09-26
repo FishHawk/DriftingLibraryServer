@@ -1,4 +1,5 @@
 import { Option, ProviderAdapter } from '../adapter';
+import { Image } from '../../../util/image';
 
 import Api from './api';
 import Constant from './constant';
@@ -88,9 +89,14 @@ export default class Provider extends ProviderAdapter {
       .then((res) => Parser.parseChapterContent(res.data));
   }
 
-  async requestImage(url: string): Promise<Buffer> {
+  async requestImage(url: string) {
     return this.api.instance
       .get(encodeURI(url), { responseType: 'arraybuffer' })
-      .then((res) => res.data);
+      .then((res) => {
+        const mime = res.headers['content-type'];
+        const image = Image.fromMime(mime, res.data);
+        if (image !== undefined) return image;
+        throw new Error('unknown content type');
+      });
   }
 }

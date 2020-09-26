@@ -3,6 +3,7 @@ import { ChapterAccessor } from '../library/accessor.chapter';
 import { MangaAccessor } from '../library/accessor.manga';
 import { ProviderAdapter } from '../provider/providers/adapter';
 import { pool } from '../util/async/async_pool';
+import { getBasename } from '../util/fs';
 
 const concurrent = 5;
 
@@ -122,31 +123,24 @@ async function downloadChapter(
   const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
   cancelIfNeed();
 
+  const existImages = (await accessor.listImage(false)).map(getBasename);
+  const tasks = imageUrls
+    .map((url, index) => ({ filename: index.toString(), url }))
+    .filter((it) => existImages.includes(it.filename))
+    .map((it) => () =>
+      provider
+        .requestImage(it.url)
+        .then((image) => accessor.writeImage(it.filename, image))
+    );
+
   let hasImageError = false;
-
-  const tasks = [];
-  for (const [i, url] of imageUrls.entries()) {
-    const filename = `${i}.jpg`;
-    if (!(await accessor.isImageExist(filename))) {
-      tasks.push(() =>
-        provider
-          .requestImage(url)
-          .then((image) => [filename, image] as [string, Buffer])
-      );
-    }
-  }
-
-  for await (const x of pool(tasks, concurrent)) {
+  for await (const it of pool(tasks, concurrent)) {
     cancelIfNeed();
-    if (x.isValue) {
-      const [filename, image] = x.value;
-      accessor.writeImage(filename, image);
-    } else {
-      logger.error(`Image error at: ${provider.name}:${chapterId}:${x.index}`);
-      logger.error(`Image error: ${x.error}`);
+    if (!it.isValue) {
+      logger.error(`Image error at: ${provider.name}:${chapterId}:${it.index}`);
+      logger.error(`Image error: ${it.error}`);
       hasImageError = true;
     }
   }
-
   return hasImageError;
 }

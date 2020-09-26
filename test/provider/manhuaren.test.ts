@@ -50,8 +50,8 @@ describe('Provider test: manhuaren', function () {
   it('#requestImage', () => {
     return provider.requestChapterContent(mangaId, chapterId).then((result) =>
       provider.requestImage(result[0]).then((result) => {
-        assert.equal(result.length, 283001);
-        return saveImageFile(provider.name, result.slice());
+        assert.equal(result.buffer.length, 283001);
+        return saveImageFile(provider.name, result);
       })
     );
   });

@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
+import { Image } from '../util/image';
 import { StringValidator } from '../util/validator/validator';
 
 import * as Entity from './entity';
@@ -38,25 +39,27 @@ export class MangaAccessor {
   }
 
   private async getThumb() {
-    const possibleThumbFileName = ['thumb.jpg', 'thumb.png', 'thumb.png'];
-    for (const filename of possibleThumbFileName) {
-      const filepath = path.join(this.dir, filename);
-      if (await fsu.isFileExist(filepath)) return filename;
-    }
-    // TODO: choose first image if thumb not exist
+    const imageFiles = await fsu.listImageFile(this.dir, false);
+    const thumbFiles = imageFiles.filter(
+      (filename) => fsu.getBasename(filename) === 'thumb'
+    );
+
+    if (thumbFiles.length >= 0) return thumbFiles[0];
+    if (imageFiles.length >= 0) return imageFiles[0];
     return undefined;
   }
 
-  async setThumb(thumb: Buffer) {
-    const existThumbFilename = await this.getThumb();
-    if (existThumbFilename != undefined) {
-      const existThumbPath = path.join(this.dir, existThumbFilename);
-      await fs.unlink(existThumbPath);
-    }
+  async setThumb(thumb: Image) {
+    // delete old thumb
+    await Promise.all(
+      (await fsu.listImageFile(this.dir, false))
+        .filter((filename) => fsu.getBasename(filename) === 'thumb')
+        .map((filename) => fs.unlink(path.join(this.dir, filename)))
+    );
 
-    // TODO: exam image type
-    const thumbPath = path.join(this.dir, 'thumb.jpg');
-    await fs.writeFile(thumbPath, thumb);
+    // save new thumb
+    const thumbPath = path.join(this.dir, `thumb.${thumb.ext}`);
+    await fs.writeFile(thumbPath, thumb.buffer);
     return this;
   }
 
@@ -65,7 +68,9 @@ export class MangaAccessor {
   }
 
   private async setUpdateTime(): Promise<void> {
-    return fs.stat(this.dir).then((stat) => fs.utimes(this.dir, stat.atime, Date.now()));
+    return fs
+      .stat(this.dir)
+      .then((stat) => fs.utimes(this.dir, stat.atime, Date.now()));
   }
 
   private async getMetadataOutline(): Promise<Entity.MetadataOutline> {
@@ -104,17 +109,20 @@ export class MangaAccessor {
       return chapter;
     };
 
-    const subFolders = await fsu.listDirectoryWithNaturalOrder(this.dir);
+    const subFolders = await fsu.listDirectory(this.dir, true);
     if (subFolders.length != 0) {
       let collections = [];
 
       // depth 3
       for (const collectionId of subFolders) {
         const chapters = await fsu
-          .listDirectoryWithNaturalOrder(path.join(this.dir, collectionId))
+          .listDirectory(path.join(this.dir, collectionId), true)
           .then((list) => list.map(parseChapterId));
         if (chapters.length > 0) {
-          const collection: Entity.Collection = { id: collectionId, chapters: chapters };
+          const collection: Entity.Collection = {
+            id: collectionId,
+            chapters: chapters,
+          };
           collections.push(collection);
         }
       }
@@ -162,10 +170,14 @@ export class MangaAccessor {
 
   private validateCollectionId(collectionId: string) {
     return (
-      collectionId.length === 0 || MangaAccessor.filenameValidator.validate(collectionId)
+      collectionId.length === 0 ||
+      MangaAccessor.filenameValidator.validate(collectionId)
     );
   }
   private validateChapterId(chapterId: string) {
-    return chapterId.length === 0 || MangaAccessor.filenameValidator.validate(chapterId);
+    return (
+      chapterId.length === 0 ||
+      MangaAccessor.filenameValidator.validate(chapterId)
+    );
   }
 }

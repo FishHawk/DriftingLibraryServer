@@ -1,4 +1,5 @@
 import { MangaOutline, MangaDetail } from '../../library/entity';
+import { Image } from '../../util/image';
 
 export type OptionModel = Record<string, string[]>;
 export type Option = Record<string, number>;
@@ -25,9 +26,9 @@ export abstract class ProviderAdapter implements ProviderDetail {
   abstract readonly lang: string;
 
   abstract readonly optionModels: {
-    popular: Record<string, string[]>;
-    latest: Record<string, string[]>;
-    category: Record<string, string[]>;
+    popular: OptionModel;
+    latest: OptionModel;
+    category: OptionModel;
   };
 
   getInfo(): ProviderInfo {
@@ -69,5 +70,5 @@ export abstract class ProviderAdapter implements ProviderDetail {
     chapterId: string
   ): Promise<string[]>;
 
-  abstract requestImage(url: string): Promise<Buffer>;
+  abstract requestImage(url: string): Promise<Image>;
 }

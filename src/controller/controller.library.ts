@@ -4,6 +4,7 @@ import multer from 'multer';
 import { DownloadService } from '../service/service.download';
 import { SubscriptionService } from '../service/service.subscription';
 import { LibraryAccessor } from '../library/accessor.library';
+import { Image } from '../util/image';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
@@ -83,10 +84,16 @@ export class LibraryController extends ControllerAdapter {
   ) {
     if (req.file === undefined)
       throw new BadRequestError('Illegal argument: thumb file');
+
     return this.library
       .getManga(mangaId)
       .then(this.handleMangaAccessFail)
-      .then((manga) => manga.setThumb(req.file.buffer))
+      .then((manga) => {
+        const image = Image.fromMime(req.file.mimetype, req.file.buffer);
+        if (image === undefined)
+          throw new BadRequestError('Illegal argument: thumb file');
+        return manga.setThumb(image);
+      })
       .then((manga) => manga.getDetail())
       .then(res.json);
   }
@@ -103,7 +110,7 @@ export class LibraryController extends ControllerAdapter {
       .then(this.handleMangaAccessFail)
       .then((manga) => manga.getChapter(collectionId, chapterId))
       .then(this.handleChapterAccessFail)
-      .then((chapter) => chapter.listImage())
+      .then((chapter) => chapter.listImage(true))
       .then(res.json);
   }
 

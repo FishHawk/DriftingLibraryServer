@@ -1,32 +1,51 @@
 import fs from 'fs/promises';
 
-function getFileExtension(filename: string): string {
+import { Image } from './image';
+
+export function getExtension(filename: string): string {
   return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2);
 }
 
-function isImageFile(filename: string): boolean {
-  const extension = getFileExtension(filename).toLowerCase();
-  const possibleExtensions = ['jpg', 'png', 'jpeg'];
-  return possibleExtensions.includes(extension);
+export function getBasename(filename: string): string {
+  return filename.slice(0, ((filename.lastIndexOf('.') - 1) >>> 0) + 1);
 }
 
-export async function listDirectoryWithNaturalOrder(path: string): Promise<string[]> {
-  var collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+function isImageFile(filename: string): boolean {
+  const extension = getExtension(filename);
+  return Image.isImageExtension(extension);
+}
+
+export async function listDirectory(
+  path: string,
+  withNaturalOrder: boolean
+): Promise<string[]> {
+  var collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
   return fs.readdir(path, { withFileTypes: true }).then((list) => {
-    return list
+    const dirnames = list
       .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name)
-      .sort(collator.compare);
+      .map((dirent) => dirent.name);
+    if (withNaturalOrder) return dirnames.sort(collator.compare);
+    else return dirnames;
   });
 }
 
-export async function listImageFileWithNaturalOrder(path: string): Promise<string[]> {
-  var collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+export async function listImageFile(
+  path: string,
+  withNaturalOrder: boolean
+): Promise<string[]> {
+  var collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
   return fs.readdir(path, { withFileTypes: true }).then((list) => {
-    return list
+    const filenames = list
       .filter((dirent) => dirent.isFile() && isImageFile(dirent.name))
-      .map((dirent) => dirent.name)
-      .sort(collator.compare);
+      .map((dirent) => dirent.name);
+    if (withNaturalOrder) return filenames.sort(collator.compare);
+    else return filenames;
   });
 }
 
