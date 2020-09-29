@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 
 import { logger } from './logger';
@@ -12,7 +13,8 @@ import { SystemController } from './controller/controller.system';
 import { logMiddleware } from './controller/middleware.log';
 import { errorHandleMiddleware } from './controller/middleware.error_handle';
 
-import { createSqliteDatabase, DatabaseAdapter } from './database/adapter';
+import settings, { SettingLoader } from './settings';
+import { DatabaseLoader, DatabaseAdapter } from './database';
 import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './service/service.download';
@@ -29,14 +31,11 @@ export class App {
 
   private controllers!: ControllerAdapter[];
 
-  public static async createInstance(port: number, libraryDir: string) {
-    return new App(port, libraryDir).initialize();
+  public static async createInstance(rootDir: string) {
+    return new App(rootDir).initialize();
   }
 
-  private constructor(
-    private readonly port: number,
-    private readonly libraryDir: string
-  ) {}
+  private constructor(private readonly rootDir: string) {}
 
   private async initialize() {
     /* middleware */
@@ -44,12 +43,17 @@ export class App {
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(logMiddleware);
 
+    /* setting */
+    const settingFilepath = path.join(this.rootDir, 'settings.json');
+    await SettingLoader.fromFile(settingFilepath);
+
+    /* database */
+    const databaseFilepath = path.join(this.rootDir, '.db.sqlite');
+    this.database = await DatabaseLoader.createInstance(databaseFilepath);
+
     /* component */
-    this.database = await createSqliteDatabase(this.libraryDir);
-    this.libraryAccessor = new LibraryAccessor(this.libraryDir);
-    this.providerManager = await ProviderManager.createInstance(
-      this.libraryDir
-    );
+    this.libraryAccessor = new LibraryAccessor(this.rootDir);
+    this.providerManager = new ProviderManager();
 
     this.downloadService = new DownloadService(
       this.database.downloadDescRepository,
@@ -83,8 +87,8 @@ export class App {
   }
 
   public listen() {
-    this.app.listen(this.port, () => {
-      logger.info(`Listen on http://localhost:${this.port}`);
+    this.app.listen(settings.port, () => {
+      logger.info(`Listen on http://localhost:${settings.port}`);
     });
   }
 }

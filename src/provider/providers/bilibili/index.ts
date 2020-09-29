@@ -28,11 +28,8 @@ export default class Provider extends ProviderAdapter {
 
   readonly api = new Api();
 
-  applyConfig(config: ProviderConfig) {
-    const cookie = config['cookie'];
-    if (typeof cookie === 'string') {
-      this.api.instance.defaults.headers.cookie = `SESSDATA=${cookie}`;
-    }
+  setCookie(cookie: string) {
+    this.api.instance.defaults.headers.cookie = `SESSDATA=${cookie}`;
   }
 
   async search(page: number, keywords: string) {

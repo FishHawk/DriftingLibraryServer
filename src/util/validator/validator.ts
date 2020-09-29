@@ -21,7 +21,7 @@ export class Validator<T> {
   }
 }
 
-export class StringValidator extends Validator<string> {
+class StringValidator extends Validator<string> {
   isEmpty() {
     this.rules.push((v) => v.length === 0);
     return this;
@@ -38,7 +38,11 @@ export class StringValidator extends Validator<string> {
   }
 }
 
-export class NumberValidator extends Validator<number> {
+export function validateString() {
+  return new StringValidator();
+}
+
+class NumberValidator extends Validator<number> {
   min(min: number) {
     this.rules.push((v) => v >= min);
     return this;
@@ -62,4 +66,8 @@ export class NumberValidator extends Validator<number> {
     this.rules.push((v) => Number.isFinite(v));
     return this;
   }
+}
+
+export function validateNumber() {
+  return new NumberValidator();
 }

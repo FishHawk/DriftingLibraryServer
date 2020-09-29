@@ -2,10 +2,9 @@ import { logger } from '../logger';
 import { ChapterAccessor } from '../library/accessor.chapter';
 import { MangaAccessor } from '../library/accessor.manga';
 import { ProviderAdapter } from '../provider/providers/adapter';
+import settings from '../settings';
 import { pool } from '../util/async/async_pool';
 import { getBasename } from '../util/fs';
-
-const concurrent = 5;
 
 export class AsyncTaskCancelError extends Error {
   constructor() {
@@ -133,6 +132,7 @@ async function downloadChapter(
         .then((image) => accessor.writeImage(it.filename, image))
     );
 
+  const concurrent = settings.downloadConcurrent;
   let hasImageError = false;
   for await (const it of pool(tasks, concurrent)) {
     cancelIfNeed();

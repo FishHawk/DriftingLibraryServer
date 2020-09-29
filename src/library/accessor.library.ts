@@ -3,14 +3,14 @@ import path from 'path';
 
 import * as fsu from '../util/fs';
 import { ok, fail, Result } from '../util/result';
-import { StringValidator } from '../util/validator/validator';
+import { validateString } from '../util/validator/validator';
 
 import * as Entity from './entity';
 import { MangaAccessor } from './accessor.manga';
 import { searchLibrary } from './search';
 
 export class LibraryAccessor {
-  static readonly mangaIdValidator = new StringValidator().isFilename();
+  static readonly mangaIdValidator = validateString().isFilename();
 
   constructor(readonly dir: string) {}
 
@@ -25,7 +25,8 @@ export class LibraryAccessor {
   async createManga(mangaId: string): Promise<Result<void, CreateFail>> {
     if (!this.validateMangaId(mangaId)) return fail(CreateFail.IllegalMangaId);
     const mangaDir = path.join(this.dir, mangaId);
-    if (await fsu.isDirectoryExist(mangaDir)) return fail(CreateFail.MangaAlreadyExist);
+    if (await fsu.isDirectoryExist(mangaDir))
+      return fail(CreateFail.MangaAlreadyExist);
     return fs.mkdir(mangaDir).then(() => ok());
   }
 

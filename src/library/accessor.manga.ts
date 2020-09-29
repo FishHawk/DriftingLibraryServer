@@ -3,13 +3,13 @@ import path from 'path';
 
 import * as fsu from '../util/fs';
 import { Image } from '../util/image';
-import { StringValidator } from '../util/validator/validator';
+import { validateString } from '../util/validator/validator';
 
 import * as Entity from './entity';
 import { ChapterAccessor } from './accessor.chapter';
 
 export class MangaAccessor {
-  static readonly filenameValidator = new StringValidator().isFilename();
+  static readonly filenameValidator = validateString().isFilename();
 
   private readonly dir: string;
 

@@ -46,7 +46,11 @@ export class DownloadService {
       await this.repository.save(desc);
 
       try {
-        this.currentDownloadTask = download(provider, accessor, desc.sourceManga);
+        this.currentDownloadTask = download(
+          provider,
+          accessor,
+          desc.sourceManga
+        );
         const isCompleted = await this.currentDownloadTask.promise;
         if (isCompleted) {
           await this.repository.remove(desc);
@@ -105,12 +109,14 @@ export class DownloadService {
     if (this.providerManager.getProvider(providerId) === undefined)
       return fail(CreateFail.UnsupportedProvider);
 
-    const result = (await this.library.createManga(targetManga)).whenFail((f) => {
-      if (f === LibraryAccessor.CreateFail.IllegalMangaId)
-        return CreateFail.IlligalTargetMangaId;
-      if (f === LibraryAccessor.CreateFail.MangaAlreadyExist)
-        return CreateFail.MangaAlreadyExist;
-    });
+    const result = (await this.library.createManga(targetManga)).whenFail(
+      (f) => {
+        if (f === LibraryAccessor.CreateFail.IllegalMangaId)
+          return CreateFail.IlligalTargetMangaId;
+        if (f === LibraryAccessor.CreateFail.MangaAlreadyExist)
+          return CreateFail.MangaAlreadyExist;
+      }
+    );
     if (result !== undefined) return fail(result);
 
     const task = this.repository.create({
@@ -135,7 +141,10 @@ export class DownloadService {
   async startDownloadTask(id: string) {
     const task = await this.repository.findOne(id);
     if (task !== undefined) {
-      if (task.status === DownloadStatus.Paused || task.status === DownloadStatus.Error) {
+      if (
+        task.status === DownloadStatus.Paused ||
+        task.status === DownloadStatus.Error
+      ) {
         task.status = DownloadStatus.Waiting;
         await this.repository.save(task);
         this.start();

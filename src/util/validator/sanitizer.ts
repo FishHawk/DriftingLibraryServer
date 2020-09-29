@@ -1,6 +1,7 @@
-type Sanitizer<T> = (value: unknown) => value is T;
 type GuardType<T> = T extends Sanitizer<infer U> ? U : never;
 type UToI<T> = (T extends any ? (k: T) => void : never) extends (k: infer U) => void ? U : never;
+
+export type Sanitizer<T> = (value: unknown) => value is T;
 
 export function isUndefined(): Sanitizer<undefined> {
   return (value: unknown): value is undefined => {
