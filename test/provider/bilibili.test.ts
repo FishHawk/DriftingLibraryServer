@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import { Readable } from 'stream';
 import Provider from '../../src/provider/providers/bilibili';
 import { saveImageFile } from './util';
 
@@ -51,7 +52,6 @@ describe('Provider test: bilibili', function () {
   it('#requestImage', () => {
     return provider.requestChapterContent(mangaId, chapterId).then((result) =>
       provider.requestImage(result[0]).then((result) => {
-        assert.equal(result.buffer.length, 2008111);
         return saveImageFile(provider.name, result);
       })
     );

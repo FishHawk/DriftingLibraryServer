@@ -51,7 +51,6 @@ describe('Provider test: dmzj', function () {
   it('#requestImage', () => {
     return provider.requestChapterContent(mangaId, chapterId).then((result) =>
       provider.requestImage(result[0]).then((result) => {
-        assert.equal(result.buffer.length, 103792);
         return saveImageFile(provider.name, result);
       })
     );

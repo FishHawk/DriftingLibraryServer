@@ -1,7 +1,7 @@
 import { assert } from 'chai';
-import * as fs from '../../src/util/fs';
+import * as fs from '../../../src/util/fs/promise';
 
-describe('Util test: fs', function () {
+describe('Util test: fs promise', function () {
   it('#getExtension', () => {
     assert.equal(fs.getExtension(''), '');
     assert.equal(fs.getExtension('name'), '');
