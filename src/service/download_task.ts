@@ -122,7 +122,7 @@ async function downloadChapter(
   const imageUrls = await provider.requestChapterContent(mangaId, chapterId);
   cancelIfNeed();
 
-  const existImages = (await accessor.listImage(false)).map(getBasename);
+  const existImages = (await accessor.listImage()).map(getBasename);
   const tasks = imageUrls
     .map((url, index) => ({ filename: index.toString(), url }))
     .filter((it) => existImages.includes(it.filename))

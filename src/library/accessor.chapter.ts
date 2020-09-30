@@ -1,38 +1,35 @@
-import fs from 'fs';
-import fsp from 'fs/promises';
 import path from 'path';
 
-import * as fsu from '../util/fs';
-import { Image } from '../util/image';
+import * as fs from '../util/fs';
 
 export class ChapterAccessor {
   constructor(private readonly dir: string) {}
 
-  listImage(withNaturalOrder: boolean) {
-    return fsu.listImageFile(this.dir, withNaturalOrder);
+  listImage() {
+    return fs.listImageFile(this.dir, 'natural');
   }
   readImage(filename: string) {
     const imagePath = path.join(this.dir, filename);
-    return Image.fromExt(
-      fsu.getExtension(filename),
+    return fs.Image.fromExt(
+      fs.getExtension(filename),
       fs.createReadStream(imagePath)
     );
   }
-  writeImage(filename: string, image: Image) {
+  writeImage(filename: string, image: fs.Image) {
     const imagePath = path.join(this.dir, `${filename}.${image.ext}`);
     return image.pipe(fs.createWriteStream(imagePath));
   }
 
   isUncompleted() {
     const markPath = path.join(this.dir, '.mark');
-    return fsu.isFileExist(markPath);
+    return fs.isFileExist(markPath);
   }
   setUncompleted() {
     const markPath = path.join(this.dir, '.mark');
-    return fsp.writeFile(markPath, '');
+    return fs.writeJSON(markPath, {});
   }
   setCompleted() {
     const markPath = path.join(this.dir, '.mark');
-    return fsp.unlink(markPath);
+    return fs.unlink(markPath);
   }
 }

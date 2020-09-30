@@ -1,7 +1,4 @@
-import stream from 'stream';
-import util from 'util';
-
-const pipeline = util.promisify(stream.pipeline);
+import { pipeline } from './stream';
 
 const mimeToExt: Record<string, string | undefined> = {};
 const extToMine: Record<string, string | undefined> = {};

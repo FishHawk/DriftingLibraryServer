@@ -1,9 +1,6 @@
-import fs from 'fs/promises';
-import fsr from 'fs';
 import path from 'path';
 
-import * as fsu from '../util/fs';
-import { Image } from '../util/image';
+import * as fs from '../util/fs';
 import { validateString } from '../util/validator/validator';
 
 import * as Entity from './entity';
@@ -40,9 +37,9 @@ export class MangaAccessor {
   }
 
   private async getThumb() {
-    const imageFiles = await fsu.listImageFile(this.dir, false);
+    const imageFiles = await fs.listImageFile(this.dir);
     const thumbFiles = imageFiles.filter(
-      (filename) => fsu.getBasename(filename) === 'thumb'
+      (filename) => fs.getBasename(filename) === 'thumb'
     );
 
     if (thumbFiles.length >= 0) return thumbFiles[0];
@@ -50,43 +47,40 @@ export class MangaAccessor {
     return undefined;
   }
 
-  async setThumb(thumb: Image) {
+  async setThumb(thumb: fs.Image) {
     // delete old thumb
     await Promise.all(
-      (await fsu.listImageFile(this.dir, false))
-        .filter((filename) => fsu.getBasename(filename) === 'thumb')
+      (await fs.listImageFile(this.dir))
+        .filter((filename) => fs.getBasename(filename) === 'thumb')
         .map((filename) => fs.unlink(path.join(this.dir, filename)))
     );
 
     // save new thumb
-
     const thumbPath = path.join(this.dir, `thumb.${thumb.ext}`);
-    await thumb.pipe(fsr.createWriteStream(thumbPath));
+    await thumb.pipe(fs.createWriteStream(thumbPath));
     return this;
   }
 
-  private async getUpdateTime(): Promise<number> {
-    return fs.stat(this.dir).then((stat) => stat.mtime.getTime());
+  private getUpdateTime() {
+    return fs.getMTime(this.dir);
   }
 
-  private async setUpdateTime(): Promise<void> {
-    return fs
-      .stat(this.dir)
-      .then((stat) => fs.utimes(this.dir, stat.atime, Date.now()));
+  private setUpdateTime() {
+    return fs.setMTime(this.dir, Date.now());
   }
 
-  private async getMetadataOutline(): Promise<Entity.MetadataOutline> {
+  private getMetadataOutline(): Promise<Entity.MetadataOutline> {
     const filepath = path.join(this.dir, 'metadata.json');
-    return fsu.readJSON(filepath).then((json) => {
+    return fs.readJSON(filepath).then((json) => {
       // TODO: check json schema
       if (json === undefined) return {};
       return json;
     });
   }
 
-  private async getMetadataDetail(): Promise<Entity.MetadataDetail> {
+  private getMetadataDetail(): Promise<Entity.MetadataDetail> {
     const filepath = path.join(this.dir, 'metadata.json');
-    return fsu.readJSON(filepath).then((json) => {
+    return fs.readJSON(filepath).then((json) => {
       // TODO: check json schema
       if (json === undefined) return {};
       return json;
@@ -95,7 +89,7 @@ export class MangaAccessor {
 
   async setMetadata(metadata: Entity.MetadataDetail) {
     const matedataPath = path.join(this.dir, 'metadata.json');
-    await fs.writeFile(matedataPath, JSON.stringify(metadata));
+    await fs.writeJSON(matedataPath, metadata);
     return this;
   }
 
@@ -111,14 +105,14 @@ export class MangaAccessor {
       return chapter;
     };
 
-    const subFolders = await fsu.listDirectory(this.dir, true);
+    const subFolders = await fs.listDirectory(this.dir, 'natural');
     if (subFolders.length != 0) {
       let collections = [];
 
       // depth 3
       for (const collectionId of subFolders) {
-        const chapters = await fsu
-          .listDirectory(path.join(this.dir, collectionId), true)
+        const chapters = await fs
+          .listDirectory(path.join(this.dir, collectionId), 'natural')
           .then((list) => list.map(parseChapterId));
         if (chapters.length > 0) {
           const collection: Entity.Collection = {
@@ -152,7 +146,7 @@ export class MangaAccessor {
     if (!this.validateChapterId(chapterId)) return undefined;
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (!(await fsu.isDirectoryExist(chapterDir))) return undefined;
+    if (!(await fs.isDirectoryExist(chapterDir))) return undefined;
 
     return new ChapterAccessor(chapterDir);
   }
@@ -162,7 +156,7 @@ export class MangaAccessor {
     if (!this.validateChapterId(chapterId)) return undefined;
 
     const chapterDir = path.join(this.dir, collectionId, chapterId);
-    if (!(await fsu.isDirectoryExist(chapterDir)))
+    if (!(await fs.isDirectoryExist(chapterDir)))
       await fs.mkdir(chapterDir, { recursive: true });
 
     const accessor = new ChapterAccessor(chapterDir);

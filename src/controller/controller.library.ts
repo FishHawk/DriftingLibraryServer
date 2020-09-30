@@ -4,7 +4,7 @@ import multer from 'multer';
 import { DownloadService } from '../service/service.download';
 import { SubscriptionService } from '../service/service.subscription';
 import { LibraryAccessor } from '../library/accessor.library';
-import { Image } from '../util/image';
+import { Image } from '../util/fs';
 
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
@@ -114,7 +114,7 @@ export class LibraryController extends ControllerAdapter {
       .then(this.handleMangaAccessFail)
       .then((manga) => manga.getChapter(collectionId, chapterId))
       .then(this.handleChapterAccessFail)
-      .then((chapter) => chapter.listImage(true))
+      .then((chapter) => chapter.listImage())
       .then(res.json);
   }
 

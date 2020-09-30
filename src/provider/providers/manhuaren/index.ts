@@ -1,5 +1,5 @@
 import { Option, ProviderAdapter } from '../adapter';
-import { Image } from '../../../util/image';
+import { Image } from '../../../util/fs/image';
 
 import Api from './api';
 import Constant from './constant';

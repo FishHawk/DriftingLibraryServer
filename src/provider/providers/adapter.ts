@@ -1,10 +1,8 @@
 import { MangaOutline, MangaDetail } from '../../library/entity';
-import { Image } from '../../util/image';
+import { Image } from '../../util/fs/image';
 
 export type OptionModel = Record<string, string[]>;
 export type Option = Record<string, number>;
-
-export type ProviderConfig = Record<string, any>;
 
 export interface ProviderInfo {
   readonly id: string;
@@ -37,7 +35,6 @@ export abstract class ProviderAdapter implements ProviderDetail {
   getDetail(): ProviderDetail {
     return { ...this.getInfo(), optionModels: this.optionModels };
   }
-  applyConfig(_config: ProviderConfig) {}
 
   protected static checkOptionIntegrity(filter: Option, model: OptionModel) {
     for (const key in model) {
