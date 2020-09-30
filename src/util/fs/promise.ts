@@ -5,28 +5,19 @@ export const mkdir = fs.mkdir;
 export const rmdir = fs.rmdir;
 export const unlink = fs.unlink;
 
-export function getExtension(filename: string): string {
+export function getExtension(filename: string) {
   return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2);
 }
 
-export function getBasename(filename: string): string {
+export function getBasename(filename: string) {
   return filename.slice(0, ((filename.lastIndexOf('.') - 1) >>> 0) + 1);
-}
-
-function isImageFile(filename: string): boolean {
-  const extension = getExtension(filename);
-  return Image.isImageExtension(extension);
-}
-
-function listdir(dirpath: string) {
-  return fs.readdir(dirpath, { withFileTypes: true });
 }
 
 export function listDirectory(
   path: string,
   sort: 'natural' | undefined = undefined
 ) {
-  return listdir(path).then((list) => {
+  return fs.readdir(path, { withFileTypes: true }).then((list) => {
     const dirnames = list
       .filter((dirent) => dirent.isDirectory())
       .map((dirent) => dirent.name);
@@ -45,7 +36,9 @@ export function listImageFile(
   path: string,
   sort: 'natural' | undefined = undefined
 ) {
-  return listdir(path).then((list) => {
+  return fs.readdir(path, { withFileTypes: true }).then((list) => {
+    const isImageFile = (filename: string) =>
+      Image.isImageExtension(getExtension(filename));
     const filenames = list
       .filter((dirent) => dirent.isFile() && isImageFile(dirent.name))
       .map((dirent) => dirent.name);
