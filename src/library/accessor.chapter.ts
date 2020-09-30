@@ -1,4 +1,5 @@
-import fs from 'fs/promises';
+import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 
 import * as fsu from '../util/fs';
@@ -12,11 +13,14 @@ export class ChapterAccessor {
   }
   readImage(filename: string) {
     const imagePath = path.join(this.dir, filename);
-    return fs.readFile(imagePath);
+    return Image.fromExt(
+      fsu.getExtension(filename),
+      fs.createReadStream(imagePath)
+    );
   }
   writeImage(filename: string, image: Image) {
     const imagePath = path.join(this.dir, `${filename}.${image.ext}`);
-    return fs.writeFile(imagePath, image.buffer);
+    return image.pipe(fs.createWriteStream(imagePath));
   }
 
   isUncompleted() {
@@ -25,10 +29,10 @@ export class ChapterAccessor {
   }
   setUncompleted() {
     const markPath = path.join(this.dir, '.mark');
-    return fs.writeFile(markPath, '');
+    return fsp.writeFile(markPath, '');
   }
   setCompleted() {
     const markPath = path.join(this.dir, '.mark');
-    return fs.unlink(markPath);
+    return fsp.unlink(markPath);
   }
 }

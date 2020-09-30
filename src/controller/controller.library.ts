@@ -12,6 +12,7 @@ import { BadRequestError, NotFoundError } from './exception';
 import { Get, Delete, Patch } from './decorator/action';
 import { UseBefore } from './decorator/middleware';
 import { Req, Res, Query, Param, RawBody } from './decorator/param';
+import { Readable } from 'typeorm/platform/PlatformTools';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -89,7 +90,10 @@ export class LibraryController extends ControllerAdapter {
       .getManga(mangaId)
       .then(this.handleMangaAccessFail)
       .then((manga) => {
-        const image = Image.fromMime(req.file.mimetype, req.file.buffer);
+        const image = Image.fromMime(
+          req.file.mimetype,
+          Readable.from(req.file.buffer)
+        );
         if (image === undefined)
           throw new BadRequestError('Illegal argument: thumb file');
         return manga.setThumb(image);
@@ -114,6 +118,24 @@ export class LibraryController extends ControllerAdapter {
       .then(res.json);
   }
 
+  @Get('/image/:mangaId')
+  getImage(
+    @Res() res: Response,
+    @Param('mangaId') mangaId: string,
+    @Query('collection') collectionId: string,
+    @Query('chapter') chapterId: string,
+    @Query('image') imageFilename: string
+  ) {
+    return this.library
+      .getManga(mangaId)
+      .then(this.handleMangaAccessFail)
+      .then((manga) => manga.getChapter(collectionId, chapterId))
+      .then(this.handleChapterAccessFail)
+      .then((chapter) => chapter.readImage(imageFilename))
+      .then(this.handleImageAccessFail)
+      .then((image) => image.pipe(res.type(image.mime)));
+  }
+
   /* handle failure */
   private handleMangaAccessFail<T>(v: T | undefined): T {
     if (v === undefined) throw new NotFoundError('Not found: manga');
@@ -122,6 +144,11 @@ export class LibraryController extends ControllerAdapter {
 
   private handleChapterAccessFail<T>(v: T | undefined): T {
     if (v === undefined) throw new NotFoundError('Not found: chapter');
+    return v;
+  }
+
+  private handleImageAccessFail<T>(v: T | undefined): T {
+    if (v === undefined) throw new NotFoundError('Not found: image');
     return v;
   }
 }

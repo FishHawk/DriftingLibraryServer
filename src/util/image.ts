@@ -1,3 +1,8 @@
+import stream from 'stream';
+import util from 'util';
+
+const pipeline = util.promisify(stream.pipeline);
+
 const mimeToExt: Record<string, string | undefined> = {};
 const extToMine: Record<string, string | undefined> = {};
 
@@ -17,21 +22,25 @@ export class Image {
   private constructor(
     readonly mime: string,
     readonly ext: string,
-    readonly buffer: Buffer
+    readonly stream: NodeJS.ReadableStream
   ) {}
 
-  static fromMime(mime: string, buffer: Buffer) {
+  pipe(w: NodeJS.WritableStream) {
+    return pipeline(this.stream, w);
+  }
+
+  static fromMime(mime: string, stream: NodeJS.ReadableStream) {
     mime = mime.toLowerCase();
     const ext = mimeToExt[mime];
     if (ext === undefined) return undefined;
-    return new Image(mime, ext, buffer);
+    return new Image(mime, ext, stream);
   }
 
-  static fromExt(ext: string, buffer: Buffer) {
+  static fromExt(ext: string, stream: NodeJS.ReadableStream) {
     ext = ext.toLowerCase();
     const mime = extToMine[ext];
     if (mime === undefined) return undefined;
-    return new Image(mime, ext, buffer);
+    return new Image(mime, ext, stream);
   }
 
   static isImageMimeType(mime: string) {

@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import fsr from 'fs';
 import path from 'path';
 
 import * as fsu from '../util/fs';
@@ -58,8 +59,9 @@ export class MangaAccessor {
     );
 
     // save new thumb
+
     const thumbPath = path.join(this.dir, `thumb.${thumb.ext}`);
-    await fs.writeFile(thumbPath, thumb.buffer);
+    await thumb.pipe(fsr.createWriteStream(thumbPath));
     return this;
   }
 

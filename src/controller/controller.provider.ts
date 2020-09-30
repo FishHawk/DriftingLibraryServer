@@ -112,7 +112,7 @@ export class ProviderController extends ControllerAdapter {
   ) {
     return this.getProvider(providerId)
       .requestImage(url)
-      .then((image) => res.type(image.mime).send(image.buffer));
+      .then((image) => image.pipe(res.type(image.mime)));
   }
 
   /* validate argument */
