@@ -36,9 +36,9 @@ export abstract class ProviderAdapter implements ProviderDetail {
     return { ...this.getInfo(), optionModels: this.optionModels };
   }
 
-  protected static checkOptionIntegrity(filter: Option, model: OptionModel) {
+  protected static checkOptionIntegrity(option: Option, model: OptionModel) {
     for (const key in model) {
-      if (!(filter[key] in model[key])) return false;
+      if (!(option[key] in model[key])) return false;
     }
     return true;
   }

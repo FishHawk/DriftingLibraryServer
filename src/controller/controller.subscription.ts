@@ -19,7 +19,7 @@ export class SubscriptionController extends ControllerAdapter {
   getAllSubscription(@Res() res: Response) {
     return this.subscribeService
       .getAllSubscription()
-      .then((subscriptions) => res.json(subscriptions));
+      .then((it) => res.json(it));
   }
 
   @Patch('/list/enable')
@@ -27,7 +27,7 @@ export class SubscriptionController extends ControllerAdapter {
     return this.subscribeService
       .toggleAllSubscription(true)
       .then(this.subscribeService.getAllSubscription)
-      .then((subscriptions) => res.json(subscriptions));
+      .then((it) => res.json(it));
   }
 
   @Patch('/list/disable')
@@ -35,7 +35,7 @@ export class SubscriptionController extends ControllerAdapter {
     return this.subscribeService
       .toggleAllSubscription(false)
       .then(this.subscribeService.getAllSubscription)
-      .then((subscriptions) => res.json(subscriptions));
+      .then((it) => res.json(it));
   }
 
   @Post('/item')
@@ -48,7 +48,7 @@ export class SubscriptionController extends ControllerAdapter {
     return this.subscribeService
       .createSubscription(providerId, sourceManga, targetManga)
       .then((result) => result.whenFail(this.handleCreateFail))
-      .then((subscription) => res.json(subscription));
+      .then((it) => res.json(it));
   }
 
   @Delete('/item/:id')
@@ -56,7 +56,7 @@ export class SubscriptionController extends ControllerAdapter {
     return this.subscribeService
       .deleteSubscription(id)
       .then(this.handleAccessFail)
-      .then((subscription) => res.json(subscription));
+      .then((it) => res.json(it));
   }
 
   @Patch('/item/:id/enable')
@@ -64,7 +64,7 @@ export class SubscriptionController extends ControllerAdapter {
     return this.subscribeService
       .toggleSubscription(id, true)
       .then(this.handleAccessFail)
-      .then((subscription) => res.json(subscription));
+      .then((it) => res.json(it));
   }
 
   @Patch('/item/:id/disable')
@@ -72,7 +72,7 @@ export class SubscriptionController extends ControllerAdapter {
     return this.subscribeService
       .toggleSubscription(id, false)
       .then(this.handleAccessFail)
-      .then((subscription) => res.json(subscription));
+      .then((it) => res.json(it));
   }
 
   /* handle failure */

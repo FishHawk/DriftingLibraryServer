@@ -3,7 +3,7 @@ import { logger } from '../logger';
 import { HttpError } from './exception';
 
 export const errorHandleMiddleware = (
-  err: unknown,
+  err: any,
   _req: Request,
   res: Response,
   _next: NextFunction
@@ -12,7 +12,7 @@ export const errorHandleMiddleware = (
     logger.info(`Http error: ${err.status} ${err.message}`);
     res.status(err.status).send(err.message);
   } else {
-    logger.error(`Unexpected error: ${err}`);
+    logger.error(`Unexpected error: ${err.stack}`);
     res.status(500).send('Unexpected error.');
   }
 };

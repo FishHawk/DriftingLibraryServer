@@ -22,7 +22,10 @@ async function listLibraryWithMtime(libraryDir: string) {
   });
 }
 
-async function buildMatchEntry(libraryDir: string, id: string): Promise<MatchEntry> {
+async function buildMatchEntry(
+  libraryDir: string,
+  id: string
+): Promise<MatchEntry> {
   const filepath = path.join(libraryDir, id, 'metadata.json');
 
   return readJSON(filepath).then((json) => {

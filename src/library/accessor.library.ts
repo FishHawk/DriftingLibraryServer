@@ -1,7 +1,6 @@
-import fs from 'fs/promises';
 import path from 'path';
 
-import * as fsu from '../util/fs';
+import * as fs from '../util/fs';
 import { ok, fail, Result } from '../util/result';
 import { validateString } from '../util/validator/validator';
 
@@ -25,7 +24,7 @@ export class LibraryAccessor {
   async createManga(mangaId: string): Promise<Result<void, CreateFail>> {
     if (!this.validateMangaId(mangaId)) return fail(CreateFail.IllegalMangaId);
     const mangaDir = path.join(this.dir, mangaId);
-    if (await fsu.isDirectoryExist(mangaDir))
+    if (await fs.isDirectoryExist(mangaDir))
       return fail(CreateFail.MangaAlreadyExist);
     return fs.mkdir(mangaDir).then(() => ok());
   }
@@ -33,14 +32,14 @@ export class LibraryAccessor {
   async deleteManga(mangaId: string) {
     if (!this.validateMangaId(mangaId)) return undefined;
     const mangaDir = path.join(this.dir, mangaId);
-    if (!(await fsu.isDirectoryExist(mangaDir))) return undefined;
+    if (!(await fs.isDirectoryExist(mangaDir))) return undefined;
     return fs.rmdir(mangaDir).then(() => mangaId);
   }
 
   async getManga(mangaId: string) {
     if (!this.validateMangaId(mangaId)) return undefined;
     const mangaDir = path.join(this.dir, mangaId);
-    if (!(await fsu.isDirectoryExist(mangaDir))) return undefined;
+    if (!(await fs.isDirectoryExist(mangaDir))) return undefined;
     return new MangaAccessor(this.dir, mangaId);
   }
 

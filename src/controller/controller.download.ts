@@ -17,7 +17,7 @@ export class DownloadController extends ControllerAdapter {
 
   @Get('/list')
   getAllDownloadTask(@Res() res: Response) {
-    return this.downloadService.getAllDownloadTask().then(res.json);
+    return this.downloadService.getAllDownloadTask().then((it) => res.json(it));
   }
 
   @Patch('/list/start')
@@ -25,7 +25,7 @@ export class DownloadController extends ControllerAdapter {
     return this.downloadService
       .startAllDownloadTask()
       .then(this.downloadService.getAllDownloadTask)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Patch('/list/pause')
@@ -33,7 +33,7 @@ export class DownloadController extends ControllerAdapter {
     return this.downloadService
       .pauseAllDownloadTask()
       .then(this.downloadService.getAllDownloadTask)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Post('/item')
@@ -46,7 +46,7 @@ export class DownloadController extends ControllerAdapter {
     return this.downloadService
       .createDownloadTask(providerId, sourceManga, targetManga)
       .then((result) => result.whenFail(this.handleCreateFail))
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Delete('/item/:id')
@@ -54,7 +54,7 @@ export class DownloadController extends ControllerAdapter {
     return this.downloadService
       .deleteDownloadTask(id)
       .then(this.handleAccessFail)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Patch('/item/:id/start')
@@ -62,7 +62,7 @@ export class DownloadController extends ControllerAdapter {
     return this.downloadService
       .startDownloadTask(id)
       .then(this.handleAccessFail)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Patch('/item/:id/pause')
@@ -70,7 +70,7 @@ export class DownloadController extends ControllerAdapter {
     return this.downloadService
       .pauseDownloadTask(id)
       .then(this.handleAccessFail)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   /* handle failure */

@@ -39,7 +39,9 @@ export class ProviderController extends ControllerAdapter {
     @Query('keywords') keywords: string,
     @Query('page') page: number
   ) {
-    return this.getProvider(providerId).search(page, keywords).then(res.json);
+    return this.getProvider(providerId)
+      .search(page, keywords)
+      .then((it) => res.json(it));
   }
 
   @Get('/item/:providerId/popular')
@@ -49,10 +51,13 @@ export class ProviderController extends ControllerAdapter {
     @Query('page') page: number,
     @RawQuery() option: any
   ) {
+    for (const key in option) {
+      option[key] = Number.parseInt(option[key])
+    }
     return this.getProvider(providerId)
       .requestPopular(page, option)
       .then(this.handleMangaListAccessFail)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Get('/item/:providerId/latest')
@@ -62,10 +67,13 @@ export class ProviderController extends ControllerAdapter {
     @Query('page') page: number,
     @RawQuery() option: any
   ) {
+    for (const key in option) {
+      option[key] = Number.parseInt(option[key])
+    }
     return this.getProvider(providerId)
       .requestLatest(page, option)
       .then(this.handleMangaListAccessFail)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Get('/item/:providerId/category')
@@ -75,10 +83,13 @@ export class ProviderController extends ControllerAdapter {
     @Query('page') page: number,
     @RawQuery() option: any
   ) {
+    for (const key in option) {
+      option[key] = Number.parseInt(option[key])
+    }
     return this.getProvider(providerId)
       .requestCategory(page, option)
       .then(this.handleMangaListAccessFail)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Get('/item/:providerId/manga/:mangaId')
@@ -89,7 +100,7 @@ export class ProviderController extends ControllerAdapter {
   ) {
     return this.getProvider(providerId)
       .requestMangaDetail(mangaId)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Get('/item/:providerId/chapter/:mangaId/:chapterId')
@@ -101,7 +112,7 @@ export class ProviderController extends ControllerAdapter {
   ) {
     return this.getProvider(providerId)
       .requestChapterContent(mangaId, chapterId)
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Get('/item/:providerId/image/:url')
@@ -112,7 +123,7 @@ export class ProviderController extends ControllerAdapter {
   ) {
     return this.getProvider(providerId)
       .requestImage(url)
-      .then((image) => image.pipe(res.type(image.mime)));
+      .then((image) => image.pipe(res));
   }
 
   /* validate argument */

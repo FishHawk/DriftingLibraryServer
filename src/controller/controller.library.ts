@@ -40,7 +40,9 @@ export class LibraryController extends ControllerAdapter {
     @Query('limit') limit: number,
     @Query('keywords') keywords: string
   ) {
-    return this.library.search(lastTime, limit, keywords).then(res.json);
+    return this.library
+      .search(lastTime, limit, keywords)
+      .then((it) => res.json(it));
   }
 
   @Get('/manga/:mangaId')
@@ -49,7 +51,7 @@ export class LibraryController extends ControllerAdapter {
       .getManga(mangaId)
       .then(this.handleMangaAccessFail)
       .then((manga) => manga.getDetail())
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Delete('/manga/:mangaId')
@@ -73,7 +75,7 @@ export class LibraryController extends ControllerAdapter {
       .then(this.handleMangaAccessFail)
       .then((manga) => manga.setMetadata(body))
       .then((manga) => manga.getDetail())
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @UseBefore(upload.single('thumb'))
@@ -99,7 +101,7 @@ export class LibraryController extends ControllerAdapter {
         return manga.setThumb(image);
       })
       .then((manga) => manga.getDetail())
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Get('/chapter/:mangaId')
@@ -115,7 +117,7 @@ export class LibraryController extends ControllerAdapter {
       .then((manga) => manga.getChapter(collectionId, chapterId))
       .then(this.handleChapterAccessFail)
       .then((chapter) => chapter.listImage())
-      .then(res.json);
+      .then((it) => res.json(it));
   }
 
   @Get('/image/:mangaId')
