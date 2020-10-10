@@ -82,7 +82,7 @@ function parseCategoryResponse(res: any): Entity.MangaOutline[] {
 
 function parseMangaDetail(json: any): Entity.MangaDetail {
   // parse metadata
-  const tag: Entity.Tag = { key: 'style', value: json.styles };
+  const tag: Entity.Tag = { key: '', value: json.styles };
   const metadata: Entity.MetadataDetail = {
     title: json.title,
     authors: json.author_name,

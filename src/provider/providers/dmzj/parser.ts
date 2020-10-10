@@ -14,7 +14,7 @@ function parseMangaOutlines(json: any): Entity.MangaOutline[] {
       status: parseMangaStatus(it.status),
     };
     const outline: Entity.MangaOutline = {
-      id: it.id,
+      id: it.id || it.comic_id,
       thumb: it.cover,
       updateTime: it.last_updatetime * 1000,
       metadata: metadata,
@@ -29,7 +29,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
   const status = parseMangaStatus(json.status[0].tag_name);
 
   const types = json.types.map((it: any) => it.tag_name);
-  const tag: Entity.Tag = { key: 'type', value: types };
+  const tag: Entity.Tag = { key: '', value: types };
 
   const metadata: Entity.MetadataDetail = {
     title: json.title,

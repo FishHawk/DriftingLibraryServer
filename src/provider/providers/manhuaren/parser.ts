@@ -51,10 +51,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
   if (thumb === undefined || thumb === '') thumb = json.shareIcon;
 
   // parse tag
-  const tag: Entity.Tag = {
-    key: '',
-    value: json.mangaTheme.split(' '),
-  };
+  const tag: Entity.Tag = { key: '', value: json.mangaTheme.split(' ') };
 
   // parse metadata
   const metadata: Entity.MetadataDetail = {
