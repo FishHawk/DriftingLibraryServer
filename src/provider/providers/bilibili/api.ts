@@ -6,7 +6,7 @@ export default class Api {
 
   readonly instance = axios.create({
     baseURL: this.baseUrl,
-    timeout: 5000,
+    timeout: 10000,
     headers: {
       'User-Agent':
         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
