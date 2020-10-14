@@ -43,6 +43,8 @@ export abstract class ProviderAdapter implements ProviderDetail {
     return true;
   }
 
+  abstract getIcon(): Image;
+
   abstract search(page: number, keywords: string): Promise<MangaOutline[]>;
 
   abstract requestPopular(

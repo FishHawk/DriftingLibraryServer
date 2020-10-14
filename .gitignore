@@ -1,7 +1,7 @@
 .vscode/
 node_modules/
 log/
-out/
+dist/
 test/provider/result
 
 .env

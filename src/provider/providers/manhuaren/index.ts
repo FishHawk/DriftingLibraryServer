@@ -1,5 +1,7 @@
+import path from 'path';
+
 import { Option, ProviderAdapter } from '../adapter';
-import { Image } from '../../../util/fs/image';
+import * as fs from '../../../util/fs';
 
 import Api from './api';
 import Constant from './constant';
@@ -24,6 +26,13 @@ export default class Provider extends ProviderAdapter {
   };
 
   readonly api: Api = new Api();
+
+  getIcon() {
+    const iconPath = path.join(__dirname, 'icon.png');
+    const image = fs.Image.fromExt('png', fs.createReadStream(iconPath));
+    if (image !== undefined) return image;
+    throw new Error('icon image not found');
+  }
 
   async search(page: number, keywords: string) {
     return this.api.getSearchManga(page, keywords).then((res) => {
@@ -92,7 +101,7 @@ export default class Provider extends ProviderAdapter {
       .get(encodeURI(url), { responseType: 'stream' })
       .then((res) => {
         const mime = res.headers['content-type'];
-        const image = Image.fromMime(mime, res.data);
+        const image = fs.Image.fromMime(mime, res.data);
         if (image !== undefined) return image;
         throw new Error('unknown content type');
       });

@@ -32,6 +32,15 @@ export class ProviderController extends ControllerAdapter {
     return res.json(detail);
   }
 
+  @Get('/item/:providerId/icon')
+  getProviderIcon(
+    @Res() res: Response,
+    @Param('providerId') providerId: string
+  ) {
+    const icon = this.getProvider(providerId).getIcon();
+    return icon.pipe(res);
+  }
+
   @Get('/item/:providerId/search')
   search(
     @Res() res: Response,
@@ -52,7 +61,7 @@ export class ProviderController extends ControllerAdapter {
     @RawQuery() option: any
   ) {
     for (const key in option) {
-      option[key] = Number.parseInt(option[key])
+      option[key] = Number.parseInt(option[key]);
     }
     return this.getProvider(providerId)
       .requestPopular(page, option)
@@ -68,7 +77,7 @@ export class ProviderController extends ControllerAdapter {
     @RawQuery() option: any
   ) {
     for (const key in option) {
-      option[key] = Number.parseInt(option[key])
+      option[key] = Number.parseInt(option[key]);
     }
     return this.getProvider(providerId)
       .requestLatest(page, option)
@@ -84,7 +93,7 @@ export class ProviderController extends ControllerAdapter {
     @RawQuery() option: any
   ) {
     for (const key in option) {
-      option[key] = Number.parseInt(option[key])
+      option[key] = Number.parseInt(option[key]);
     }
     return this.getProvider(providerId)
       .requestCategory(page, option)

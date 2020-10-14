@@ -7,8 +7,8 @@
   "author": "FishHawk",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "build": "./node_modules/.bin/tsc -p tsconfig.json",
-    "start": "node out/index.js",
+    "build": "node script/build.js",
+    "start": "node dist/index.js",
     "test": "./node_modules/mocha/bin/mocha -r ts-node/register 'test/**/*.test.ts'"
   },
   "dependencies": {
@@ -36,7 +36,11 @@
     "@types/node": "^14.0.27",
     "@types/supertest": "^2.0.10",
     "chai": "^4.2.0",
+    "chalk": "^4.1.0",
+    "copyfiles": "^2.4.0",
     "dotenv": "^8.2.0",
+    "execa": "^4.0.3",
+    "minimist": "^1.2.5",
     "mocha": "^8.1.1",
     "supertest": "^4.0.2",
     "ts-node": "^8.10.2",
