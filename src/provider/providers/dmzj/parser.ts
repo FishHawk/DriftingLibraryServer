@@ -46,7 +46,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
         const chapter: Entity.Chapter = {
           id: it.chapter_id,
           name: it.chapter_title,
-          title: it.chapter_title,
+          title: "",
         };
         return chapter;
       })
