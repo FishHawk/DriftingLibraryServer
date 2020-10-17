@@ -82,13 +82,17 @@ function parseCategoryResponse(res: any): Entity.MangaOutline[] {
 
 function parseMangaDetail(json: any): Entity.MangaDetail {
   // parse metadata
-  const tag: Entity.Tag = { key: '', value: json.styles };
+  const tags: Entity.Tag[] = [];
+  if (json.styles.length > 0) {
+    tags.push({ key: '', value: json.styles });
+  }
+
   const metadata: Entity.MetadataDetail = {
     title: json.title,
     authors: json.author_name,
     status: parseMangaStatus(json.is_finish),
     description: json.evaluate,
-    tags: [tag],
+    tags,
   };
 
   // parse collections

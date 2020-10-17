@@ -28,15 +28,17 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
   const authors = json.authors.map((it: any) => it.tag_name);
   const status = parseMangaStatus(json.status[0].tag_name);
 
-  const types = json.types.map((it: any) => it.tag_name);
-  const tag: Entity.Tag = { key: '', value: types };
+  const tags: Entity.Tag[] = [];
+  if (json.types.length > 0) {
+    tags.push({ key: '', value: json.types.map((it: any) => it.tag_name) });
+  }
 
   const metadata: Entity.MetadataDetail = {
     title: json.title,
     authors,
     status,
     description: json.description,
-    tags: [tag],
+    tags,
   };
 
   // parse collections
@@ -46,7 +48,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
         const chapter: Entity.Chapter = {
           id: it.chapter_id,
           name: it.chapter_title,
-          title: "",
+          title: '',
         };
         return chapter;
       })

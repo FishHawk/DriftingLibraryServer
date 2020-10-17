@@ -51,7 +51,10 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
   if (thumb === undefined || thumb === '') thumb = json.shareIcon;
 
   // parse tag
-  const tag: Entity.Tag = { key: '', value: json.mangaTheme.split(' ') };
+  const tags: Entity.Tag[] = [];
+  if (json.mangaTheme.length > 0) {
+    tags.push({ key: '', value: json.mangaTheme.split(' ') });
+  }
 
   // parse metadata
   const metadata: Entity.MetadataDetail = {
@@ -59,7 +62,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
     authors: json.mangaAuthors,
     status: parseStatus(json.mangaIsOver),
     description: json.mangaIntro,
-    tags: [tag],
+    tags,
   };
 
   // parse collections
