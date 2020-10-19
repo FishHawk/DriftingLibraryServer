@@ -50,7 +50,10 @@ export class LibraryController extends ControllerAdapter {
     return this.library
       .getManga(mangaId)
       .then(this.handleMangaAccessFail)
-      .then((manga) => manga.getDetail())
+      .then((manga) => {
+        manga.removeNewMark();
+        return manga.getDetail();
+      })
       .then((it) => res.json(it));
   }
 

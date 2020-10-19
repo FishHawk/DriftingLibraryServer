@@ -49,7 +49,8 @@ export class DownloadService {
         this.currentDownloadTask = download(
           provider,
           accessor,
-          desc.sourceManga
+          desc.sourceManga,
+          desc.isCreatedBySubscription
         );
         const isCompleted = await this.currentDownloadTask.promise;
         if (isCompleted) {
@@ -104,7 +105,8 @@ export class DownloadService {
   async createDownloadTask(
     providerId: string,
     sourceManga: string,
-    targetManga: string
+    targetManga: string,
+    isCreatedBySubscription: boolean = false
   ): Promise<Result<DownloadDesc, CreateFail>> {
     if (this.providerManager.getProvider(providerId) === undefined)
       return fail(CreateFail.UnsupportedProvider);
@@ -123,6 +125,7 @@ export class DownloadService {
       providerId,
       sourceManga,
       id: targetManga,
+      isCreatedBySubscription,
     });
     await this.repository.save(task);
     this.start();

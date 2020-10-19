@@ -10,6 +10,7 @@ export interface MangaOutline {
   id: string;
   thumb?: string;
   updateTime?: number;
+  hasNewMark?: boolean;
 
   metadata: MetadataOutline;
 }

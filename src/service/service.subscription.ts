@@ -11,7 +11,13 @@ export class SubscriptionService {
     private readonly repository: Repository<Subscription>,
     private readonly downloadService: DownloadService
   ) {
-    new CronJob('0 0 4 * * *', this.updateAllSubscription, null, true, 'Asia/Chongqing');
+    new CronJob(
+      '0 0 4 * * *',
+      this.updateAllSubscription,
+      null,
+      true,
+      'Asia/Chongqing'
+    );
   }
 
   private async updateAllSubscription() {
@@ -23,12 +29,15 @@ export class SubscriptionService {
   }
 
   private async updateSubscription(subscription: Subscription) {
-    const result = await this.downloadService.startDownloadTask(subscription.id);
+    const result = await this.downloadService.startDownloadTask(
+      subscription.id
+    );
     if (result === undefined) {
       await this.downloadService.createDownloadTask(
         subscription.providerId,
         subscription.sourceManga,
-        subscription.id
+        subscription.id,
+        true
       );
     }
   }

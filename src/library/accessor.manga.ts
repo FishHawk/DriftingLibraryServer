@@ -20,6 +20,7 @@ export class MangaAccessor {
       id: this.id,
       thumb: await this.getThumb(),
       updateTime: await this.getUpdateTime(),
+      hasNewMark: await this.hasNewMark(),
       metadata: await this.getMetadataOutline(),
     };
     return mangaOutline;
@@ -65,8 +66,23 @@ export class MangaAccessor {
     return fs.getMTime(this.dir);
   }
 
-  private setUpdateTime() {
+  refreshUpdateTime() {
     return fs.setMTime(this.dir, Date.now());
+  }
+
+  private hasNewMark() {
+    const markPath = path.join(this.dir, '.new');
+    return fs.isFileExist(markPath);
+  }
+
+  addNewMark() {
+    const markPath = path.join(this.dir, '.new');
+    return fs.writeJSON(markPath, {});
+  }
+
+  removeNewMark() {
+    const markPath = path.join(this.dir, '.new');
+    return fs.unlink(markPath);
   }
 
   private getMetadataOutline(): Promise<Entity.MetadataOutline> {

@@ -24,7 +24,8 @@ export interface DownloadTask {
 export function download(
   provider: ProviderAdapter,
   accessor: MangaAccessor,
-  mangaId: string
+  mangaId: string,
+  isCreatedBySubscripton: boolean
 ): DownloadTask {
   let isCancelled = false;
 
@@ -37,7 +38,13 @@ export function download(
 
   return {
     mangaId,
-    promise: downloadManga(provider, accessor, mangaId, cancelIfNeed),
+    promise: downloadManga(
+      provider,
+      accessor,
+      mangaId,
+      isCreatedBySubscripton,
+      cancelIfNeed
+    ),
     cancel,
   };
 }
@@ -46,6 +53,7 @@ async function downloadManga(
   provider: ProviderAdapter,
   accessor: MangaAccessor,
   mangaId: string,
+  isCreatedBySubscripton: boolean,
   cancelIfNeed: () => void
 ) {
   async function openChapter(collectionId: string, chapterId: string) {
@@ -85,7 +93,11 @@ async function downloadManga(
       );
 
       if (hasImageError) hasChapterError = true;
-      else await chapterAccessor.setCompleted();
+      else {
+        await chapterAccessor.setCompleted();
+        await accessor.refreshUpdateTime();
+        if (isCreatedBySubscripton) await accessor.addNewMark();
+      }
     }
   }
   return !hasChapterError;
