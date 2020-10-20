@@ -81,8 +81,6 @@ export class SubscriptionController extends ControllerAdapter {
       throw new BadRequestError('Illegal error: target manga id');
     if (f === SubscriptionService.CreateFail.IlligalTargetMangaId)
       throw new BadRequestError('Illegal error: target manga id');
-    if (f === SubscriptionService.CreateFail.MangaAlreadyExist)
-      throw new ConflictError('Already exist: target manga');
     if (f === SubscriptionService.CreateFail.TaskAlreadyExist)
       throw new ConflictError('Already exist: download task');
     throw new Error();

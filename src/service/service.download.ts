@@ -108,6 +108,9 @@ export class DownloadService {
     targetManga: string,
     isCreatedBySubscription: boolean = false
   ): Promise<Result<DownloadDesc, CreateFail>> {
+    const taskInDb = await this.repository.findOne(targetManga);
+    if (taskInDb == undefined) return fail(CreateFail.TaskAlreadyExist);
+
     if (this.providerManager.getProvider(providerId) === undefined)
       return fail(CreateFail.UnsupportedProvider);
 
@@ -115,8 +118,6 @@ export class DownloadService {
       (f) => {
         if (f === LibraryAccessor.CreateFail.IllegalMangaId)
           return CreateFail.IlligalTargetMangaId;
-        if (f === LibraryAccessor.CreateFail.MangaAlreadyExist)
-          return CreateFail.MangaAlreadyExist;
       }
     );
     if (result !== undefined) return fail(result);
@@ -177,7 +178,6 @@ export namespace DownloadService {
   export enum CreateFail {
     IlligalTargetMangaId,
     UnsupportedProvider,
-    MangaAlreadyExist,
     TaskAlreadyExist,
   }
 }

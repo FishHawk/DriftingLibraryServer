@@ -79,8 +79,6 @@ export class DownloadController extends ControllerAdapter {
       throw new BadRequestError('Illegal error: target manga id');
     if (f === DownloadService.CreateFail.IlligalTargetMangaId)
       throw new BadRequestError('Illegal error: target manga id');
-    if (f === DownloadService.CreateFail.MangaAlreadyExist)
-      throw new ConflictError('Already exist: target manga');
     if (f === DownloadService.CreateFail.TaskAlreadyExist)
       throw new ConflictError('Already exist: download task');
     throw new Error();
