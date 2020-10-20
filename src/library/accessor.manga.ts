@@ -70,19 +70,19 @@ export class MangaAccessor {
     return fs.setMTime(this.dir, Date.now());
   }
 
-  private hasNewMark() {
+  private async hasNewMark() {
     const markPath = path.join(this.dir, '.new');
     return fs.isFileExist(markPath);
   }
 
-  addNewMark() {
+  async addNewMark() {
     const markPath = path.join(this.dir, '.new');
-    return fs.writeJSON(markPath, {});
+    if (!(await fs.isFileExist(markPath))) await fs.writeJSON(markPath, {});
   }
 
-  removeNewMark() {
+  async removeNewMark() {
     const markPath = path.join(this.dir, '.new');
-    return fs.unlink(markPath);
+    if (await fs.isFileExist(markPath)) await fs.unlink(markPath);
   }
 
   private getMetadataOutline(): Promise<Entity.MetadataOutline> {
