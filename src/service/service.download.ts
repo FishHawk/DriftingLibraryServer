@@ -109,7 +109,7 @@ export class DownloadService {
     isCreatedBySubscription: boolean = false
   ): Promise<Result<DownloadDesc, CreateFail>> {
     const taskInDb = await this.repository.findOne(targetManga);
-    if (taskInDb == undefined) return fail(CreateFail.TaskAlreadyExist);
+    if (taskInDb !== undefined) return fail(CreateFail.TaskAlreadyExist);
 
     if (this.providerManager.getProvider(providerId) === undefined)
       return fail(CreateFail.UnsupportedProvider);
