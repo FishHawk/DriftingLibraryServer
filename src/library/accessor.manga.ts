@@ -176,7 +176,7 @@ export class MangaAccessor {
       await fs.mkdir(chapterDir, { recursive: true });
 
     const accessor = new ChapterAccessor(chapterDir);
-    await accessor.setUncompleted();
+    await accessor.addUncompleteMark();
     return accessor;
   }
 

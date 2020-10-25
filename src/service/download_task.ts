@@ -82,7 +82,7 @@ async function downloadManga(
       const chapterId = `${chapter.name} ${chapter.title}`;
 
       const chapterAccessor = await openChapter(collectionId, chapterId);
-      if (!(await chapterAccessor.isUncompleted())) continue;
+      if (!(await chapterAccessor.hasUncompleteMark())) continue;
 
       const hasImageError = await downloadChapter(
         provider,
@@ -94,7 +94,7 @@ async function downloadManga(
 
       if (hasImageError) hasChapterError = true;
       else {
-        await chapterAccessor.setCompleted();
+        await chapterAccessor.removeUncompleteMark();
         await accessor.refreshUpdateTime();
         if (isCreatedBySubscripton) await accessor.addNewMark();
       }
@@ -137,7 +137,7 @@ async function downloadChapter(
   const existImages = (await accessor.listImage()).map(getBasename);
   const tasks = imageUrls
     .map((url, index) => ({ filename: index.toString(), url }))
-    .filter((it) => existImages.includes(it.filename))
+    .filter((it) => !existImages.includes(it.filename))
     .map((it) => () =>
       provider
         .requestImage(it.url)

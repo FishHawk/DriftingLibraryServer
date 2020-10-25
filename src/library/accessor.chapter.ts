@@ -20,16 +20,18 @@ export class ChapterAccessor {
     return image.pipe(fs.createWriteStream(imagePath));
   }
 
-  async isUncompleted() {
-    const markPath = path.join(this.dir, '.mark');
+  async hasUncompleteMark() {
+    const markPath = path.join(this.dir, '.uncomplete');
     return fs.isFileExist(markPath);
   }
-  async setUncompleted() {
-    const markPath = path.join(this.dir, '.mark');
-    if (!fs.isFileExist(markPath)) await fs.writeJSON(markPath, {});
+  async addUncompleteMark() {
+    const markPath = path.join(this.dir, '.uncomplete');
+    if (!(await fs.isFileExist(markPath))) {
+      await fs.writeJSON(markPath, {});
+    }
   }
-  async setCompleted() {
-    const markPath = path.join(this.dir, '.mark');
-    if (fs.isFileExist(markPath)) await fs.unlink(markPath);
+  async removeUncompleteMark() {
+    const markPath = path.join(this.dir, '.uncomplete');
+    if (await fs.isFileExist(markPath)) await fs.unlink(markPath);
   }
 }
