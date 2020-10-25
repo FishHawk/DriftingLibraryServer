@@ -33,7 +33,7 @@ export class LibraryAccessor {
     if (!this.validateMangaId(mangaId)) return undefined;
     const mangaDir = path.join(this.dir, mangaId);
     if (!(await fs.isDirectoryExist(mangaDir))) return undefined;
-    return fs.rmdir(mangaDir).then(() => mangaId);
+    return fs.rmdir(mangaDir, { recursive: true }).then(() => mangaId);
   }
 
   async getManga(mangaId: string) {
