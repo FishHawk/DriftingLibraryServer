@@ -98,7 +98,7 @@ export default class Provider extends ProviderAdapter {
 
   async requestImage(url: string) {
     return this.api.instance
-      .get(encodeURI(url), { responseType: 'stream' })
+      .get(url, { responseType: 'stream' })
       .then((res) => {
         const mime = res.headers['content-type'];
         const image = fs.Image.fromMime(mime, res.data);
