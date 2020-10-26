@@ -41,7 +41,8 @@ function parseMangaOutlines(json: any): Entity.MangaOutline[] {
 }
 
 function parseMangaDetail(json: any): Entity.MangaDetail {
-  let thumb = json.mangaCoverimageUrl;
+  let thumb = json.mangaPicimageUrl;
+  // let thumb = json.mangaCoverimageUrl;
   if (
     thumb === undefined ||
     thumb === '' ||
