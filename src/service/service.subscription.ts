@@ -13,7 +13,7 @@ export class SubscriptionService {
   ) {
     new CronJob(
       '0 0 4 * * *',
-      this.updateAllSubscription,
+      () => this.updateAllSubscription(),
       null,
       true,
       'Asia/Chongqing'
@@ -23,7 +23,7 @@ export class SubscriptionService {
   private async updateAllSubscription() {
     logger.info('Update subscription');
     const subscriptions = await this.repository.find({
-      where: { isEnable: true },
+      where: { isEnabled: true },
     });
     return Promise.all(subscriptions.map(this.updateSubscription));
   }
