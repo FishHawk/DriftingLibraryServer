@@ -9,6 +9,7 @@ import {
 
 import { BadRequestError } from './exception';
 import { getMergedIndications, MergedInd } from './decorator/indication';
+import { isArray } from '../util/validator/sanitizer';
 
 export abstract class ControllerAdapter {
   protected abstract readonly prefix: string;
@@ -75,6 +76,7 @@ function extractQuery(name: string, type: string): ParameterExtractor {
 function extractBody(name: string, type: string): ParameterExtractor {
   if (type === 'String') return (req: Request) => extractString(req.body, name);
   if (type === 'Number') return (req: Request) => extractNumber(req.body, name);
+  if (type === 'Array') return (req: Request) => extractArray(req.body, name);
   throw new Error('unsupport parameter type');
 }
 
@@ -90,6 +92,12 @@ function extractNumber(obj: any, key: string): number | undefined {
     const valueInt = Number.parseInt(value);
     if (!Number.isNaN(valueInt)) return valueInt;
   }
+  throw new BadRequestError(`illegal argument: ${key}`);
+}
+
+function extractArray(obj: any, key: string): string[] | undefined {
+  const value = obj[key];
+  if (isArray(value)) return value;
   throw new BadRequestError(`illegal argument: ${key}`);
 }
 

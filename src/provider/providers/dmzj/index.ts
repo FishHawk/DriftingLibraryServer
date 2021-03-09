@@ -103,7 +103,8 @@ export default class Provider extends ProviderAdapter {
       .get(url, { responseType: 'stream' })
       .then((res) => {
         const mime = res.headers['content-type'];
-        const image = fs.Image.fromMime(mime, res.data);
+        const contentLength = Number(res.headers['content-length']);
+        const image = fs.Image.fromMime(mime, res.data, contentLength);
         if (image !== undefined) return image;
         throw new Error('unknown content type');
       });

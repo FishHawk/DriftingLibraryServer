@@ -14,7 +14,7 @@ const rootDir = parseEnvLibraryDir(process.env.APP_LIBRARY_DIR);
 App.createInstance(rootDir)
   .then((app) => app.listen())
   .catch((e) => {
-    logger.error(e);
+    logger.error(e.stack);
     process.exit(1);
   });
 

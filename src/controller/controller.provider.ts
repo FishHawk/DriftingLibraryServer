@@ -133,7 +133,8 @@ export class ProviderController extends ControllerAdapter {
     return this.getProvider(providerId)
       .requestImage(url)
       .then((image) => {
-        res.set({ 'Content-Length': image.contentLength });
+        if (image.contentLength != 0)
+          res.set({ 'Content-Length': image.contentLength });
         image.pipe(res);
       });
   }
