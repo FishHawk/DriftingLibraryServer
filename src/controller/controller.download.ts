@@ -6,7 +6,7 @@ import { ControllerAdapter } from './adapter';
 import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
 import { Get, Patch, Post, Delete } from './decorator/action';
-import { Res, Body, Param } from './decorator/param';
+import { Res, BodyField, Param } from './decorator/param';
 import { DownloadDesc } from '../database/entity';
 
 export class DownloadController extends ControllerAdapter {
@@ -39,9 +39,9 @@ export class DownloadController extends ControllerAdapter {
   @Post('/item')
   createDownloadTask(
     @Res() res: Response,
-    @Body('providerId') providerId: string,
-    @Body('sourceManga') sourceManga: string,
-    @Body('targetManga') targetManga: string
+    @BodyField('providerId') providerId: string,
+    @BodyField('sourceManga') sourceManga: string,
+    @BodyField('targetManga') targetManga: string
   ) {
     return this.downloadService
       .createDownloadTask(providerId, sourceManga, targetManga)

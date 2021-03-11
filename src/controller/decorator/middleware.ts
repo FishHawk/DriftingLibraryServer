@@ -5,7 +5,7 @@ import { getIndications, pushIndication } from './indication';
 /* type define */
 type MiddlewareType = 'before' | 'after';
 export interface MiddlewareInd {
-  readonly method: string | symbol;
+  readonly key: string | symbol;
   readonly type: MiddlewareType;
   readonly middleware: RequestHandler;
 }
@@ -18,21 +18,13 @@ function pushMiddlewareIndication(target: Object, ind: MiddlewareInd) {
   pushIndication(target, IND_KEY_MIDDLEWARE, ind);
 }
 
-/* annotation */
+/* decorators */
 export const UseBefore = (middleware: RequestHandler): MethodDecorator => {
-  return (target, key: string | symbol): void =>
-    pushMiddlewareIndication(target, {
-      method: key,
-      type: 'before',
-      middleware,
-    });
+  return (target, key): void =>
+    pushMiddlewareIndication(target, { key, type: 'before', middleware });
 };
 
 export const UseAfter = (middleware: RequestHandler): MethodDecorator => {
-  return (target, key: string | symbol): void =>
-    pushMiddlewareIndication(target, {
-      method: key,
-      type: 'after',
-      middleware,
-    });
+  return (target, key): void =>
+    pushMiddlewareIndication(target, { key, type: 'after', middleware });
 };

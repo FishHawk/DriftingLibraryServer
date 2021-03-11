@@ -17,12 +17,12 @@ export abstract class ControllerAdapter {
   constructor() {
     const target = Object.getPrototypeOf(this);
     getMergedIndications(target).forEach((ind) => {
-      const middlewares = [
+      this.router[ind.method](
+        ind.path,
         ...ind.useBefore,
-        this.wrap(ind.method, ind.extractors),
-        ...ind.useAfter,
-      ];
-      this.router[ind.type](ind.path, ...middlewares);
+        this.wrap(ind.key, ind.extractors),
+        ...ind.useAfter
+      );
     });
   }
 

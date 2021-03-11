@@ -1,5 +1,4 @@
 import { getIndications, pushIndication } from './indication';
-import { getParameterIndication, ParameterExtractor } from './param';
 
 /* type define */
 type ActionType =
@@ -12,69 +11,49 @@ type ActionType =
   | 'options'
   | 'head';
 export interface ActionInd {
-  readonly method: string | symbol;
+  readonly key: string | symbol;
   readonly path: string;
-  readonly type: ActionType;
-  readonly extractors: ParameterExtractor[];
+  readonly method: ActionType;
 }
 
 const IND_KEY_ACTION = 'action';
 export function getActionIndication(target: Object) {
   return getIndications<ActionInd>(target, IND_KEY_ACTION);
 }
-function pushActionIndication(
-  target: Object,
-  key: string | symbol,
-  path: string,
-  type: ActionType
-) {
-  const extractors = getParameterIndication(target)
-    .filter((it) => it.method == key)
-    .sort((a, b) => a.index - b.index)
-    .map((it) => it.extractor);
-  const paramSize = (Reflect.getMetadata(
-    'design:paramtypes',
-    target,
-    key
-  ) as Function[]).length;
-
-  if (extractors.length !== paramSize)
-    throw new Error(`unmatched parameter length of ${key as string}`);
-
-  const ind: ActionInd = { method: key, path, type, extractors };
+function pushActionIndication(target: Object, ind: ActionInd) {
   pushIndication(target, IND_KEY_ACTION, ind);
 }
 
-/* annotation */
+/* decorators */
 export const All = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'all');
+    pushActionIndication(target, { key, path, method: 'all' });
 };
 export const Get = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'get');
+    pushActionIndication(target, { key, path, method: 'get' });
 };
 export const Post = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'post');
+    pushActionIndication(target, { key, path, method: 'post' });
 };
 export const Put = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'put');
+    pushActionIndication(target, { key, path, method: 'put' });
 };
 export const Delete = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'delete');
+    pushActionIndication(target, { key, path, method: 'delete' });
 };
 export const Patch = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'patch');
+    pushActionIndication(target, { key, path, method: 'patch' });
 };
 export const Options = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'options');
+    pushActionIndication(target, { key, path, method: 'options' });
 };
 export const Head = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, key, path, 'head');
+    pushActionIndication(target, { key, path, method: 'head' });
 };

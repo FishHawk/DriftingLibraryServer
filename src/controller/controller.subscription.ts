@@ -6,7 +6,7 @@ import { ControllerAdapter } from './adapter';
 import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
 import { Get, Patch, Post, Delete } from './decorator/action';
-import { Res, Body, Param } from './decorator/param';
+import { Res, BodyField, Param } from './decorator/param';
 import { Subscription } from '../database/entity';
 
 export class SubscriptionController extends ControllerAdapter {
@@ -41,9 +41,9 @@ export class SubscriptionController extends ControllerAdapter {
   @Post('/item')
   createSubscription(
     @Res() res: Response,
-    @Body('providerId') providerId: string,
-    @Body('sourceManga') sourceManga: string,
-    @Body('targetManga') targetManga: string
+    @BodyField('providerId') providerId: string,
+    @BodyField('sourceManga') sourceManga: string,
+    @BodyField('targetManga') targetManga: string
   ) {
     return this.subscribeService
       .createSubscription(providerId, sourceManga, targetManga)

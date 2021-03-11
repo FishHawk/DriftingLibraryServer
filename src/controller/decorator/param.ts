@@ -1,11 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
+
+import {
+  isBoolean,
+  isNumber,
+  isString,
+  Sanitizer,
+} from '../../util/validator/sanitizer';
 import { BadRequestError } from '../exception';
 
 import { getIndications, pushIndication } from './indication';
 
 /* type define */
 export interface ParameterInd {
-  readonly method: string | symbol;
+  readonly key: string | symbol;
   readonly index: number;
   readonly extractor: ParameterExtractor;
 }
@@ -25,42 +32,13 @@ export type ParameterExtractor = (
   next: NextFunction
 ) => any;
 
-const extractRequest = (req: Request) => req;
-const extractResponse = (_req: Request, res: Response) => res;
-const extractParamRaw = (req: Request) => req.params;
-const extractQueryRaw = (req: Request) => req.query;
-const extractBodyRaw = (req: Request) => req.body;
-
-function extractParam(name: string, type: string): ParameterExtractor {
-  if (type === 'String')
-    return (req: Request) => extractString(req.params, name);
-  if (type === 'Number')
-    return (req: Request) => extractNumber(req.params, name);
-  throw new Error('unsupport parameter type');
-}
-
-function extractQuery(name: string, type: string): ParameterExtractor {
-  if (type === 'String')
-    return (req: Request) => extractString(req.query, name);
-  if (type === 'Number')
-    return (req: Request) => extractNumber(req.query, name);
-  throw new Error('unsupport parameter type');
-}
-
-function extractBody(name: string, type: string): ParameterExtractor {
-  if (type === 'String') return (req: Request) => extractString(req.body, name);
-  if (type === 'Number') return (req: Request) => extractNumber(req.body, name);
-  if (type === 'Array') return (req: Request) => extractArray(req.body, name);
-  throw new Error('unsupport parameter type');
-}
-
-function extractString(obj: any, key: string): string | undefined {
+function extractString(obj: any, key: string): string | never {
   const value = obj[key];
   if (typeof value === 'string') return value;
   throw new BadRequestError(`illegal argument: ${key}`);
 }
 
-function extractNumber(obj: any, key: string): number | undefined {
+function extractNumber(obj: any, key: string): number | never {
   const value = obj[key];
   if (typeof value === 'string') {
     const valueInt = Number.parseInt(value);
@@ -69,79 +47,125 @@ function extractNumber(obj: any, key: string): number | undefined {
   throw new BadRequestError(`illegal argument: ${key}`);
 }
 
-function extractArray(obj: any, key: string): string[] | undefined {
+function extractBoolean(obj: any, key: string): boolean | never {
+  const value = obj[key];
+  if (typeof value === 'string') {
+    if (value.toLowerCase() === 'true') return true;
+    if (value.toLowerCase() === 'false') return false;
+  }
+  throw new BadRequestError(`illegal argument: ${key}`);
+}
+
+function extractStringArray(obj: any, key: string): string[] | never {
   const value = obj[key];
   if (Array.isArray(value)) return value;
   throw new BadRequestError(`illegal argument: ${key}`);
 }
 
-/* req & res */
+/* req */
+const extractRequest = (req: Request) => req;
 export const Req = (): ParameterDecorator => {
   return (target, key, index): void => {
-    pushParameterIndication(target, {
-      method: key,
-      index,
-      extractor: extractRequest,
-    });
+    pushParameterIndication(target, { key, index, extractor: extractRequest });
   };
 };
 
+/* res */
+const extractResponse = (_req: Request, res: Response) => res;
 export const Res = (): ParameterDecorator => {
   return (target, key, index): void =>
-    pushParameterIndication(target, {
-      method: key,
-      index,
-      extractor: extractResponse,
-    });
+    pushParameterIndication(target, { key, index, extractor: extractResponse });
 };
 
 /* param */
+const extractParam = (req: Request) => req.params;
+function buildParamExtractor(name: string, type: string): ParameterExtractor {
+  if (type === 'String')
+    return (req: Request) => extractString(req.params, name);
+  if (type === 'Number')
+    return (req: Request) => extractNumber(req.params, name);
+  throw new Error('Unsupport param type');
+}
+
 export const Param = (name?: string): ParameterDecorator => {
   return (target, key, index): void => {
     let extractor;
-    if (name == undefined) extractor = extractParamRaw;
+    if (name == undefined) extractor = extractParam;
     else {
-      const type: Function = Reflect.getMetadata(
-        'design:paramtypes',
-        target,
-        key
-      )[index];
-      extractor = extractParam(name, type.name);
+      const type = Reflect.getMetadata('design:paramtypes', target, key)[index]
+        .name;
+      extractor = buildParamExtractor(name, type);
     }
-    pushParameterIndication(target, { method: key, index, extractor });
+    pushParameterIndication(target, { key: key, index, extractor });
   };
 };
 
 /* query */
+const extractQuery = (req: Request) => req.query;
+function buildQueryExtractor(name: string, type: string): ParameterExtractor {
+  if (type === 'String')
+    return (req: Request) => extractString(req.query, name);
+  if (type === 'Number')
+    return (req: Request) => extractNumber(req.query, name);
+  if (type === 'Boolean')
+    return (req: Request) => extractBoolean(req.query, name);
+  if (type === 'Array')
+    return (req: Request) => extractStringArray(req.query, name);
+  throw new Error('Unsupport query type');
+}
+
 export const Query = (name?: string): ParameterDecorator => {
   return (target, key, index): void => {
     let extractor;
-    if (name == undefined) extractor = extractQueryRaw;
+    if (name == undefined) extractor = extractQuery;
     else {
-      const type: Function = Reflect.getMetadata(
-        'design:paramtypes',
-        target,
-        key
-      )[index];
-      extractor = extractQuery(name, type.name);
+      const type = Reflect.getMetadata('design:paramtypes', target, key)[index]
+        .name;
+      extractor = buildQueryExtractor(name, type);
     }
-    pushParameterIndication(target, { method: key, index, extractor });
+    pushParameterIndication(target, { key, index, extractor });
   };
 };
 
 /* body */
-export const Body = (name?: string): ParameterDecorator => {
+export const Body = (sanitizer?: Sanitizer<any>): ParameterDecorator => {
   return (target, key, index): void => {
     let extractor;
-    if (name == undefined) extractor = extractBodyRaw;
-    else {
-      const type: Function = Reflect.getMetadata(
-        'design:paramtypes',
-        target,
-        key
-      )[index];
-      extractor = extractBody(name, type.name);
+    if (sanitizer === undefined) extractor = (req: Request) => req.body;
+    else
+      extractor = (req: Request) => {
+        const obj = req.body;
+        if ((sanitizer as Sanitizer<any>)(obj)) return obj;
+        else throw new BadRequestError(`illegal argument`);
+      };
+
+    pushParameterIndication(target, { key, index, extractor });
+  };
+};
+
+export const BodyField = (
+  name: string,
+  sanitizer?: Sanitizer<any>
+): ParameterDecorator => {
+  return (target, key, index): void => {
+    if (sanitizer === undefined) {
+      const type = Reflect.getMetadata('design:paramtypes', target, key)[index]
+        .name;
+      if (type === 'String') sanitizer = isString();
+      else if (type === 'Number') sanitizer = isNumber();
+      else if (type === 'Boolean') sanitizer = isBoolean();
+      else throw new Error('Unsupport body field type');
     }
-    pushParameterIndication(target, { method: key, index, extractor });
+
+    let extractor;
+    if (sanitizer === undefined) extractor = (req: Request) => req.body[name];
+    else
+      extractor = (req: Request, res: Response) => {
+        const obj = req.body[name];
+        if ((sanitizer as Sanitizer<any>)(obj)) return obj;
+        else throw new BadRequestError(`illegal argument: ${name}`);
+      };
+
+    pushParameterIndication(target, { key: key, index, extractor });
   };
 };
