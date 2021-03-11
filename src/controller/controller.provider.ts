@@ -7,7 +7,7 @@ import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
 
 import { Get } from './decorator/action';
-import { Res, Param, Query, RawQuery } from './decorator/param';
+import { Res, Param, Query } from './decorator/param';
 
 export class ProviderController extends ControllerAdapter {
   protected readonly prefix = '/provider';
@@ -58,7 +58,7 @@ export class ProviderController extends ControllerAdapter {
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Query('page') page: number,
-    @RawQuery() option: any
+    @Query() option: any
   ) {
     for (const key in option) {
       option[key] = Number.parseInt(option[key]);
@@ -74,7 +74,7 @@ export class ProviderController extends ControllerAdapter {
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Query('page') page: number,
-    @RawQuery() option: any
+    @Query() option: any
   ) {
     for (const key in option) {
       option[key] = Number.parseInt(option[key]);
@@ -90,7 +90,7 @@ export class ProviderController extends ControllerAdapter {
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Query('page') page: number,
-    @RawQuery() option: any
+    @Query() option: any
   ) {
     for (const key in option) {
       option[key] = Number.parseInt(option[key]);

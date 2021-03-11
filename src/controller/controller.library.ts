@@ -11,7 +11,7 @@ import { BadRequestError, NotFoundError } from './exception';
 
 import { Get, Delete, Patch } from './decorator/action';
 import { UseBefore } from './decorator/middleware';
-import { Req, Res, Query, Param, RawBody } from './decorator/param';
+import { Req, Res, Query, Param, Body } from './decorator/param';
 import { Readable } from 'typeorm/platform/PlatformTools';
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -71,7 +71,7 @@ export class LibraryController extends ControllerAdapter {
   patchMangaMetadata(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
-    @RawBody() body: any
+    @Body() body: any
   ) {
     return this.library
       .getManga(mangaId)
