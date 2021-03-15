@@ -8,7 +8,7 @@ import {
 } from '../../util/validator/sanitizer';
 import { BadRequestError } from '../exception';
 
-import { getIndications, pushIndication } from './indication';
+import { ListMetadataEntry } from './helper';
 
 /* type define */
 export interface ParameterInd {
@@ -16,14 +16,9 @@ export interface ParameterInd {
   readonly index: number;
   readonly extractor: ParameterExtractor;
 }
-
-export const IND_KEY_PARAMETER = 'parameter';
-export function getParameterIndication(target: Object) {
-  return getIndications<ParameterInd>(target, IND_KEY_PARAMETER);
-}
-function pushParameterIndication(target: Object, ind: ParameterInd) {
-  pushIndication(target, IND_KEY_PARAMETER, ind);
-}
+export const parameterIndEntry = new ListMetadataEntry<ParameterInd>(
+  'parameter'
+);
 
 /* extractor */
 export type ParameterExtractor = (
@@ -66,7 +61,7 @@ function extractStringArray(obj: any, key: string): string[] | never {
 const extractRequest = (req: Request) => req;
 export const Req = (): ParameterDecorator => {
   return (target, key, index): void => {
-    pushParameterIndication(target, { key, index, extractor: extractRequest });
+    parameterIndEntry.push(target, { key, index, extractor: extractRequest });
   };
 };
 
@@ -74,7 +69,7 @@ export const Req = (): ParameterDecorator => {
 const extractResponse = (_req: Request, res: Response) => res;
 export const Res = (): ParameterDecorator => {
   return (target, key, index): void =>
-    pushParameterIndication(target, { key, index, extractor: extractResponse });
+    parameterIndEntry.push(target, { key, index, extractor: extractResponse });
 };
 
 /* param */
@@ -96,7 +91,7 @@ export const Param = (name?: string): ParameterDecorator => {
         .name;
       extractor = buildParamExtractor(name, type);
     }
-    pushParameterIndication(target, { key: key, index, extractor });
+    parameterIndEntry.push(target, { key: key, index, extractor });
   };
 };
 
@@ -123,7 +118,7 @@ export const Query = (name?: string): ParameterDecorator => {
         .name;
       extractor = buildQueryExtractor(name, type);
     }
-    pushParameterIndication(target, { key, index, extractor });
+    parameterIndEntry.push(target, { key, index, extractor });
   };
 };
 
@@ -139,7 +134,7 @@ export const Body = (sanitizer?: Sanitizer<any>): ParameterDecorator => {
         else throw new BadRequestError(`illegal argument`);
       };
 
-    pushParameterIndication(target, { key, index, extractor });
+    parameterIndEntry.push(target, { key, index, extractor });
   };
 };
 
@@ -166,6 +161,6 @@ export const BodyField = (
         else throw new BadRequestError(`illegal argument: ${name}`);
       };
 
-    pushParameterIndication(target, { key: key, index, extractor });
+    parameterIndEntry.push(target, { key: key, index, extractor });
   };
 };

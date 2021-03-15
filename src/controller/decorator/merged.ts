@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
-import { ActionInd, getActionIndication } from './action';
-import { getMiddlewareIndication } from './middleware';
-import { getParameterIndication, ParameterExtractor } from './param';
+import { ActionInd, actionIndEntry } from './action';
+import { middlewareIndEntry } from './middleware';
+import { ParameterExtractor, parameterIndEntry } from './param';
 
 export type MergedInd = ActionInd & {
   readonly useBefore: RequestHandler[];
@@ -10,8 +10,8 @@ export type MergedInd = ActionInd & {
 };
 
 export function getMergedIndications(target: Object): MergedInd[] {
-  const actionIndList = getActionIndication(target);
-  const middlewareIndList = getMiddlewareIndication(target);
+  const actionIndList = actionIndEntry.get(target, []);
+  const middlewareIndList = middlewareIndEntry.get(target, []);
 
   return actionIndList.map((indA) => {
     const ind: MergedInd = {
@@ -22,7 +22,8 @@ export function getMergedIndications(target: Object): MergedInd[] {
       useAfter: middlewareIndList
         .filter((indM) => indM.key === indA.key && indM.type === 'after')
         .map((indM) => indM.middleware),
-      extractors: getParameterIndication(target)
+      extractors: parameterIndEntry
+        .get(target, [])
         .filter((it) => it.key == indA.key)
         .sort((a, b) => a.index - b.index)
         .map((it, index) => {

@@ -1,4 +1,4 @@
-import { getIndications, pushIndication } from './indication';
+import { ListMetadataEntry } from './helper';
 
 /* type define */
 type ActionType =
@@ -15,45 +15,38 @@ export interface ActionInd {
   readonly path: string;
   readonly method: ActionType;
 }
-
-const IND_KEY_ACTION = 'action';
-export function getActionIndication(target: Object) {
-  return getIndications<ActionInd>(target, IND_KEY_ACTION);
-}
-function pushActionIndication(target: Object, ind: ActionInd) {
-  pushIndication(target, IND_KEY_ACTION, ind);
-}
+export const actionIndEntry = new ListMetadataEntry<ActionInd>('action');
 
 /* decorators */
 export const All = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'all' });
+    actionIndEntry.push(target, { key, path, method: 'all' });
 };
 export const Get = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'get' });
+    actionIndEntry.push(target, { key, path, method: 'get' });
 };
 export const Post = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'post' });
+    actionIndEntry.push(target, { key, path, method: 'post' });
 };
 export const Put = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'put' });
+    actionIndEntry.push(target, { key, path, method: 'put' });
 };
 export const Delete = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'delete' });
+    actionIndEntry.push(target, { key, path, method: 'delete' });
 };
 export const Patch = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'patch' });
+    actionIndEntry.push(target, { key, path, method: 'patch' });
 };
 export const Options = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'options' });
+    actionIndEntry.push(target, { key, path, method: 'options' });
 };
 export const Head = (path: string): MethodDecorator => {
   return (target, key: string | symbol): void =>
-    pushActionIndication(target, { key, path, method: 'head' });
+    actionIndEntry.push(target, { key, path, method: 'head' });
 };
