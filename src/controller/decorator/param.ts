@@ -17,7 +17,7 @@ export interface ParameterInd {
   readonly extractor: ParameterExtractor;
 }
 export const parameterIndEntry = new ListMetadataEntry<ParameterInd>(
-  'parameter'
+  'http:parameter'
 );
 
 /* extractor */

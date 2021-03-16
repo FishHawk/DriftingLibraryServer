@@ -3,11 +3,11 @@ import { Response } from 'express';
 import { ControllerAdapter } from './adapter';
 
 import { Get } from './decorator/action';
+import { Controller } from './decorator/controller';
 import { Res } from './decorator/param';
-import { BadRequestError } from './exception';
 
+@Controller('/')
 export class SystemController extends ControllerAdapter {
-  protected readonly prefix = '/';
   constructor() {
     super();
   }

@@ -8,9 +8,10 @@ import { NotFoundError, ConflictError, BadRequestError } from './exception';
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, BodyField, Param } from './decorator/param';
 import { Subscription } from '../database/entity';
+import { Controller } from './decorator/controller';
 
+@Controller('/subscription')
 export class SubscriptionController extends ControllerAdapter {
-  protected readonly prefix = '/subscription';
   constructor(private readonly subscribeService: SubscriptionService) {
     super();
   }

@@ -8,9 +8,10 @@ import { BadRequestError, NotFoundError } from './exception';
 
 import { Get } from './decorator/action';
 import { Res, Param, Query } from './decorator/param';
+import { Controller } from './decorator/controller';
 
+@Controller('/provider')
 export class ProviderController extends ControllerAdapter {
-  protected readonly prefix = '/provider';
   constructor(private readonly providerManager: ProviderManager) {
     super();
   }

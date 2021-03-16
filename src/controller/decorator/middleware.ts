@@ -10,7 +10,7 @@ export interface MiddlewareInd {
   readonly middleware: RequestHandler;
 }
 export const middlewareIndEntry = new ListMetadataEntry<MiddlewareInd>(
-  'middleware'
+  'http:middleware'
 );
 
 /* decorators */

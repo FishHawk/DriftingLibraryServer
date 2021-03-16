@@ -8,9 +8,10 @@ import { NotFoundError, ConflictError, BadRequestError } from './exception';
 import { Get, Patch, Post, Delete } from './decorator/action';
 import { Res, BodyField, Param } from './decorator/param';
 import { DownloadDesc } from '../database/entity';
+import { Controller } from './decorator/controller';
 
+@Controller('/download')
 export class DownloadController extends ControllerAdapter {
-  protected readonly prefix = '/download';
   constructor(private readonly downloadService: DownloadService) {
     super();
   }

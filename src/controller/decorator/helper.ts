@@ -8,15 +8,15 @@ export class MetadataEntry<T> {
       if (defaultValue !== undefined) return defaultValue;
       else throw Error(`Target does not have metadata ${this.key}.`);
     }
-    return Reflect.getMetadata(this.key, target.constructor);
+    return Reflect.getMetadata(this.key, target);
   }
 
   set(target: Object, value: T) {
-    Reflect.defineMetadata(this.key, value, target.constructor);
+    Reflect.defineMetadata(this.key, value, target);
   }
 
   has(target: Object): boolean {
-    return Reflect.hasMetadata(this.key, target.constructor);
+    return Reflect.hasMetadata(this.key, target);
   }
 }
 

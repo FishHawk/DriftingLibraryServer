@@ -6,17 +6,16 @@ import {
   RequestHandler,
   Application,
 } from 'express';
+import { controllerIndEntry } from './decorator/controller';
 
-import { getMergedIndications } from './decorator/merged';
 import { ParameterExtractor } from './decorator/param';
 
 export abstract class ControllerAdapter {
-  protected abstract readonly prefix: string;
   protected readonly router = Router();
 
   constructor() {
-    const target = Object.getPrototypeOf(this);
-    getMergedIndications(target).forEach((ind) => {
+    const cInd = controllerIndEntry.get(this);
+    cInd.methods.forEach((ind) => {
       this.router[ind.method](
         ind.path,
         ...ind.useBefore,
@@ -27,7 +26,8 @@ export abstract class ControllerAdapter {
   }
 
   bind(app: Application) {
-    app.use(this.prefix, this.router);
+    const cInd = controllerIndEntry.get(this);
+    app.use(cInd.prefix, this.router);
   }
 
   private wrap = (

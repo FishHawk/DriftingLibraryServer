@@ -13,11 +13,12 @@ import { Get, Delete, Patch } from './decorator/action';
 import { UseBefore } from './decorator/middleware';
 import { Req, Res, Query, Param, Body } from './decorator/param';
 import { Readable } from 'typeorm/platform/PlatformTools';
+import { Controller } from './decorator/controller';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+@Controller('/library')
 export class LibraryController extends ControllerAdapter {
-  protected readonly prefix = '/library';
   constructor(
     private readonly library: LibraryAccessor,
     private readonly downloadService: DownloadService,
