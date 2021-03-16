@@ -3,7 +3,6 @@ import { Response } from 'express';
 import { ProviderAdapter } from '../provider/providers/adapter';
 import { ProviderManager } from '../provider/manager';
 
-import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
 
 import { Get } from './decorator/verb';
@@ -11,10 +10,8 @@ import { Res, Param, Query } from './decorator/parameter';
 import { Controller } from './decorator/controller';
 
 @Controller('/provider')
-export class ProviderController extends ControllerAdapter {
-  constructor(private readonly providerManager: ProviderManager) {
-    super();
-  }
+export class ProviderController {
+  constructor(private readonly providerManager: ProviderManager) {}
 
   @Get('/list')
   getProviders(@Res() res: Response) {

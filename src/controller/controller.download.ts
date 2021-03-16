@@ -2,7 +2,6 @@ import { Response } from 'express';
 
 import { DownloadService } from '../service/service.download';
 
-import { ControllerAdapter } from './adapter';
 import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
 import { Get, Patch, Post, Delete } from './decorator/verb';
@@ -11,10 +10,8 @@ import { DownloadDesc } from '../database/entity';
 import { Controller } from './decorator/controller';
 
 @Controller('/download')
-export class DownloadController extends ControllerAdapter {
-  constructor(private readonly downloadService: DownloadService) {
-    super();
-  }
+export class DownloadController {
+  constructor(private readonly downloadService: DownloadService) {}
 
   @Get('/list')
   getAllDownloadTask(@Res() res: Response) {

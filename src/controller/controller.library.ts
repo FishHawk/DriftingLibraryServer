@@ -6,7 +6,6 @@ import { SubscriptionService } from '../service/service.subscription';
 import { LibraryAccessor } from '../library/accessor.library';
 import { Image } from '../util/fs';
 
-import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
 
 import { Get, Delete, Patch } from './decorator/verb';
@@ -18,20 +17,20 @@ import { Controller } from './decorator/controller';
 const upload = multer({ storage: multer.memoryStorage() });
 
 @Controller('/library')
-export class LibraryController extends ControllerAdapter {
+export class LibraryController {
   constructor(
     private readonly library: LibraryAccessor,
     private readonly downloadService: DownloadService,
     private readonly subscriptionService: SubscriptionService
   ) {
-    super();
-    this.router.use(
-      '/image',
-      express.static(this.library.dir, {
-        dotfiles: 'ignore',
-        fallthrough: false,
-      })
-    );
+    // super();
+    // this.router.use(
+    //   '/image',
+    //   express.static(this.library.dir, {
+    //     dotfiles: 'ignore',
+    //     fallthrough: false,
+    //   })
+    // );
   }
 
   @Get('/search')

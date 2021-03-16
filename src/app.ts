@@ -3,12 +3,12 @@ import express from 'express';
 
 import { logger } from './logger';
 
-import { ControllerAdapter } from './controller/adapter';
 import { DownloadController } from './controller/controller.download';
 import { LibraryController } from './controller/controller.library';
 import { ProviderController } from './controller/controller.provider';
 import { SubscriptionController } from './controller/controller.subscription';
 import { SystemController } from './controller/controller.system';
+import { bind } from './controller/decorator/bind';
 
 import { logMiddleware } from './controller/middleware.log';
 import { errorHandleMiddleware } from './controller/middleware.error_handle';
@@ -28,8 +28,6 @@ export class App {
   private providerManager!: ProviderManager;
   private downloadService!: DownloadService;
   private subscribeService!: SubscriptionService;
-
-  private controllers!: ControllerAdapter[];
 
   public static async createInstance(rootDir: string) {
     return new App(rootDir).initialize();
@@ -66,7 +64,7 @@ export class App {
     );
 
     /* controller */
-    this.controllers = [
+    [
       new LibraryController(
         this.libraryAccessor,
         this.downloadService,
@@ -76,9 +74,8 @@ export class App {
       new DownloadController(this.downloadService),
       new SubscriptionController(this.subscribeService),
       new SystemController(),
-    ];
-    this.controllers.forEach((controller) => {
-      controller.bind(this.app);
+    ].forEach((controller) => {
+      bind(this.app, controller);
     });
 
     /* error handle middleware */

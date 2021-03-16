@@ -2,7 +2,6 @@ import { Response } from 'express';
 
 import { SubscriptionService } from '../service/service.subscription';
 
-import { ControllerAdapter } from './adapter';
 import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
 import { Get, Patch, Post, Delete } from './decorator/verb';
@@ -11,10 +10,8 @@ import { Subscription } from '../database/entity';
 import { Controller } from './decorator/controller';
 
 @Controller('/subscription')
-export class SubscriptionController extends ControllerAdapter {
-  constructor(private readonly subscribeService: SubscriptionService) {
-    super();
-  }
+export class SubscriptionController {
+  constructor(private readonly subscribeService: SubscriptionService) {}
 
   @Get('/list')
   getAllSubscription(@Res() res: Response) {
