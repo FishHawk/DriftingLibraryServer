@@ -6,8 +6,8 @@ import { ProviderManager } from '../provider/manager';
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
 
-import { Get } from './decorator/action';
-import { Res, Param, Query } from './decorator/param';
+import { Get } from './decorator/verb';
+import { Res, Param, Query } from './decorator/parameter';
 import { Controller } from './decorator/controller';
 
 @Controller('/provider')

@@ -4,7 +4,7 @@ import { ListMetadataEntry } from './helper';
 
 /* type define */
 type MiddlewareType = 'before' | 'after';
-export interface MiddlewareInd {
+interface MiddlewareInd {
   readonly key: string | symbol;
   readonly type: MiddlewareType;
   readonly middleware: RequestHandler;

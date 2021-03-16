@@ -1,7 +1,7 @@
 import { ListMetadataEntry } from './helper';
 
 /* type define */
-type ActionType =
+type VerbType =
   | 'all'
   | 'get'
   | 'post'
@@ -10,43 +10,43 @@ type ActionType =
   | 'patch'
   | 'options'
   | 'head';
-export interface ActionInd {
+export interface VerbInd {
   readonly key: string | symbol;
   readonly path: string;
-  readonly method: ActionType;
+  readonly verb: VerbType;
 }
-export const actionIndEntry = new ListMetadataEntry<ActionInd>('http:action');
+export const methodIndEntry = new ListMetadataEntry<VerbInd>('http:verb');
 
 /* decorators */
 export const All = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'all' });
+    methodIndEntry.push(target, { key, path, verb: 'all' });
 };
 export const Get = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'get' });
+    methodIndEntry.push(target, { key, path, verb: 'get' });
 };
 export const Post = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'post' });
+    methodIndEntry.push(target, { key, path, verb: 'post' });
 };
 export const Put = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'put' });
+    methodIndEntry.push(target, { key, path, verb: 'put' });
 };
 export const Delete = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'delete' });
+    methodIndEntry.push(target, { key, path, verb: 'delete' });
 };
 export const Patch = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'patch' });
+    methodIndEntry.push(target, { key, path, verb: 'patch' });
 };
 export const Options = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'options' });
+    methodIndEntry.push(target, { key, path, verb: 'options' });
 };
 export const Head = (path: string): MethodDecorator => {
   return (target, key): void =>
-    actionIndEntry.push(target, { key, path, method: 'head' });
+    methodIndEntry.push(target, { key, path, verb: 'head' });
 };

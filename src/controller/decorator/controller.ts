@@ -1,17 +1,18 @@
 import { RequestHandler } from 'express';
-import { ActionInd, actionIndEntry } from './action';
+
 import { MetadataEntry } from './helper';
 import { middlewareIndEntry } from './middleware';
-import { ParameterExtractor, parameterIndEntry } from './param';
+import { ParameterExtractor, parameterIndEntry } from './parameter';
+import { VerbInd, methodIndEntry } from './verb';
 
 /* type define */
-type MergedInd = ActionInd & {
+type MergedInd = VerbInd & {
   readonly useBefore: RequestHandler[];
   readonly useAfter: RequestHandler[];
   readonly extractors: ParameterExtractor[];
 };
 
-export interface ControllerInd {
+interface ControllerInd {
   readonly prefix: string;
   readonly methods: MergedInd[];
 }
@@ -23,42 +24,42 @@ export const controllerIndEntry = new MetadataEntry<ControllerInd>(
 export const Controller = (prefix: string): ClassDecorator => {
   return (target): void => {
     target = target.prototype;
-    const actionIndList = actionIndEntry.get(target, []);
+    const actionIndList = methodIndEntry.get(target, []);
     const middlewareIndList = middlewareIndEntry.get(target, []);
 
-    const methods = actionIndList.map((indA) => {
+    const methods = actionIndList.map((indV) => {
       const ind: MergedInd = {
-        ...indA,
+        ...indV,
         useBefore: middlewareIndList
-          .filter((indM) => indM.key === indA.key && indM.type === 'before')
+          .filter((indM) => indM.key === indV.key && indM.type === 'before')
           .map((indM) => indM.middleware),
         useAfter: middlewareIndList
-          .filter((indM) => indM.key === indA.key && indM.type === 'after')
+          .filter((indM) => indM.key === indV.key && indM.type === 'after')
           .map((indM) => indM.middleware),
         extractors: parameterIndEntry
           .get(target, [])
-          .filter((it) => it.key == indA.key)
+          .filter((it) => it.key == indV.key)
           .sort((a, b) => a.index - b.index)
-          .map((it, index) => {
-            if (it.index !== index)
+          .map((indP, index) => {
+            if (indP.index !== index)
               throw new Error(
                 `Parameter decorator not match at ${
-                  indA.key as string
+                  indV.key as string
                 }:${index}`
               );
-            return it.extractor;
+            return indP.extractor;
           }),
       };
 
       const paramSize = (Reflect.getMetadata(
         'design:paramtypes',
         target,
-        indA.key
+        indV.key
       ) as Function[]).length;
 
       if (ind.extractors.length !== paramSize)
         throw new Error(
-          `Parameter decorator not match at ${indA.key as string}`
+          `Parameter decorator not match at ${indV.key as string}`
         );
 
       return ind;

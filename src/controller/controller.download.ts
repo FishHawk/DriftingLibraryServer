@@ -5,8 +5,8 @@ import { DownloadService } from '../service/service.download';
 import { ControllerAdapter } from './adapter';
 import { NotFoundError, ConflictError, BadRequestError } from './exception';
 
-import { Get, Patch, Post, Delete } from './decorator/action';
-import { Res, BodyField, Param } from './decorator/param';
+import { Get, Patch, Post, Delete } from './decorator/verb';
+import { Res, BodyField, Param } from './decorator/parameter';
 import { DownloadDesc } from '../database/entity';
 import { Controller } from './decorator/controller';
 

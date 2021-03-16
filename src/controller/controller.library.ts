@@ -9,9 +9,9 @@ import { Image } from '../util/fs';
 import { ControllerAdapter } from './adapter';
 import { BadRequestError, NotFoundError } from './exception';
 
-import { Get, Delete, Patch } from './decorator/action';
+import { Get, Delete, Patch } from './decorator/verb';
 import { UseBefore } from './decorator/middleware';
-import { Req, Res, Query, Param, Body } from './decorator/param';
+import { Req, Res, Query, Param, Body } from './decorator/parameter';
 import { Readable } from 'typeorm/platform/PlatformTools';
 import { Controller } from './decorator/controller';
 

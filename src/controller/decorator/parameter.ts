@@ -11,7 +11,7 @@ import { BadRequestError } from '../exception';
 import { ListMetadataEntry } from './helper';
 
 /* type define */
-export interface ParameterInd {
+interface ParameterInd {
   readonly key: string | symbol;
   readonly index: number;
   readonly extractor: ParameterExtractor;

@@ -2,9 +2,9 @@ import { Response } from 'express';
 
 import { ControllerAdapter } from './adapter';
 
-import { Get } from './decorator/action';
+import { Get } from './decorator/verb';
 import { Controller } from './decorator/controller';
-import { Res } from './decorator/param';
+import { Res } from './decorator/parameter';
 
 @Controller('/')
 export class SystemController extends ControllerAdapter {

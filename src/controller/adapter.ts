@@ -8,7 +8,7 @@ import {
 } from 'express';
 import { controllerIndEntry } from './decorator/controller';
 
-import { ParameterExtractor } from './decorator/param';
+import { ParameterExtractor } from './decorator/parameter';
 
 export abstract class ControllerAdapter {
   protected readonly router = Router();
@@ -16,7 +16,7 @@ export abstract class ControllerAdapter {
   constructor() {
     const cInd = controllerIndEntry.get(this);
     cInd.methods.forEach((ind) => {
-      this.router[ind.method](
+      this.router[ind.verb](
         ind.path,
         ...ind.useBefore,
         this.wrap(ind.key, ind.extractors),
