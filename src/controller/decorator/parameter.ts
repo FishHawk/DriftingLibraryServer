@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { Readable } from 'stream';
 
 import {
   isBoolean,
@@ -6,6 +7,8 @@ import {
   isString,
   Sanitizer,
 } from '../../util/validator/sanitizer';
+import { Image } from '../../util/fs';
+
 import { BadRequestError } from '../exception';
 
 import { ListMetadataEntry } from './helper';
@@ -162,5 +165,26 @@ export const BodyField = (
       };
 
     parameterIndEntry.push(target, { key: key, index, extractor });
+  };
+};
+
+/* file */
+export const ImageFile = (): ParameterDecorator => {
+  return (target, key, index): void => {
+    const extractor = (req: Request) => {
+      if (req.file === undefined)
+        throw new BadRequestError('Illegal argument: thumb file');
+
+      const image = Image.fromMime(
+        req.file.mimetype,
+        Readable.from(req.file.buffer)
+      );
+
+      if (image === undefined)
+        throw new BadRequestError('Illegal argument: thumb file');
+      return image;
+    };
+
+    parameterIndEntry.push(target, { key, index, extractor });
   };
 };

@@ -10,7 +10,7 @@ import { BadRequestError, NotFoundError } from './exception';
 
 import { Get, Delete, Patch } from './decorator/verb';
 import { UseBefore } from './decorator/middleware';
-import { Req, Res, Query, Param, Body } from './decorator/parameter';
+import { Req, Res, Query, Param, Body, ImageFile } from './decorator/parameter';
 import { Readable } from 'typeorm/platform/PlatformTools';
 import { Controller } from './decorator/controller';
 
@@ -85,24 +85,13 @@ export class LibraryController {
   @Patch('/manga/:mangaId/thumb')
   patchMangaThumb(
     @Res() res: Response,
-    @Req() req: Request,
-    @Param('mangaId') mangaId: string
+    @Param('mangaId') mangaId: string,
+    @ImageFile() thumb: Image
   ) {
-    if (req.file === undefined)
-      throw new BadRequestError('Illegal argument: thumb file');
-
     return this.library
       .getManga(mangaId)
       .then(this.handleMangaAccessFail)
-      .then((manga) => {
-        const image = Image.fromMime(
-          req.file.mimetype,
-          Readable.from(req.file.buffer)
-        );
-        if (image === undefined)
-          throw new BadRequestError('Illegal argument: thumb file');
-        return manga.setThumb(image);
-      })
+      .then((manga) => manga.setThumb(thumb))
       .then((manga) => manga.getDetail())
       .then((it) => res.json(it));
   }
