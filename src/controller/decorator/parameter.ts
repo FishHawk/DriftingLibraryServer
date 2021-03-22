@@ -30,6 +30,12 @@ export type ParameterExtractor = (
   next: NextFunction
 ) => any;
 
+function extractAny(obj: any, key: string): any {
+  // TODO : warning no type check
+  const value = obj[key];
+  return value;
+}
+
 function extractString(obj: any, key: string): string | never {
   const value = obj[key];
   if (typeof value === 'string') return value;
@@ -82,7 +88,7 @@ function buildParamExtractor(name: string, type: string): ParameterExtractor {
     return (req: Request) => extractString(req.params, name);
   if (type === 'Number')
     return (req: Request) => extractNumber(req.params, name);
-  throw new Error('Unsupport param type');
+  return (req: Request) => extractAny(req.params, name);
 }
 
 export const Param = (name?: string): ParameterDecorator => {
@@ -109,7 +115,7 @@ function buildQueryExtractor(name: string, type: string): ParameterExtractor {
     return (req: Request) => extractBoolean(req.query, name);
   if (type === 'Array')
     return (req: Request) => extractStringArray(req.query, name);
-  throw new Error('Unsupport query type');
+  return (req: Request) => extractAny(req.params, name);
 }
 
 export const Query = (name?: string): ParameterDecorator => {
@@ -158,7 +164,7 @@ export const BodyField = (
     let extractor;
     if (sanitizer === undefined) extractor = (req: Request) => req.body[name];
     else
-      extractor = (req: Request, res: Response) => {
+      extractor = (req: Request) => {
         const obj = req.body[name];
         if ((sanitizer as Sanitizer<any>)(obj)) return obj;
         else throw new BadRequestError(`illegal argument: ${name}`);

@@ -1,153 +1,144 @@
 import { Response } from 'express';
 
-import { ProviderAdapter } from '../provider/providers/adapter';
 import { ProviderManager } from '../provider/manager';
 
-import { BadRequestError, NotFoundError } from './exception';
-
-import { Get } from './decorator/verb';
-import { Res, Param, Query } from './decorator/parameter';
 import { Controller } from './decorator/controller';
+import { Res, Param, Query } from './decorator/parameter';
+import { Get } from './decorator/verb';
+import { assertExist } from './exception';
 
-@Controller('/provider')
+@Controller('/providers')
 export class ProviderController {
   constructor(private readonly providerManager: ProviderManager) {}
 
-  @Get('/list')
-  getProviders(@Res() res: Response) {
+  @Get('/')
+  listProvider(@Res() res: Response) {
     const providers = this.providerManager
       .getProviderList()
       .map((provider) => provider.getInfo());
     return res.json(providers);
   }
 
-  @Get('/item/:providerId/detail')
-  getProviderDetail(
-    @Res() res: Response,
-    @Param('providerId') providerId: string
-  ) {
-    const detail = this.getProvider(providerId).getDetail();
-    return res.json(detail);
+  @Get('/:providerId')
+  getProvider(@Res() res: Response, @Param('providerId') providerId: string) {
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const providerDetail = provider.getDetail();
+    return res.json(providerDetail);
   }
 
-  @Get('/item/:providerId/icon')
+  @Get('/:providerId/icon')
   getProviderIcon(
     @Res() res: Response,
     @Param('providerId') providerId: string
   ) {
-    const icon = this.getProvider(providerId).getIcon();
-    return icon.pipe(res);
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const icon = provider.getIcon();
+    assertExist(icon, 'icon');
+    return icon.pipe(res.type(icon.mime));
   }
 
-  @Get('/item/:providerId/search')
-  search(
+  @Get('/:providerId/popular')
+  async listPopularManga(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Query('page') page: number,
+    @Query() option: any
+  ) {
+    for (const key in option) {
+      option[key] = Number.parseInt(option[key]);
+    }
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const mangas = await provider.requestPopular(page, option);
+    assertExist(mangas, 'popular mangas');
+    return res.json(mangas);
+  }
+
+  @Get('/:providerId/latest')
+  async listLatestManga(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Query('page') page: number,
+    @Query() option: any
+  ) {
+    for (const key in option) {
+      option[key] = Number.parseInt(option[key]);
+    }
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const mangas = await provider.requestLatest(page, option);
+    assertExist(mangas, 'latest mangas');
+    return res.json(mangas);
+  }
+
+  @Get('/:providerId/category')
+  async listCategoryManga(
+    @Res() res: Response,
+    @Param('providerId') providerId: string,
+    @Query('page') page: number,
+    @Query() option: any
+  ) {
+    for (const key in option) {
+      option[key] = Number.parseInt(option[key]);
+    }
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const mangas = await provider.requestCategory(page, option);
+    assertExist(mangas, 'category mangas');
+    return res.json(mangas);
+  }
+
+  @Get('/:providerId/mangas')
+  async listManga(
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Query('keywords') keywords: string,
     @Query('page') page: number
   ) {
-    return this.getProvider(providerId)
-      .search(page, keywords)
-      .then((it) => res.json(it));
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const mangas = await provider.search(page, keywords);
+    return res.json(mangas);
   }
 
-  @Get('/item/:providerId/popular')
-  getPopular(
-    @Res() res: Response,
-    @Param('providerId') providerId: string,
-    @Query('page') page: number,
-    @Query() option: any
-  ) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
-    return this.getProvider(providerId)
-      .requestPopular(page, option)
-      .then(this.handleMangaListAccessFail)
-      .then((it) => res.json(it));
-  }
-
-  @Get('/item/:providerId/latest')
-  getLatest(
-    @Res() res: Response,
-    @Param('providerId') providerId: string,
-    @Query('page') page: number,
-    @Query() option: any
-  ) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
-    return this.getProvider(providerId)
-      .requestLatest(page, option)
-      .then(this.handleMangaListAccessFail)
-      .then((it) => res.json(it));
-  }
-
-  @Get('/item/:providerId/category')
-  getCategory(
-    @Res() res: Response,
-    @Param('providerId') providerId: string,
-    @Query('page') page: number,
-    @Query() option: any
-  ) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
-    return this.getProvider(providerId)
-      .requestCategory(page, option)
-      .then(this.handleMangaListAccessFail)
-      .then((it) => res.json(it));
-  }
-
-  @Get('/item/:providerId/manga/:mangaId')
-  getManga(
+  @Get('/:providerId/mangas/:mangaId')
+  async getManga(
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Param('mangaId') mangaId: string
   ) {
-    return this.getProvider(providerId)
-      .requestMangaDetail(mangaId)
-      .then((it) => res.json(it));
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const manga = await provider.requestMangaDetail(mangaId);
+    return res.json(manga);
   }
 
-  @Get('/item/:providerId/chapter/:mangaId/:chapterId')
-  getChapter(
+  @Get('/:providerId/mangas/:mangaId/chapters/:chapterId')
+  async getChapter(
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Param('mangaId') mangaId: string,
     @Param('chapterId') chapterId: string
   ) {
-    return this.getProvider(providerId)
-      .requestChapterContent(mangaId, chapterId)
-      .then((it) => res.json(it));
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const chapter = await provider.requestChapterContent(mangaId, chapterId);
+    return res.json(chapter);
   }
 
-  @Get('/item/:providerId/image/:url')
-  getImage(
+  @Get('/:providerId/images/:url')
+  async getImage(
     @Res() res: Response,
     @Param('providerId') providerId: string,
     @Param('url') url: string
   ) {
-    return this.getProvider(providerId)
-      .requestImage(url)
-      .then((image) => {
-        if (image.contentLength != 0)
-          res.set({ 'Content-Length': image.contentLength });
-        image.pipe(res);
-      });
-  }
-
-  /* validate argument */
-  private getProvider(id: string): ProviderAdapter {
-    const provider = this.providerManager.getProvider(id);
-    if (provider === undefined)
-      throw new BadRequestError('Illegal param: unsupport provider');
-    return provider;
-  }
-
-  /* handle failure */
-  private handleMangaListAccessFail<T>(v: T | undefined): T {
-    if (v === undefined) throw new NotFoundError('Not found: manga list');
-    return v;
+    const provider = this.providerManager.getProvider(providerId);
+    assertExist(provider, 'provider');
+    const image = await provider.requestImage(url);
+    if (image.contentLength != 0)
+      res.set({ 'Content-Length': image.contentLength });
+    return image.pipe(res.type(image.mime));
   }
 }

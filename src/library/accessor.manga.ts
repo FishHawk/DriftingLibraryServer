@@ -18,7 +18,6 @@ export class MangaAccessor {
   async getOutline(): Promise<Entity.MangaOutline> {
     const mangaOutline: Entity.MangaOutline = {
       id: this.id,
-      thumb: await this.getThumb(),
       updateTime: await this.getUpdateTime(),
       hasNewMark: await this.hasNewMark(),
       metadata: await this.getMetadataOutline(),
@@ -29,7 +28,6 @@ export class MangaAccessor {
   async getDetail(): Promise<Entity.MangaDetail> {
     const mangaDetail: Entity.MangaDetail = {
       id: this.id,
-      thumb: await this.getThumb(),
       updateTime: await this.getUpdateTime(),
       metadata: await this.getMetadataDetail(),
       collections: await this.getCollections(),
@@ -37,15 +35,22 @@ export class MangaAccessor {
     return mangaDetail;
   }
 
-  private async getThumb() {
+  async getThumb() {
     const imageFiles = await fs.listImageFile(this.dir);
     const thumbFiles = imageFiles.filter(
       (filename) => fs.getBasename(filename) === 'thumb'
     );
 
-    if (thumbFiles.length >= 0) return thumbFiles[0];
-    if (imageFiles.length >= 0) return imageFiles[0];
-    return undefined;
+    let thumbFilename;
+    if (thumbFiles.length >= 0) thumbFilename = thumbFiles[0];
+    else if (imageFiles.length >= 0) thumbFilename = imageFiles[0];
+    else return undefined;
+
+    const imagePath = path.join(this.dir, thumbFilename);
+    return fs.Image.fromExt(
+      fs.getExtension(thumbFilename),
+      fs.createReadStream(imagePath)
+    );
   }
 
   async setThumb(thumb: fs.Image) {

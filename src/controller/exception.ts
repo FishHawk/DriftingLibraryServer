@@ -1,4 +1,3 @@
-
 export class HttpError extends Error {
   status: number;
 
@@ -33,4 +32,11 @@ export class InternalServerError extends HttpError {
   constructor(message?: string) {
     super(500, message);
   }
+}
+
+export function assertExist<T>(
+  v: T | undefined,
+  message: string
+): asserts v is T {
+  if (v === undefined) throw new NotFoundError(`Not found: ${message}`);
 }

@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { Response } from 'express';
 import multer from 'multer';
 
 import { DownloadService } from '../service/service.download';
@@ -6,13 +6,11 @@ import { SubscriptionService } from '../service/service.subscription';
 import { LibraryAccessor } from '../library/accessor.library';
 import { Image } from '../util/fs';
 
-import { BadRequestError, NotFoundError } from './exception';
-
-import { Get, Delete, Patch } from './decorator/verb';
-import { UseBefore } from './decorator/middleware';
-import { Req, Res, Query, Param, Body, ImageFile } from './decorator/parameter';
-import { Readable } from 'typeorm/platform/PlatformTools';
 import { Controller } from './decorator/controller';
+import { UseBefore } from './decorator/middleware';
+import { Res, Query, Param, Body, ImageFile } from './decorator/parameter';
+import { Get, Delete, Put } from './decorator/verb';
+import { assertExist } from './exception';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -22,127 +20,102 @@ export class LibraryController {
     private readonly library: LibraryAccessor,
     private readonly downloadService: DownloadService,
     private readonly subscriptionService: SubscriptionService
-  ) {
-    // super();
-    // this.router.use(
-    //   '/image',
-    //   express.static(this.library.dir, {
-    //     dotfiles: 'ignore',
-    //     fallthrough: false,
-    //   })
-    // );
-  }
+  ) {}
 
-  @Get('/search')
-  search(
+  @Get('/mangas')
+  async listManga(
     @Res() res: Response,
     @Query('lastTime') lastTime: number,
     @Query('limit') limit: number,
     @Query('keywords') keywords: string
   ) {
-    return this.library
-      .search(lastTime, limit, keywords)
-      .then((it) => res.json(it));
+    const mangas = await this.library.search(lastTime, limit, keywords);
+    return res.json(mangas);
   }
 
-  @Get('/manga/:mangaId')
-  getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
-    return this.library
-      .getManga(mangaId)
-      .then(this.handleMangaAccessFail)
-      .then((manga) => {
-        manga.removeNewMark();
-        return manga.getDetail();
-      })
-      .then((it) => res.json(it));
+  @Get('/mangas/:mangaId')
+  async getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
+    const manga = await this.library.getManga(mangaId);
+    assertExist(manga, 'manga');
+    manga.removeNewMark();
+    const mangaDetail = await manga.getDetail();
+    return res.json(mangaDetail);
   }
 
-  @Delete('/manga/:mangaId')
-  deleteManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
-    return this.library
-      .deleteManga(mangaId)
-      .then(this.handleMangaAccessFail)
-      .then(() => this.subscriptionService.deleteSubscription(mangaId))
-      .then(() => this.downloadService.deleteDownloadTask(mangaId))
-      .then(() => res.json(mangaId));
+  @Delete('/mangas/:mangaId')
+  async deleteManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
+    const manga = await this.library.deleteManga(mangaId);
+    assertExist(manga, 'manga');
+    await this.subscriptionService.deleteSubscription(mangaId);
+    await this.downloadService.deleteDownloadTask(mangaId);
+    return res.json(mangaId);
   }
 
-  @Patch('/manga/:mangaId/metadata')
-  patchMangaMetadata(
+  @Put('/mangas/:mangaId/metadata')
+  async updateMangaMetadata(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
     @Body() body: any
   ) {
-    return this.library
-      .getManga(mangaId)
-      .then(this.handleMangaAccessFail)
-      .then((manga) => manga.setMetadata(body))
-      .then((manga) => manga.getDetail())
-      .then((it) => res.json(it));
+    const manga = await this.library.getManga(mangaId);
+    assertExist(manga, 'manga');
+    await manga.setMetadata(body);
+    return res.status(200);
+  }
+
+  @Get('/mangas/:mangaId/thumb')
+  async getMangaThumb(@Res() res: Response, @Param('mangaId') mangaId: string) {
+    const manga = await this.library.getManga(mangaId);
+    assertExist(manga, 'manga');
+    const thumb = await manga.getThumb();
+    assertExist(thumb, 'thumb');
+    return thumb.pipe(res.type(thumb.mime));
   }
 
   @UseBefore(upload.single('thumb'))
-  @Patch('/manga/:mangaId/thumb')
-  patchMangaThumb(
+  @Put('/mangas/:mangaId/thumb')
+  async updateMangaThumb(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
     @ImageFile() thumb: Image
   ) {
-    return this.library
-      .getManga(mangaId)
-      .then(this.handleMangaAccessFail)
-      .then((manga) => manga.setThumb(thumb))
-      .then((manga) => manga.getDetail())
-      .then((it) => res.json(it));
+    const manga = await this.library.getManga(mangaId);
+    assertExist(manga, 'manga');
+    await manga.setThumb(thumb);
+    return res.status(200);
   }
 
-  @Get('/chapter/:mangaId')
-  getChapter(
+  @Get('/mangas/:mangaId/chapters/:chapterId?')
+  @Get('/mangas/:mangaId/chapters/:collectionId/:chapterId')
+  async getChapter(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
-    @Query('collection') collectionId: string,
-    @Query('chapter') chapterId: string
+    @Param('collectionId') collectionId: string | undefined,
+    @Param('chapterId') chapterId: string | undefined
   ) {
-    return this.library
-      .getManga(mangaId)
-      .then(this.handleMangaAccessFail)
-      .then((manga) => manga.getChapter(collectionId, chapterId))
-      .then(this.handleChapterAccessFail)
-      .then((chapter) => chapter.listImage())
-      .then((it) => res.json(it));
+    const manga = await this.library.getManga(mangaId);
+    assertExist(manga, 'manga');
+    const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
+    assertExist(chapter, 'chapter');
+    const content = await chapter.listImage();
+    return res.json(content);
   }
 
-  @Get('/image/:mangaId')
-  getImage(
+  @Get('/mangas/:mangaId/images/:chapterId?/:imageId')
+  @Get('/mangas/:mangaId/images/:collectionId/:chapterId/:imageId')
+  async getImage(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
-    @Query('collection') collectionId: string,
-    @Query('chapter') chapterId: string,
-    @Query('image') imageFilename: string
+    @Param('collectionId') collectionId: string | undefined,
+    @Param('chapterId') chapterId: string | undefined,
+    @Param('imageId') imageId: string
   ) {
-    return this.library
-      .getManga(mangaId)
-      .then(this.handleMangaAccessFail)
-      .then((manga) => manga.getChapter(collectionId, chapterId))
-      .then(this.handleChapterAccessFail)
-      .then((chapter) => chapter.readImage(imageFilename))
-      .then(this.handleImageAccessFail)
-      .then((image) => image.pipe(res.type(image.mime)));
-  }
-
-  /* handle failure */
-  private handleMangaAccessFail<T>(v: T | undefined): T {
-    if (v === undefined) throw new NotFoundError('Not found: manga');
-    return v;
-  }
-
-  private handleChapterAccessFail<T>(v: T | undefined): T {
-    if (v === undefined) throw new NotFoundError('Not found: chapter');
-    return v;
-  }
-
-  private handleImageAccessFail<T>(v: T | undefined): T {
-    if (v === undefined) throw new NotFoundError('Not found: image');
-    return v;
+    const manga = await this.library.getManga(mangaId);
+    assertExist(manga, 'manga');
+    const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
+    assertExist(chapter, 'chapter');
+    const image = chapter.readImage(imageId);
+    assertExist(image, 'image');
+    return image.pipe(res.type(image.mime));
   }
 }
