@@ -42,8 +42,8 @@ export class MangaAccessor {
     );
 
     let thumbFilename;
-    if (thumbFiles.length >= 0) thumbFilename = thumbFiles[0];
-    else if (imageFiles.length >= 0) thumbFilename = imageFiles[0];
+    if (thumbFiles.length > 0) thumbFilename = thumbFiles[0];
+    else if (imageFiles.length > 0) thumbFilename = imageFiles[0];
     else return undefined;
 
     const imagePath = path.join(this.dir, thumbFilename);
