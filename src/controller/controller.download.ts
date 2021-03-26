@@ -2,73 +2,70 @@ import { Response } from 'express';
 
 import { DownloadService } from '../service/service.download';
 
-import { NotFoundError, ConflictError, BadRequestError } from './exception';
-
-import { Get, Patch, Post, Delete } from './decorator/verb';
-import { Res, BodyField, Param } from './decorator/parameter';
-import { DownloadDesc } from '../database/entity';
 import { Controller } from './decorator/controller';
+import { Res, BodyField, Param } from './decorator/parameter';
+import { Get, Patch, Post, Delete } from './decorator/verb';
+import { ConflictError, BadRequestError, assertExist } from './exception';
 
-@Controller('/download')
+@Controller('/downloads')
 export class DownloadController {
   constructor(private readonly downloadService: DownloadService) {}
 
-  @Get('/list')
-  getAllDownloadTask(@Res() res: Response) {
-    return this.downloadService.getAllDownloadTask().then((it) => res.json(it));
+  @Get('/')
+  async listDownloadTask(@Res() res: Response) {
+    const tasks = await this.downloadService.getAllDownloadTask();
+    return res.json(tasks);
   }
 
-  @Patch('/list/start')
+  @Patch('/start')
   async startAllDownloadTask(@Res() res: Response) {
-    return this.downloadService
-      .startAllDownloadTask()
-      .then(this.downloadService.getAllDownloadTask)
-      .then((it) => res.json(it));
+    await this.downloadService.startAllDownloadTask();
+    const tasks = await this.downloadService.getAllDownloadTask();
+    return res.json(tasks);
   }
 
-  @Patch('/list/pause')
-  pauseAllDownloadTask(@Res() res: Response) {
-    return this.downloadService
-      .pauseAllDownloadTask()
-      .then(this.downloadService.getAllDownloadTask)
-      .then((it) => res.json(it));
+  @Patch('/pause')
+  async pauseAllDownloadTask(@Res() res: Response) {
+    await this.downloadService.pauseAllDownloadTask();
+    const tasks = await this.downloadService.getAllDownloadTask();
+    return res.json(tasks);
   }
 
-  @Post('/item')
-  createDownloadTask(
+  @Post('/')
+  async createDownloadTask(
     @Res() res: Response,
     @BodyField('providerId') providerId: string,
     @BodyField('sourceManga') sourceManga: string,
     @BodyField('targetManga') targetManga: string
   ) {
-    return this.downloadService
-      .createDownloadTask(providerId, sourceManga, targetManga)
-      .then((result) => result.whenFail(this.handleCreateFail))
-      .then((it) => res.json(it));
+    const taskOrFail = await this.downloadService.createDownloadTask(
+      providerId,
+      sourceManga,
+      targetManga
+    );
+    const task = taskOrFail.whenFail(this.handleCreateFail);
+    return res.json(task);
   }
 
-  @Delete('/item/:id')
-  deleteDownloadTask(@Res() res: Response, @Param('id') id: string) {
-    return this.downloadService
-      .deleteDownloadTask(id)
-      .then(this.handleAccessFail)
-      .then((it) => res.json(it));
+  @Delete('/:id')
+  async deleteDownloadTask(@Res() res: Response, @Param('id') id: string) {
+    const task = await this.downloadService.deleteDownloadTask(id);
+    assertExist(task, 'download task');
+    return res.json(task);
   }
 
-  @Patch('/item/:id/start')
-  startDownloadTask(@Res() res: Response, @Param('id') id: string) {
-    return this.downloadService
-      .startDownloadTask(id)
-      .then(this.handleAccessFail)
-      .then((it) => res.json(it));
+  @Patch('/:id/start')
+  async startDownloadTask(@Res() res: Response, @Param('id') id: string) {
+    const task = await this.downloadService.startDownloadTask(id);
+    assertExist(task, 'download task');
+    return res.json(task);
   }
 
-  @Patch('/item/:id/pause')
-  pauseDownloadTask(@Res() res: Response, @Param('id') id: string) {
-    return this.downloadService
-      .pauseDownloadTask(id)
-      .then(this.handleAccessFail)
-      .then((it) => res.json(it));
+  @Patch('/:id/pause')
+  async pauseDownloadTask(@Res() res: Response, @Param('id') id: string) {
+    const task = await this.downloadService.pauseDownloadTask(id);
+    assertExist(task, 'download task');
+    return res.json(task);
   }
 
   /* handle failure */
@@ -80,10 +77,5 @@ export class DownloadController {
     if (f === DownloadService.CreateFail.TaskAlreadyExist)
       throw new ConflictError('Already exist: download task');
     throw new Error();
-  }
-
-  private handleAccessFail(v: DownloadDesc | undefined): DownloadDesc {
-    if (v === undefined) throw new NotFoundError('Not found: download task');
-    return v;
   }
 }
