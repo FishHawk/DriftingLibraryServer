@@ -1,8 +1,7 @@
 .vscode/
-node_modules/
-log/
 dist/
-test/provider/result
+log/
+node_modules/
+test/provider/result/
 
 .env
-package-lock.json

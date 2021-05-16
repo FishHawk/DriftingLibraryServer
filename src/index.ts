@@ -8,10 +8,11 @@ import { App } from './app';
 dotenv.config();
 
 /* parse environment variables */
-const rootDir = parseEnvLibraryDir(process.env.APP_LIBRARY_DIR);
+const libraryDir = parseEnvLibraryDir(process.env.LIBRARY_DIR);
+const port = parseEnvPort(process.env.PORT);
 
 /* start application */
-App.createInstance(rootDir)
+App.createInstance(libraryDir, port)
   .then((app) => app.listen())
   .catch((e) => {
     logger.error(e.stack);
@@ -28,4 +29,15 @@ function parseEnvLibraryDir(envDir: string | undefined): string {
   }
   logger.error(`Root dir does not exist.`);
   process.exit(1);
+}
+
+function parseEnvPort(envPort: string | undefined): number {
+  const port = envPort ? Number.parseInt(envPort) : 8080;
+  if (port > 0 && port < 65535) {
+    logger.info(`Set port ${port}`);
+    return port;
+  } else {
+    logger.error(`Illegal port ${port}.`);
+    process.exit(1);
+  }
 }

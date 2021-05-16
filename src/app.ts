@@ -29,11 +29,14 @@ export class App {
   private downloadService!: DownloadService;
   private subscribeService!: SubscriptionService;
 
-  public static async createInstance(rootDir: string) {
-    return new App(rootDir).initialize();
+  public static async createInstance(libraryDir: string, port: number) {
+    return new App(libraryDir, port).initialize();
   }
 
-  private constructor(private readonly rootDir: string) {}
+  private constructor(
+    private readonly libraryDir: string,
+    private readonly port: number
+  ) {}
 
   private async initialize() {
     /* middleware */
@@ -42,15 +45,15 @@ export class App {
     this.app.use(logMiddleware);
 
     /* setting */
-    const settingFilepath = path.join(this.rootDir, 'settings.json');
+    const settingFilepath = path.join(this.libraryDir, 'settings.json');
     await SettingLoader.fromFile(settingFilepath);
 
     /* database */
-    const databaseFilepath = path.join(this.rootDir, '.db.sqlite');
+    const databaseFilepath = path.join(this.libraryDir, '.db.sqlite');
     this.database = await DatabaseLoader.createInstance(databaseFilepath);
 
     /* component */
-    this.libraryAccessor = new LibraryAccessor(this.rootDir);
+    this.libraryAccessor = new LibraryAccessor(this.libraryDir);
     this.providerManager = new ProviderManager();
 
     this.downloadService = new DownloadService(
