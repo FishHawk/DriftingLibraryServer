@@ -1,4 +1,4 @@
-import { CronJob } from 'cron';
+import { scheduleJob, Job } from 'node-schedule';
 import { Repository } from 'typeorm';
 
 import { logger } from '../logger';
@@ -7,25 +7,15 @@ import { DownloadService } from './service.download';
 import { Result, fail, ok } from '../util/result';
 
 export class SubscriptionService {
+  private job!: Job;
+
   constructor(
     private readonly repository: Repository<Subscription>,
     private readonly downloadService: DownloadService
   ) {
-    new CronJob(
-      '0 0 4 * * *',
-      () => this.updateAllSubscription(),
-      null,
-      true,
-      'Asia/Chongqing'
-    );
-  }
-
-  private async updateAllSubscription() {
-    logger.info('Update subscription');
-    const subscriptions = await this.repository.find({
-      where: { isEnabled: true },
+    this.job = scheduleJob('0 0 4 * * *', () => {
+      this.updateAllSubscription();
     });
-    return Promise.all(subscriptions.map(this.updateSubscription));
   }
 
   private async updateSubscription(subscription: Subscription) {
@@ -49,6 +39,16 @@ export class SubscriptionService {
 
   async toggleAllSubscription(isEnabled: boolean) {
     return this.repository.update({ isEnabled: !isEnabled }, { isEnabled });
+  }
+
+  async updateAllSubscription() {
+    logger.info('Update subscription');
+    const subscriptions = await this.repository.find({
+      where: { isEnabled: true },
+    });
+    for (const s of subscriptions) {
+      await this.updateSubscription(s);
+    }
   }
 
   /* item api */

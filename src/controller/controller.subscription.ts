@@ -36,6 +36,14 @@ export class SubscriptionController {
       .then((it) => res.json(it));
   }
 
+  @Patch('/list/update')
+  updateAllSubscription(@Res() res: Response) {
+    return this.subscribeService
+      .updateAllSubscription()
+      .then(this.subscribeService.getAllSubscription)
+      .then((it) => res.json(it));
+  }
+
   @Post('/item')
   createSubscription(
     @Res() res: Response,
