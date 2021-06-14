@@ -48,6 +48,15 @@ export class LibraryController {
     return res.status(200);
   }
 
+  @Delete('/mangas/:mangaId/subscription')
+  async deleteMangaSubscription(
+    @Res() res: Response,
+    @Param('mangaId') mangaId: string
+  ) {
+    await this.service.deleteMangaSubscription(mangaId);
+    return res.status(200);
+  }
+
   @Get('/mangas/:mangaId/thumb')
   async getMangaThumb(@Res() res: Response, @Param('mangaId') mangaId: string) {
     const thumb = await this.service.getMangaThumb(mangaId);

@@ -1,11 +1,3 @@
-import { Response } from 'express';
-
-import { NotFoundError, ConflictError, BadRequestError } from './exception';
-
-import { Get, Patch, Post, Delete } from './decorator/verb';
-import { Res, BodyField, Param } from './decorator/parameter';
-import { Controller } from './decorator/controller';
-
 // @Controller('/subscription')
 // export class SubscriptionController {
   // @Get('/list')
@@ -36,12 +28,5 @@ import { Controller } from './decorator/controller';
   //     .then((it) => res.json(it));
   // }
 
-  // @Delete('/item/:id')
-  // deleteSubscription(@Res() res: Response, @Param('id') id: string) {
-  //   return this.subscribeService
-  //     .deleteSubscription(id)
-  //     .then(this.handleAccessFail)
-  //     .then((it) => res.json(it));
-  // }
 // }
 //
