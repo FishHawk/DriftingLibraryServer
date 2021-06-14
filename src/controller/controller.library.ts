@@ -1,26 +1,19 @@
 import { Response } from 'express';
 import multer from 'multer';
 
-import { DownloadService } from '../service/service.download';
-import { SubscriptionService } from '../service/service.subscription';
-import { LibraryAccessor } from '../library/accessor.library';
 import { Image } from '../util/fs';
 
 import { Controller } from './decorator/controller';
 import { UseBefore } from './decorator/middleware';
 import { Res, Query, Param, Body, ImageFile } from './decorator/parameter';
 import { Get, Delete, Put } from './decorator/verb';
-import { assertExist } from './exception';
+import { LibraryService } from '../service/service.library';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 @Controller('/library')
 export class LibraryController {
-  constructor(
-    private readonly library: LibraryAccessor,
-    private readonly downloadService: DownloadService,
-    private readonly subscriptionService: SubscriptionService
-  ) {}
+  constructor(private readonly service: LibraryService) {}
 
   @Get('/mangas')
   async listManga(
@@ -29,23 +22,19 @@ export class LibraryController {
     @Query('limit') limit: number,
     @Query('keywords') keywords: string
   ) {
-    const mangas = await this.library.listManga(lastTime, limit, keywords);
+    const mangas = await this.service.listManga(lastTime, limit, keywords);
     return res.json(mangas);
   }
 
   @Get('/mangas/:mangaId')
   async getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
-    const manga = await this.library.getManga(mangaId);
-    manga.removeNewMark();
-    const mangaDetail = await manga.getDetail();
-    return res.json(mangaDetail);
+    const manga = await this.service.getManga(mangaId);
+    return res.json(manga);
   }
 
   @Delete('/mangas/:mangaId')
   async deleteManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
-    await this.library.deleteManga(mangaId);
-    await this.subscriptionService.deleteSubscription(mangaId);
-    await this.downloadService.deleteDownloadTask(mangaId);
+    await this.service.deleteManga(mangaId);
     return res.json(mangaId);
   }
 
@@ -55,16 +44,13 @@ export class LibraryController {
     @Param('mangaId') mangaId: string,
     @Body() body: any
   ) {
-    const manga = await this.library.getManga(mangaId);
-    await manga.setMetadata(body);
+    await this.service.updateMangaMetadata(mangaId, body);
     return res.status(200);
   }
 
   @Get('/mangas/:mangaId/thumb')
   async getMangaThumb(@Res() res: Response, @Param('mangaId') mangaId: string) {
-    const manga = await this.library.getManga(mangaId);
-    const thumb = await manga.getThumb();
-    assertExist(thumb, 'thumb');
+    const thumb = await this.service.getMangaThumb(mangaId);
     return thumb.pipe(res.type(thumb.mime));
   }
 
@@ -75,8 +61,7 @@ export class LibraryController {
     @Param('mangaId') mangaId: string,
     @ImageFile() thumb: Image
   ) {
-    const manga = await this.library.getManga(mangaId);
-    await manga.setThumb(thumb);
+    await this.service.updateMangaThumb(mangaId, thumb);
     return res.status(200);
   }
 
@@ -88,10 +73,11 @@ export class LibraryController {
     @Param('collectionId') collectionId: string | undefined,
     @Param('chapterId') chapterId: string | undefined
   ) {
-    const manga = await this.library.getManga(mangaId);
-    const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
-    assertExist(chapter, 'chapter');
-    const content = await chapter.listImage();
+    const content = await this.service.getChapter(
+      mangaId,
+      collectionId,
+      chapterId
+    );
     return res.json(content);
   }
 
@@ -104,11 +90,12 @@ export class LibraryController {
     @Param('chapterId') chapterId: string | undefined,
     @Param('imageId') imageId: string
   ) {
-    const manga = await this.library.getManga(mangaId);
-    const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
-    assertExist(chapter, 'chapter');
-    const image = chapter.readImage(imageId);
-    assertExist(image, 'image');
+    const image = await this.service.getImage(
+      mangaId,
+      collectionId,
+      chapterId,
+      imageId
+    );
     return image.pipe(res.type(image.mime));
   }
 }

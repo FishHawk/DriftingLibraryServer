@@ -19,6 +19,7 @@ import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { DownloadService } from './service/service.download';
 import { SubscriptionService } from './service/service.subscription';
+import { LibraryService } from './service/service.library';
 
 export class App {
   private readonly app = express();
@@ -26,6 +27,7 @@ export class App {
   private database!: DatabaseAdapter;
   private libraryAccessor!: LibraryAccessor;
   private providerManager!: ProviderManager;
+  private libraryService!: LibraryService;
   private downloadService!: DownloadService;
   private subscribeService!: SubscriptionService;
 
@@ -65,14 +67,15 @@ export class App {
       this.database.subscriptionRepository,
       this.downloadService
     );
+    this.libraryService = new LibraryService(
+      this.libraryAccessor,
+      this.downloadService,
+      this.subscribeService
+    );
 
     /* controller */
     [
-      new LibraryController(
-        this.libraryAccessor,
-        this.downloadService,
-        this.subscribeService
-      ),
+      new LibraryController(this.libraryService),
       new ProviderController(this.providerManager),
       new DownloadController(this.downloadService),
       new SubscriptionController(this.subscribeService),

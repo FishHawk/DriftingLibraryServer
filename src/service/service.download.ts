@@ -118,7 +118,8 @@ export class DownloadService {
     if (this.providerManager.getProvider(providerId) === undefined)
       return fail(CreateFail.UnsupportedProvider);
 
-    await this.library.ensureManga(targetManga);
+    if (await this.library.isMangaExist(targetManga))
+      await this.library.createManga(targetManga);
 
     const task = this.repository.create({
       providerId,
