@@ -21,12 +21,14 @@ export class LibraryAccessor {
     return searchLibrary(this.dir, lastTime, limit, keywords);
   }
 
-  async createManga(mangaId: string): Promise<Result<void, CreateFail>> {
+  async ensureManga(
+    mangaId: string
+  ): Promise<Result<MangaAccessor, CreateFail>> {
     if (!this.validateMangaId(mangaId)) return fail(CreateFail.IllegalMangaId);
     const mangaDir = path.join(this.dir, mangaId);
-    if (await fs.isDirectoryExist(mangaDir))
-      return fail(CreateFail.MangaAlreadyExist);
-    return fs.mkdir(mangaDir).then(() => ok());
+    if (!(await fs.isDirectoryExist(mangaDir))) await fs.mkdir(mangaDir);
+    const manga = new MangaAccessor(this.dir, mangaId);
+    return ok(manga);
   }
 
   async deleteManga(mangaId: string) {
@@ -52,7 +54,6 @@ export class LibraryAccessor {
 export namespace LibraryAccessor {
   export enum CreateFail {
     IllegalMangaId,
-    MangaAlreadyExist,
   }
 }
 import CreateFail = LibraryAccessor.CreateFail;

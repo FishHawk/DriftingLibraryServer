@@ -114,13 +114,8 @@ export class DownloadService {
     if (this.providerManager.getProvider(providerId) === undefined)
       return fail(CreateFail.UnsupportedProvider);
 
-    const result = (await this.library.createManga(targetManga)).whenFail(
-      (f) => {
-        if (f === LibraryAccessor.CreateFail.IllegalMangaId)
-          return CreateFail.IlligalTargetMangaId;
-      }
-    );
-    if (result !== undefined) return fail(result);
+    const result = await this.library.ensureManga(targetManga);
+    if (result !== undefined) return fail(CreateFail.IlligalTargetMangaId);
 
     const task = this.repository.create({
       providerId,
