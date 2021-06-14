@@ -17,9 +17,10 @@ import settings, { SettingLoader } from './settings';
 import { DatabaseLoader, DatabaseAdapter } from './database';
 import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
+import { LibraryService } from './service/service.library';
+import { ProviderService } from './service/service.provider';
 import { DownloadService } from './service/service.download';
 import { SubscriptionService } from './service/service.subscription';
-import { LibraryService } from './service/service.library';
 
 export class App {
   private readonly app = express();
@@ -27,7 +28,9 @@ export class App {
   private database!: DatabaseAdapter;
   private libraryAccessor!: LibraryAccessor;
   private providerManager!: ProviderManager;
+
   private libraryService!: LibraryService;
+  private providerService!: ProviderService;
   private downloadService!: DownloadService;
   private subscribeService!: SubscriptionService;
 
@@ -58,6 +61,7 @@ export class App {
     this.libraryAccessor = new LibraryAccessor(this.libraryDir);
     this.providerManager = new ProviderManager();
 
+    this.providerService = new ProviderService(this.providerManager);
     this.downloadService = new DownloadService(
       this.database.downloadDescRepository,
       this.libraryAccessor,
@@ -76,7 +80,7 @@ export class App {
     /* controller */
     [
       new LibraryController(this.libraryService),
-      new ProviderController(this.providerManager),
+      new ProviderController(this.providerService),
       new DownloadController(this.downloadService),
       new SubscriptionController(this.subscribeService),
       new SystemController(),

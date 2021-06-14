@@ -89,7 +89,7 @@ export class LibraryService {
     return image;
   }
 
-  private async assureManga(mangaId: string): Promise<MangaAccessor> {
+  private async assureManga(mangaId: string) {
     if (!this.library.validateMangaId(mangaId))
       throw new BadRequestError(`${mangaId} is not legal manga id`);
     if (!(await this.library.isMangaExist(mangaId)))

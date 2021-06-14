@@ -1,29 +1,24 @@
 import { Response } from 'express';
 
-import { ProviderManager } from '../provider/manager';
+import { ProviderService } from '../service/service.provider';
 
 import { Controller } from './decorator/controller';
 import { Res, Param, Query } from './decorator/parameter';
 import { Get } from './decorator/verb';
-import { assertExist } from './exception';
 
 @Controller('/providers')
 export class ProviderController {
-  constructor(private readonly providerManager: ProviderManager) {}
+  constructor(private readonly service: ProviderService) {}
 
   @Get('/')
   listProvider(@Res() res: Response) {
-    const providers = this.providerManager
-      .getProviderList()
-      .map((provider) => provider.getInfo());
+    const providers = this.service.listProvider();
     return res.json(providers);
   }
 
   @Get('/:providerId')
   getProvider(@Res() res: Response, @Param('providerId') providerId: string) {
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const providerDetail = provider.getDetail();
+    const providerDetail = this.service.getProvider(providerId);
     return res.json(providerDetail);
   }
 
@@ -32,10 +27,7 @@ export class ProviderController {
     @Res() res: Response,
     @Param('providerId') providerId: string
   ) {
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const icon = provider.getIcon();
-    assertExist(icon, 'icon');
+    const icon = this.service.getProviderIcon(providerId);
     return icon.pipe(res.type(icon.mime));
   }
 
@@ -46,13 +38,11 @@ export class ProviderController {
     @Query('page') page: number,
     @Query() option: any
   ) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const mangas = await provider.requestPopular(page, option);
-    assertExist(mangas, 'popular mangas');
+    const mangas = await this.service.listPopularManga(
+      providerId,
+      page,
+      option
+    );
     return res.json(mangas);
   }
 
@@ -63,13 +53,7 @@ export class ProviderController {
     @Query('page') page: number,
     @Query() option: any
   ) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const mangas = await provider.requestLatest(page, option);
-    assertExist(mangas, 'latest mangas');
+    const mangas = await this.service.listLatestManga(providerId, page, option);
     return res.json(mangas);
   }
 
@@ -80,13 +64,11 @@ export class ProviderController {
     @Query('page') page: number,
     @Query() option: any
   ) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const mangas = await provider.requestCategory(page, option);
-    assertExist(mangas, 'category mangas');
+    const mangas = await this.service.listCategoryManga(
+      providerId,
+      page,
+      option
+    );
     return res.json(mangas);
   }
 
@@ -97,9 +79,7 @@ export class ProviderController {
     @Query('keywords') keywords: string,
     @Query('page') page: number
   ) {
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const mangas = await provider.search(page, keywords);
+    const mangas = await this.service.listManga(providerId, keywords, page);
     return res.json(mangas);
   }
 
@@ -109,9 +89,7 @@ export class ProviderController {
     @Param('providerId') providerId: string,
     @Param('mangaId') mangaId: string
   ) {
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const manga = await provider.requestMangaDetail(mangaId);
+    const manga = await this.service.getManga(providerId, mangaId);
     return res.json(manga);
   }
 
@@ -122,9 +100,11 @@ export class ProviderController {
     @Param('mangaId') mangaId: string,
     @Param('chapterId') chapterId: string
   ) {
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const chapter = await provider.requestChapterContent(mangaId, chapterId);
+    const chapter = await this.service.getChapter(
+      providerId,
+      mangaId,
+      chapterId
+    );
     return res.json(chapter);
   }
 
@@ -134,9 +114,7 @@ export class ProviderController {
     @Param('providerId') providerId: string,
     @Param('url') url: string
   ) {
-    const provider = this.providerManager.getProvider(providerId);
-    assertExist(provider, 'provider');
-    const image = await provider.requestImage(url);
+    const image = await this.service.getImage(providerId, url);
     if (image.contentLength != 0)
       res.set({ 'Content-Length': image.contentLength });
     return image.pipe(res.type(image.mime));
