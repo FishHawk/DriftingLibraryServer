@@ -33,8 +33,12 @@ export class DownloadService {
       if (desc === undefined) break;
 
       /* check desc argument */
-      const provider = this.providerManager.getProvider(desc.providerId);
-      const accessor = await this.library.getManga(desc.id);
+      let provider = undefined;
+      let accessor = undefined;
+      try {
+        provider = this.providerManager.getProvider(desc.providerId);
+        accessor = await this.library.getManga(desc.id);
+      } catch (e) {}
       if (provider === undefined || accessor === undefined) {
         logger.warn(`Download: illegal task, auto remove.`);
         await this.repository.remove(desc);
@@ -114,8 +118,7 @@ export class DownloadService {
     if (this.providerManager.getProvider(providerId) === undefined)
       return fail(CreateFail.UnsupportedProvider);
 
-    const result = await this.library.ensureManga(targetManga);
-    if (result !== undefined) return fail(CreateFail.IlligalTargetMangaId);
+    await this.library.ensureManga(targetManga);
 
     const task = this.repository.create({
       providerId,

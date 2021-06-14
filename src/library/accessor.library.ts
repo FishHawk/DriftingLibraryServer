@@ -1,7 +1,7 @@
 import path from 'path';
 
 import * as fs from '../util/fs';
-import { ok, fail, Result } from '../util/result';
+import { BadRequestError, NotFoundError } from '../controller/exception';
 import { validateString } from '../util/validator/validator';
 
 import * as Entity from './entity';
@@ -13,7 +13,7 @@ export class LibraryAccessor {
 
   constructor(readonly dir: string) {}
 
-  async search(
+  async listManga(
     lastTime: number | undefined,
     limit: number,
     keywords: string
@@ -21,39 +21,33 @@ export class LibraryAccessor {
     return searchLibrary(this.dir, lastTime, limit, keywords);
   }
 
-  async ensureManga(
-    mangaId: string
-  ): Promise<Result<MangaAccessor, CreateFail>> {
-    if (!this.validateMangaId(mangaId)) return fail(CreateFail.IllegalMangaId);
+  async ensureManga(mangaId: string): Promise<MangaAccessor> {
+    this.validateMangaId(mangaId);
     const mangaDir = path.join(this.dir, mangaId);
     if (!(await fs.isDirectoryExist(mangaDir))) await fs.mkdir(mangaDir);
-    const manga = new MangaAccessor(this.dir, mangaId);
-    return ok(manga);
-  }
-
-  async deleteManga(mangaId: string) {
-    if (!this.validateMangaId(mangaId)) return undefined;
-    const mangaDir = path.join(this.dir, mangaId);
-    if (!(await fs.isDirectoryExist(mangaDir))) return undefined;
-    return fs.rmdir(mangaDir, { recursive: true }).then(() => mangaId);
-  }
-
-  async getManga(mangaId: string) {
-    if (!this.validateMangaId(mangaId)) return undefined;
-    const mangaDir = path.join(this.dir, mangaId);
-    if (!(await fs.isDirectoryExist(mangaDir))) return undefined;
     return new MangaAccessor(this.dir, mangaId);
   }
 
-  private validateMangaId(mangaId: string) {
-    return LibraryAccessor.mangaIdValidator.validate(mangaId);
+  async deleteManga(mangaId: string): Promise<void> {
+    this.validateMangaId(mangaId);
+    this.assureMangaExist(mangaId);
+    await fs.rmdir(path.join(this.dir, mangaId), { recursive: true });
   }
-}
 
-/* fail */
-export namespace LibraryAccessor {
-  export enum CreateFail {
-    IllegalMangaId,
+  async getManga(mangaId: string): Promise<MangaAccessor> {
+    this.validateMangaId(mangaId);
+    this.assureMangaExist(mangaId);
+    return new MangaAccessor(this.dir, mangaId);
+  }
+
+  private validateMangaId(mangaId: string): void {
+    if (!LibraryAccessor.mangaIdValidator.validate(mangaId))
+      throw new BadRequestError(`${mangaId} is not legal manga id`);
+  }
+
+  private async assureMangaExist(mangaId: string): Promise<void> {
+    const mangaDir = path.join(this.dir, mangaId);
+    if (!(await fs.isDirectoryExist(mangaDir)))
+      throw new NotFoundError(`Manga:${mangaId} not found`);
   }
 }
-import CreateFail = LibraryAccessor.CreateFail;

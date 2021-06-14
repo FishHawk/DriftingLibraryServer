@@ -29,14 +29,13 @@ export class LibraryController {
     @Query('limit') limit: number,
     @Query('keywords') keywords: string
   ) {
-    const mangas = await this.library.search(lastTime, limit, keywords);
+    const mangas = await this.library.listManga(lastTime, limit, keywords);
     return res.json(mangas);
   }
 
   @Get('/mangas/:mangaId')
   async getManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
     const manga = await this.library.getManga(mangaId);
-    assertExist(manga, 'manga');
     manga.removeNewMark();
     const mangaDetail = await manga.getDetail();
     return res.json(mangaDetail);
@@ -44,8 +43,7 @@ export class LibraryController {
 
   @Delete('/mangas/:mangaId')
   async deleteManga(@Res() res: Response, @Param('mangaId') mangaId: string) {
-    const manga = await this.library.deleteManga(mangaId);
-    assertExist(manga, 'manga');
+    await this.library.deleteManga(mangaId);
     await this.subscriptionService.deleteSubscription(mangaId);
     await this.downloadService.deleteDownloadTask(mangaId);
     return res.json(mangaId);
@@ -58,7 +56,6 @@ export class LibraryController {
     @Body() body: any
   ) {
     const manga = await this.library.getManga(mangaId);
-    assertExist(manga, 'manga');
     await manga.setMetadata(body);
     return res.status(200);
   }
@@ -66,7 +63,6 @@ export class LibraryController {
   @Get('/mangas/:mangaId/thumb')
   async getMangaThumb(@Res() res: Response, @Param('mangaId') mangaId: string) {
     const manga = await this.library.getManga(mangaId);
-    assertExist(manga, 'manga');
     const thumb = await manga.getThumb();
     assertExist(thumb, 'thumb');
     return thumb.pipe(res.type(thumb.mime));
@@ -80,7 +76,6 @@ export class LibraryController {
     @ImageFile() thumb: Image
   ) {
     const manga = await this.library.getManga(mangaId);
-    assertExist(manga, 'manga');
     await manga.setThumb(thumb);
     return res.status(200);
   }
@@ -94,7 +89,6 @@ export class LibraryController {
     @Param('chapterId') chapterId: string | undefined
   ) {
     const manga = await this.library.getManga(mangaId);
-    assertExist(manga, 'manga');
     const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
     assertExist(chapter, 'chapter');
     const content = await chapter.listImage();
@@ -111,7 +105,6 @@ export class LibraryController {
     @Param('imageId') imageId: string
   ) {
     const manga = await this.library.getManga(mangaId);
-    assertExist(manga, 'manga');
     const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
     assertExist(chapter, 'chapter');
     const image = chapter.readImage(imageId);
