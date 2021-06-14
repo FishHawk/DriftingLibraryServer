@@ -19,6 +19,10 @@ export class LibraryAccessor {
     return searchLibrary(this.dir, lastTime, limit, keywords);
   }
 
+  async listMangaId() {
+    return await fs.listDirectory(this.dir);
+  }
+
   validateMangaId(mangaId: string) {
     return LibraryAccessor.mangaIdValidator.validate(mangaId);
   }

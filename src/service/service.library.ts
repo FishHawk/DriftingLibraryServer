@@ -1,18 +1,24 @@
+import { Job, scheduleJob } from 'node-schedule';
+
 import { BadRequestError, NotFoundError } from '../controller/exception';
 import * as Entity from '../library/entity';
 import { LibraryAccessor } from '../library/accessor.library';
-import { MangaAccessor } from '../library/accessor.manga';
 import { Image } from '../util/fs';
+import { logger } from '../logger';
 
 import { DownloadService } from './service.download';
-import { SubscriptionService } from './service.subscription';
 
 export class LibraryService {
+  private job!: Job;
+
   constructor(
     private readonly library: LibraryAccessor,
-    private readonly downloadService: DownloadService,
-    private readonly subscriptionService: SubscriptionService
-  ) {}
+    private readonly downloadService: DownloadService
+  ) {
+    this.job = scheduleJob('0 0 4 * * *', () => {
+      this.syncAllMangaSubscription();
+    });
+  }
 
   async listManga(
     lastTime: number | undefined,
@@ -32,13 +38,36 @@ export class LibraryService {
   async deleteManga(mangaId: string) {
     await this.assureManga(mangaId);
     await this.library.deleteManga(mangaId);
-    await this.subscriptionService.deleteSubscription(mangaId);
     await this.downloadService.deleteDownloadTask(mangaId);
   }
 
   async updateMangaMetadata(mangaId: string, metadata: Entity.MetadataDetail) {
     const manga = await this.assureManga(mangaId);
-    manga.setMetadata(metadata);
+    await manga.setMetadata(metadata);
+  }
+
+  async deleteMangaSubscription(mangaId: string) {
+    const manga = await this.assureManga(mangaId);
+    await manga.deleteSubscription();
+    await this.downloadService.deleteDownloadTask(mangaId);
+  }
+
+  async syncMangaSubscription(mangaId: string) {
+    const manga = await this.assureManga(mangaId);
+
+    if (await manga.hasSubscription()) {
+      const subscription = await manga.getSubscription();
+
+      const result = await this.downloadService.startDownloadTask(mangaId);
+      if (result === undefined) {
+        await this.downloadService.createDownloadTask(
+          subscription.providerId,
+          subscription.mangaId,
+          mangaId,
+          true
+        );
+      }
+    }
   }
 
   async getMangaThumb(mangaId: string) {
@@ -89,11 +118,30 @@ export class LibraryService {
     return image;
   }
 
+  async syncAllMangaSubscription() {
+    logger.info('Update subscription');
+    const mangaIds = await this.library.listMangaId();
+    for (const mangaId of mangaIds) {
+      const manga = await this.library.getManga(mangaId);
+      if (await manga.hasSubscription()) {
+        await this.syncMangaSubscription(mangaId);
+      }
+    }
+  }
+
   private async assureManga(mangaId: string) {
     if (!this.library.validateMangaId(mangaId))
       throw new BadRequestError(`${mangaId} is not legal manga id`);
     if (!(await this.library.isMangaExist(mangaId)))
       throw new NotFoundError(`Manga:${mangaId} not found`);
+    return await this.library.getManga(mangaId);
+  }
+
+  private async ensureManga(mangaId: string) {
+    if (!this.library.validateMangaId(mangaId))
+      throw new BadRequestError(`${mangaId} is not legal manga id`);
+    if (!(await this.library.isMangaExist(mangaId)))
+      await this.library.createManga(mangaId);
     return await this.library.getManga(mangaId);
   }
 }

@@ -5,7 +5,6 @@ import * as Entity from './entity';
 
 export interface DatabaseAdapter {
   downloadDescRepository: Repository<Entity.DownloadDesc>;
-  subscriptionRepository: Repository<Entity.Subscription>;
 }
 
 export class DatabaseLoader {
@@ -13,13 +12,12 @@ export class DatabaseLoader {
     return createConnection({
       type: 'sqlite',
       database: filepath,
-      entities: [Entity.DownloadDesc, Entity.Subscription],
+      entities: [Entity.DownloadDesc],
       synchronize: true,
       logging: false,
     }).then((connection) => {
       return {
         downloadDescRepository: connection.getRepository(Entity.DownloadDesc),
-        subscriptionRepository: connection.getRepository(Entity.Subscription),
       } as DatabaseAdapter;
     });
   }

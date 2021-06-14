@@ -1,4 +1,5 @@
 import { Status } from './manga_status';
+import { Subscription } from './subscription';
 
 export interface Chapter {
   readonly id: string;
@@ -30,6 +31,7 @@ export interface MangaDetail {
   id: string;
   thumb?: string;
   updateTime?: number;
+  subscription?: Subscription;
 
   metadata: MetadataDetail;
   collections: Collection[];

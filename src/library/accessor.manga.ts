@@ -26,15 +26,18 @@ export class MangaAccessor {
   }
 
   async getDetail(): Promise<Entity.MangaDetail> {
-    const mangaDetail: Entity.MangaDetail = {
+    let mangaDetail: Entity.MangaDetail = {
       id: this.id,
       updateTime: await this.getUpdateTime(),
       metadata: await this.getMetadataDetail(),
       collections: await this.getCollections(),
     };
+    if (await this.hasSubscription)
+      mangaDetail.subscription = await this.getSubscription();
     return mangaDetail;
   }
 
+  /* thumb */
   async getThumb() {
     const imageFiles = await fs.listImageFile(this.dir);
     const thumbFiles = imageFiles.filter(
@@ -67,6 +70,7 @@ export class MangaAccessor {
     return this;
   }
 
+  /* update time */
   private getUpdateTime() {
     return fs.getMTime(this.dir);
   }
@@ -75,6 +79,7 @@ export class MangaAccessor {
     return fs.setMTime(this.dir, Date.now());
   }
 
+  /* new mark */
   private async hasNewMark() {
     const markPath = path.join(this.dir, '.new');
     return fs.isFileExist(markPath);
@@ -90,6 +95,35 @@ export class MangaAccessor {
     if (await fs.isFileExist(markPath)) await fs.unlink(markPath);
   }
 
+  /* subscription */
+  private getSubscriptionPath() {
+    return path.join(this.dir, 'metadata.json');
+  }
+
+  async hasSubscription() {
+    const filepath = this.getSubscriptionPath();
+    return await fs.isFileExist(filepath);
+  }
+
+  async getSubscription() {
+    // TODO: check json schema
+    const filepath = this.getSubscriptionPath();
+    const json = await fs.readJSON(filepath);
+    return json as unknown as Entity.Subscription;
+  }
+
+  async setSubscription(subscription: Entity.Subscription) {
+    const filepath = this.getSubscriptionPath();
+    await fs.writeJSON(filepath, subscription);
+    return this;
+  }
+
+  async deleteSubscription() {
+    const filepath = this.getSubscriptionPath();
+    await fs.unlink(filepath);
+  }
+
+  /* metadata */
   private getMetadataOutline(): Promise<Entity.MetadataOutline> {
     const filepath = path.join(this.dir, 'metadata.json');
     return fs.readJSON(filepath).then((json) => {
@@ -114,6 +148,7 @@ export class MangaAccessor {
     return this;
   }
 
+  /* collection */
   private async getCollections(): Promise<Entity.Collection[]> {
     const parseChapterId = (id: string): Entity.Chapter => {
       const sep = ' ';
