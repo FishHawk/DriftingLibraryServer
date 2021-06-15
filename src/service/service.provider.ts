@@ -1,5 +1,5 @@
-import { NotFoundError } from '../controller/exception';
 import { ProviderManager } from '../provider/manager';
+import { NotFoundError } from './exception';
 
 export class ProviderService {
   constructor(private readonly providerManager: ProviderManager) {}

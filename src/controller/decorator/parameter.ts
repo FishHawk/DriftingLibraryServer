@@ -9,7 +9,7 @@ import {
 } from '../../util/validator/sanitizer';
 import { Image } from '../../util/fs';
 
-import { BadRequestError } from '../exception';
+import { BadRequestError } from '../../service/exception';
 
 import { ListMetadataEntry } from './helper';
 

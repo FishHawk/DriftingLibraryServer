@@ -10,7 +10,7 @@ import {
   BadRequestError,
   ConflictError,
   NotFoundError,
-} from '../controller/exception';
+} from './exception';
 
 export class DownloadService {
   constructor(

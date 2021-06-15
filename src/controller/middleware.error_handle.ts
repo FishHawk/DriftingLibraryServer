@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../logger';
-import { HttpError } from './exception';
+import { HttpError } from '../service/exception';
 
 export const errorHandleMiddleware = (
   err: any,
