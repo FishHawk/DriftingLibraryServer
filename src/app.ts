@@ -12,8 +12,7 @@ import { bind } from './controller/decorator/bind';
 import { logMiddleware } from './controller/middleware.log';
 import { errorHandleMiddleware } from './controller/middleware.error_handle';
 
-import settings, { SettingLoader } from './settings';
-import { DatabaseLoader, DatabaseAdapter } from './database';
+import { SettingLoader } from './settings';
 import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { LibraryService } from './service/service.library';
@@ -24,7 +23,6 @@ import { Downloader } from './service/downloader';
 export class App {
   private readonly app = express();
 
-  private database!: DatabaseAdapter;
   private libraryAccessor!: LibraryAccessor;
   private providerManager!: ProviderManager;
   private downloader!: Downloader;
@@ -52,29 +50,22 @@ export class App {
     const settingFilepath = path.join(this.libraryDir, 'settings.json');
     await SettingLoader.fromFile(settingFilepath);
 
-    /* database */
-    const databaseFilepath = path.join(this.libraryDir, '.db.sqlite');
-    this.database = await DatabaseLoader.createInstance(databaseFilepath);
-
     /* component */
     this.libraryAccessor = new LibraryAccessor(this.libraryDir);
     this.providerManager = new ProviderManager();
     this.downloader = new Downloader(
-      this.database.downloadDescRepository,
       this.libraryAccessor,
       this.providerManager
     );
 
     this.providerService = new ProviderService(this.providerManager);
     this.downloadService = new DownloadService(
-      this.database.downloadDescRepository,
       this.libraryAccessor,
       this.providerManager,
       this.downloader
     );
     this.libraryService = new LibraryService(
       this.libraryAccessor,
-      this.database.downloadDescRepository,
       this.downloadService,
       this.downloader
     );

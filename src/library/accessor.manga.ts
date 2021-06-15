@@ -95,6 +95,26 @@ export class MangaAccessor {
     if (await fs.isFileExist(markPath)) await fs.unlink(markPath);
   }
 
+  /* sync mark */
+  private getSyncMarkPath() {
+    return path.join(this.dir, '.sync');
+  }
+
+  async hasSyncMark() {
+    const filepath = this.getSyncMarkPath();
+    return fs.isFileExist(filepath);
+  }
+
+  async addSyncMark() {
+    const filepath = this.getSyncMarkPath();
+    if (!(await fs.isFileExist(filepath))) await fs.writeJSON(filepath, {});
+  }
+
+  async removeSyncMark() {
+    const filepath = this.getSyncMarkPath();
+    if (await fs.isFileExist(filepath)) await fs.unlink(filepath);
+  }
+
   /* subscription */
   private getSubscriptionPath() {
     return path.join(this.dir, 'metadata.json');

@@ -1,11 +1,9 @@
 import { Job, scheduleJob } from 'node-schedule';
-import { Repository } from 'typeorm';
 
 import * as Entity from '../library/entity';
 import { LibraryAccessor } from '../library/accessor.library';
 import { Image } from '../util/fs';
 import { logger } from '../logger';
-import { DownloadDesc } from '../database/entity';
 
 import { BadRequestError, NotFoundError } from './exception';
 import { DownloadService } from './service.download';
@@ -16,7 +14,6 @@ export class LibraryService {
 
   constructor(
     private readonly library: LibraryAccessor,
-    private readonly repository: Repository<DownloadDesc>,
     private readonly downloadService: DownloadService,
     private readonly downloader: Downloader
   ) {
@@ -42,7 +39,7 @@ export class LibraryService {
 
   async deleteManga(mangaId: string) {
     await this.assureManga(mangaId);
-    await this.downloadService.deleteDownloadTask(mangaId);
+    await this.downloader.cancel(mangaId);
     await this.library.deleteManga(mangaId);
   }
 
@@ -55,7 +52,8 @@ export class LibraryService {
     const manga = await this.assureManga(mangaId);
     if (!(await manga.hasSubscription()))
       throw new NotFoundError(`Manga:${mangaId} subscription not found`);
-    await this.downloadService.deleteDownloadTask(mangaId);
+    await manga.removeSyncMark();
+    await this.downloader.cancel(mangaId);
     await manga.deleteSubscription();
   }
 
@@ -63,21 +61,8 @@ export class LibraryService {
     const manga = await this.assureManga(mangaId);
 
     if (await manga.hasSubscription()) {
-      const subscription = await manga.getSubscription();
-
-      const taskInDb = await this.repository.findOne(mangaId);
-      if (taskInDb !== undefined) {
-        this.downloader.start();
-      } else {
-        const task = this.repository.create({
-          providerId: subscription.providerId,
-          sourceManga: subscription.mangaId,
-          id: mangaId,
-          isCreatedBySubscription: true,
-        });
-        await this.repository.save(task);
-        this.downloader.start();
-      }
+      manga.addSyncMark();
+      this.downloader.start();
     }
   }
 
