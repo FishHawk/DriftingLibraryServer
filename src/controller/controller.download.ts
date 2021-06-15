@@ -28,8 +28,7 @@ export class DownloadController {
       providerId,
       sourceManga,
       targetManga,
-      shouldCreateSubscription,
-      false
+      shouldCreateSubscription
     );
     return res.json(task);
   }

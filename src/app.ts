@@ -19,6 +19,7 @@ import { ProviderManager } from './provider/manager';
 import { LibraryService } from './service/service.library';
 import { ProviderService } from './service/service.provider';
 import { DownloadService } from './service/service.download';
+import { Downloader } from './service/downloader';
 
 export class App {
   private readonly app = express();
@@ -26,6 +27,7 @@ export class App {
   private database!: DatabaseAdapter;
   private libraryAccessor!: LibraryAccessor;
   private providerManager!: ProviderManager;
+  private downloader!: Downloader;
 
   private libraryService!: LibraryService;
   private providerService!: ProviderService;
@@ -57,17 +59,24 @@ export class App {
     /* component */
     this.libraryAccessor = new LibraryAccessor(this.libraryDir);
     this.providerManager = new ProviderManager();
+    this.downloader = new Downloader(
+      this.database.downloadDescRepository,
+      this.libraryAccessor,
+      this.providerManager
+    );
 
     this.providerService = new ProviderService(this.providerManager);
     this.downloadService = new DownloadService(
       this.database.downloadDescRepository,
       this.libraryAccessor,
-      this.providerManager
+      this.providerManager,
+      this.downloader
     );
     this.libraryService = new LibraryService(
       this.libraryAccessor,
       this.database.downloadDescRepository,
-      this.downloadService
+      this.downloadService,
+      this.downloader
     );
 
     /* controller */

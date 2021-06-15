@@ -9,6 +9,7 @@ import { DownloadDesc } from '../database/entity';
 
 import { BadRequestError, NotFoundError } from './exception';
 import { DownloadService } from './service.download';
+import { Downloader } from './downloader';
 
 export class LibraryService {
   private job!: Job;
@@ -16,7 +17,8 @@ export class LibraryService {
   constructor(
     private readonly library: LibraryAccessor,
     private readonly repository: Repository<DownloadDesc>,
-    private readonly downloadService: DownloadService
+    private readonly downloadService: DownloadService,
+    private readonly downloader: Downloader
   ) {
     this.job = scheduleJob('0 0 4 * * *', () => {
       this.syncAllMangaSubscription();
@@ -65,7 +67,7 @@ export class LibraryService {
 
       const taskInDb = await this.repository.findOne(mangaId);
       if (taskInDb !== undefined) {
-        this.downloadService.start();
+        this.downloader.start();
       } else {
         const task = this.repository.create({
           providerId: subscription.providerId,
@@ -74,7 +76,7 @@ export class LibraryService {
           isCreatedBySubscription: true,
         });
         await this.repository.save(task);
-        this.downloadService.start();
+        this.downloader.start();
       }
     }
   }
