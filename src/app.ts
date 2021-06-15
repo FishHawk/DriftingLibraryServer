@@ -86,8 +86,8 @@ export class App {
   }
 
   public listen() {
-    this.app.listen(settings.port, () => {
-      logger.info(`Listen on http://localhost:${settings.port}`);
+    this.app.listen(this.port, () => {
+      logger.info(`Listen on http://localhost:${this.port}`);
     });
   }
 }
