@@ -4,9 +4,13 @@ import { logger } from '../logger';
 import { DownloadDesc, DownloadStatus } from '../database/entity/download_desc';
 import { LibraryAccessor } from '../library/accessor.library';
 import { ProviderManager } from '../provider/manager';
-import { fail, Result, ok } from '../util/result';
 
 import { AsyncTaskCancelError, download, DownloadTask } from './download_task';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from '../controller/exception';
 
 export class DownloadService {
   constructor(
@@ -18,7 +22,7 @@ export class DownloadService {
   private isRunning = false;
   private currentDownloadTask: DownloadTask | undefined = undefined;
 
-  private start(): void {
+  start(): void {
     if (this.isRunning) return;
     this.isRunning = true;
     this.downloadLoop().then(() => (this.isRunning = false));
@@ -82,41 +86,22 @@ export class DownloadService {
     return this.repository.find();
   }
 
-  async startAllDownloadTask() {
-    await this.repository.update(
-      { status: DownloadStatus.Paused },
-      { status: DownloadStatus.Waiting }
-    );
-    await this.repository.update(
-      { status: DownloadStatus.Error },
-      { status: DownloadStatus.Waiting }
-    );
-    this.start();
-  }
-
-  async pauseAllDownloadTask() {
-    await this.repository.update(
-      { status: DownloadStatus.Waiting },
-      { status: DownloadStatus.Paused }
-    );
-    await this.repository.update(
-      { status: DownloadStatus.Downloading },
-      { status: DownloadStatus.Paused }
-    );
-  }
-
   /* item api */
   async createDownloadTask(
     providerId: string,
     sourceManga: string,
     targetManga: string,
     isCreatedBySubscription: boolean = false
-  ): Promise<Result<DownloadDesc, CreateFail>> {
+  ) {
+    if (!this.library.validateMangaId(targetManga))
+      throw new BadRequestError(`Manga:${targetManga} is not a valid manga id`);
+
     const taskInDb = await this.repository.findOne(targetManga);
-    if (taskInDb !== undefined) return fail(CreateFail.TaskAlreadyExist);
+    if (taskInDb !== undefined)
+      throw new ConflictError(`Download task:${targetManga} already exist`);
 
     if (this.providerManager.getProvider(providerId) === undefined)
-      return fail(CreateFail.UnsupportedProvider);
+      throw new BadRequestError(`Provider:${providerId} not found`);
 
     if (await this.library.isMangaExist(targetManga))
       await this.library.createManga(targetManga);
@@ -129,7 +114,7 @@ export class DownloadService {
     });
     await this.repository.save(task);
     this.start();
-    return ok(task);
+    return task;
   }
 
   async deleteDownloadTask(id: string) {
@@ -137,47 +122,9 @@ export class DownloadService {
     if (task !== undefined) {
       this.currentDownloadTask?.cancel(id);
       await this.repository.remove(task);
-    }
-    return task;
-  }
-
-  async startDownloadTask(id: string) {
-    const task = await this.repository.findOne(id);
-    if (task !== undefined) {
-      if (
-        task.status === DownloadStatus.Paused ||
-        task.status === DownloadStatus.Error
-      ) {
-        task.status = DownloadStatus.Waiting;
-        await this.repository.save(task);
-        this.start();
-      }
-    }
-    return task;
-  }
-
-  async pauseDownloadTask(id: string) {
-    const task = await this.repository.findOne(id);
-    if (task !== undefined) {
-      if (
-        task.status === DownloadStatus.Downloading ||
-        task.status === DownloadStatus.Waiting
-      ) {
-        this.currentDownloadTask?.cancel(id);
-        task.status = DownloadStatus.Paused;
-        await this.repository.save(task);
-      }
+    } else {
+      throw new NotFoundError(`Download task:${id} not found`);
     }
     return task;
   }
 }
-
-/* fail */
-export namespace DownloadService {
-  export enum CreateFail {
-    IlligalTargetMangaId,
-    UnsupportedProvider,
-    TaskAlreadyExist,
-  }
-}
-import CreateFail = DownloadService.CreateFail;

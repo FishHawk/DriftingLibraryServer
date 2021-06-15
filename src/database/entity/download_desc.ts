@@ -3,7 +3,6 @@ import { Entity, Column, PrimaryColumn } from 'typeorm';
 export enum DownloadStatus {
   Waiting = 'waiting',
   Downloading = 'downloading',
-  Paused = 'paused',
   Error = 'error',
 }
 

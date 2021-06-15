@@ -7,12 +7,15 @@ import { Image } from '../util/fs';
 import { logger } from '../logger';
 
 import { DownloadService } from './service.download';
+import { DownloadDesc } from '../database/entity';
+import { Repository } from 'typeorm';
 
 export class LibraryService {
   private job!: Job;
 
   constructor(
     private readonly library: LibraryAccessor,
+    private readonly repository: Repository<DownloadDesc>,
     private readonly downloadService: DownloadService
   ) {
     this.job = scheduleJob('0 0 4 * * *', () => {
@@ -30,15 +33,15 @@ export class LibraryService {
 
   async getManga(mangaId: string) {
     const manga = await this.assureManga(mangaId);
-    manga.removeNewMark();
+    await manga.removeNewMark();
     const mangaDetail = await manga.getDetail();
     return mangaDetail;
   }
 
   async deleteManga(mangaId: string) {
     await this.assureManga(mangaId);
-    await this.library.deleteManga(mangaId);
     await this.downloadService.deleteDownloadTask(mangaId);
+    await this.library.deleteManga(mangaId);
   }
 
   async updateMangaMetadata(mangaId: string, metadata: Entity.MetadataDetail) {
@@ -48,8 +51,10 @@ export class LibraryService {
 
   async deleteMangaSubscription(mangaId: string) {
     const manga = await this.assureManga(mangaId);
-    await manga.deleteSubscription();
+    if (!(await manga.hasSubscription()))
+      throw new NotFoundError(`Manga:${mangaId} subscription not found`);
     await this.downloadService.deleteDownloadTask(mangaId);
+    await manga.deleteSubscription();
   }
 
   async syncMangaSubscription(mangaId: string) {
@@ -58,8 +63,10 @@ export class LibraryService {
     if (await manga.hasSubscription()) {
       const subscription = await manga.getSubscription();
 
-      const result = await this.downloadService.startDownloadTask(mangaId);
-      if (result === undefined) {
+      const taskInDb = await this.repository.findOne(mangaId);
+      if (taskInDb !== undefined) {
+        this.downloadService.start();
+      } else {
         await this.downloadService.createDownloadTask(
           subscription.providerId,
           subscription.mangaId,
@@ -134,14 +141,6 @@ export class LibraryService {
       throw new BadRequestError(`${mangaId} is not legal manga id`);
     if (!(await this.library.isMangaExist(mangaId)))
       throw new NotFoundError(`Manga:${mangaId} not found`);
-    return await this.library.getManga(mangaId);
-  }
-
-  private async ensureManga(mangaId: string) {
-    if (!this.library.validateMangaId(mangaId))
-      throw new BadRequestError(`${mangaId} is not legal manga id`);
-    if (!(await this.library.isMangaExist(mangaId)))
-      await this.library.createManga(mangaId);
     return await this.library.getManga(mangaId);
   }
 }

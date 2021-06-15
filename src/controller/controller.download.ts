@@ -4,8 +4,7 @@ import { DownloadService } from '../service/service.download';
 
 import { Controller } from './decorator/controller';
 import { Res, BodyField, Param } from './decorator/parameter';
-import { Get, Patch, Post, Delete } from './decorator/verb';
-import { ConflictError, BadRequestError, assertExist } from './exception';
+import { Get, Post, Delete } from './decorator/verb';
 
 @Controller('/downloads')
 export class DownloadController {
@@ -17,20 +16,6 @@ export class DownloadController {
     return res.json(tasks);
   }
 
-  @Patch('/start')
-  async startAllDownloadTask(@Res() res: Response) {
-    await this.downloadService.startAllDownloadTask();
-    const tasks = await this.downloadService.getAllDownloadTask();
-    return res.json(tasks);
-  }
-
-  @Patch('/pause')
-  async pauseAllDownloadTask(@Res() res: Response) {
-    await this.downloadService.pauseAllDownloadTask();
-    const tasks = await this.downloadService.getAllDownloadTask();
-    return res.json(tasks);
-  }
-
   @Post('/')
   async createDownloadTask(
     @Res() res: Response,
@@ -38,44 +23,17 @@ export class DownloadController {
     @BodyField('sourceManga') sourceManga: string,
     @BodyField('targetManga') targetManga: string
   ) {
-    const taskOrFail = await this.downloadService.createDownloadTask(
+    const task = await this.downloadService.createDownloadTask(
       providerId,
       sourceManga,
       targetManga
     );
-    const task = taskOrFail.whenFail(this.handleCreateFail);
     return res.json(task);
   }
 
   @Delete('/:id')
   async deleteDownloadTask(@Res() res: Response, @Param('id') id: string) {
     const task = await this.downloadService.deleteDownloadTask(id);
-    assertExist(task, 'download task');
     return res.json(task);
-  }
-
-  @Patch('/:id/start')
-  async startDownloadTask(@Res() res: Response, @Param('id') id: string) {
-    const task = await this.downloadService.startDownloadTask(id);
-    assertExist(task, 'download task');
-    return res.json(task);
-  }
-
-  @Patch('/:id/pause')
-  async pauseDownloadTask(@Res() res: Response, @Param('id') id: string) {
-    const task = await this.downloadService.pauseDownloadTask(id);
-    assertExist(task, 'download task');
-    return res.json(task);
-  }
-
-  /* handle failure */
-  private handleCreateFail(f: DownloadService.CreateFail): never {
-    if (f === DownloadService.CreateFail.UnsupportedProvider)
-      throw new BadRequestError('Illegal error: target manga id');
-    if (f === DownloadService.CreateFail.IlligalTargetMangaId)
-      throw new BadRequestError('Illegal error: target manga id');
-    if (f === DownloadService.CreateFail.TaskAlreadyExist)
-      throw new ConflictError('Already exist: download task');
-    throw new Error();
   }
 }

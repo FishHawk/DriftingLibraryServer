@@ -66,6 +66,7 @@ export class App {
     );
     this.libraryService = new LibraryService(
       this.libraryAccessor,
+      this.database.downloadDescRepository,
       this.downloadService
     );
 
