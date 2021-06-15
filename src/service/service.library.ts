@@ -67,12 +67,14 @@ export class LibraryService {
       if (taskInDb !== undefined) {
         this.downloadService.start();
       } else {
-        await this.downloadService.createDownloadTask(
-          subscription.providerId,
-          subscription.mangaId,
-          mangaId,
-          true
-        );
+        const task = this.repository.create({
+          providerId: subscription.providerId,
+          sourceManga: subscription.mangaId,
+          id: mangaId,
+          isCreatedBySubscription: true,
+        });
+        await this.repository.save(task);
+        this.downloadService.start();
       }
     }
   }

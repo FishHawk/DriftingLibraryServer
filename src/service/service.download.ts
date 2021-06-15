@@ -6,11 +6,7 @@ import { LibraryAccessor } from '../library/accessor.library';
 import { ProviderManager } from '../provider/manager';
 
 import { AsyncTaskCancelError, download, DownloadTask } from './download_task';
-import {
-  BadRequestError,
-  ConflictError,
-  NotFoundError,
-} from './exception';
+import { BadRequestError, ConflictError, NotFoundError } from './exception';
 
 export class DownloadService {
   constructor(
@@ -91,7 +87,7 @@ export class DownloadService {
     providerId: string,
     sourceManga: string,
     targetManga: string,
-    isCreatedBySubscription: boolean = false
+    shouldCreateSubscription: boolean
   ) {
     if (!this.library.validateMangaId(targetManga))
       throw new BadRequestError(`Manga:${targetManga} is not a valid manga id`);
@@ -106,11 +102,16 @@ export class DownloadService {
     if (await this.library.isMangaExist(targetManga))
       await this.library.createManga(targetManga);
 
+    if (shouldCreateSubscription) {
+      const manga = await this.library.getManga(targetManga);
+      manga.setSubscription({ providerId, mangaId: sourceManga });
+    }
+
     const task = this.repository.create({
       providerId,
       sourceManga,
       id: targetManga,
-      isCreatedBySubscription,
+      isCreatedBySubscription: false,
     });
     await this.repository.save(task);
     this.start();
