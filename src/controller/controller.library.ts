@@ -5,8 +5,15 @@ import { Image } from '../util/fs';
 
 import { Controller } from './decorator/controller';
 import { UseBefore } from './decorator/middleware';
-import { Res, Query, Param, Body, ImageFile } from './decorator/parameter';
-import { Get, Delete, Put } from './decorator/verb';
+import {
+  Res,
+  Query,
+  Param,
+  Body,
+  ImageFile,
+  BodyField,
+} from './decorator/parameter';
+import { Get, Delete, Put, Post, Patch } from './decorator/verb';
 import { LibraryService } from '../service/service.library';
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -24,6 +31,17 @@ export class LibraryController {
   ) {
     const mangas = await this.service.listManga(lastTime, limit, keywords);
     return res.json(mangas);
+  }
+
+  @Post('/mangas')
+  async createManga(
+    @Res() res: Response,
+    @BodyField('mangaId') mangaId: string,
+    @BodyField('providerId') providerId: string,
+    @BodyField('sourceMangaId') sourceMangaId: string
+  ) {
+    await this.service.createManga(mangaId, providerId, sourceMangaId);
+    return res.status(200);
   }
 
   @Get('/mangas/:mangaId')
@@ -48,12 +66,32 @@ export class LibraryController {
     return res.status(200);
   }
 
-  @Delete('/mangas/:mangaId/subscription')
-  async deleteMangaSubscription(
+  @Post('/mangas/:mangaId/source')
+  async createMangaSource(
+    @Res() res: Response,
+    @Param('mangaId') mangaId: string,
+    @BodyField('providerId') providerId: string,
+    @BodyField('sourceMangaId') sourceMangaId: string
+  ) {
+    await this.service.createMangaSource(mangaId, providerId, sourceMangaId);
+    return res.status(200);
+  }
+
+  @Delete('/mangas/:mangaId/source')
+  async deleteMangaSource(
     @Res() res: Response,
     @Param('mangaId') mangaId: string
   ) {
-    await this.service.deleteMangaSubscription(mangaId);
+    await this.service.deleteMangaSource(mangaId);
+    return res.status(200);
+  }
+
+  @Post('/mangas/:mangaId/source/sync')
+  async syncMangaSource(
+    @Res() res: Response,
+    @Param('mangaId') mangaId: string
+  ) {
+    await this.service.syncMangaSource(mangaId);
     return res.status(200);
   }
 

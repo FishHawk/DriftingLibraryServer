@@ -7,4 +7,4 @@ export {
   Tag,
   MetadataDetail,
 } from './manga_detail';
-export { Subscription } from './subscription';
+export { Source } from './source';

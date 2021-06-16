@@ -32,8 +32,8 @@ export class MangaAccessor {
       metadata: await this.getMetadataDetail(),
       collections: await this.getCollections(),
     };
-    if (await this.hasSubscription)
-      mangaDetail.subscription = await this.getSubscription();
+    if (await this.hasSource)
+      mangaDetail.subscription = await this.getSource();
     return mangaDetail;
   }
 
@@ -96,30 +96,30 @@ export class MangaAccessor {
   }
 
   /* subscription */
-  private getSubscriptionPath() {
-    return path.join(this.dir, 'metadata.json');
+  private getSourcePath() {
+    return path.join(this.dir, 'source.json');
   }
 
-  async hasSubscription() {
-    const filepath = this.getSubscriptionPath();
+  async hasSource() {
+    const filepath = this.getSourcePath();
     return await fs.isFileExist(filepath);
   }
 
-  async getSubscription() {
+  async getSource() {
     // TODO: check json schema
-    const filepath = this.getSubscriptionPath();
+    const filepath = this.getSourcePath();
     const json = await fs.readJSON(filepath);
-    return json as unknown as Entity.Subscription;
+    return json as unknown as Entity.Source;
   }
 
-  async setSubscription(subscription: Entity.Subscription) {
-    const filepath = this.getSubscriptionPath();
-    await fs.writeJSON(filepath, subscription);
+  async setSource(source: Entity.Source) {
+    const filepath = this.getSourcePath();
+    await fs.writeJSON(filepath, source);
     return this;
   }
 
   async deleteSubscription() {
-    const filepath = this.getSubscriptionPath();
+    const filepath = this.getSourcePath();
     await fs.unlink(filepath);
   }
 

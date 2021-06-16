@@ -3,7 +3,6 @@ import express from 'express';
 
 import { logger } from './logger';
 
-import { DownloadController } from './controller/controller.download';
 import { LibraryController } from './controller/controller.library';
 import { ProviderController } from './controller/controller.provider';
 import { SystemController } from './controller/controller.system';
@@ -17,7 +16,6 @@ import { LibraryAccessor } from './library/accessor.library';
 import { ProviderManager } from './provider/manager';
 import { LibraryService } from './service/service.library';
 import { ProviderService } from './service/service.provider';
-import { DownloadService } from './service/service.download';
 import { Downloader } from './service/downloader';
 
 export class App {
@@ -29,7 +27,6 @@ export class App {
 
   private libraryService!: LibraryService;
   private providerService!: ProviderService;
-  private downloadService!: DownloadService;
 
   public static async createInstance(libraryDir: string, port: number) {
     return new App(libraryDir, port).initialize();
@@ -58,23 +55,17 @@ export class App {
       this.providerManager
     );
 
-    this.providerService = new ProviderService(this.providerManager);
-    this.downloadService = new DownloadService(
+    this.libraryService = new LibraryService(
       this.libraryAccessor,
       this.providerManager,
       this.downloader
     );
-    this.libraryService = new LibraryService(
-      this.libraryAccessor,
-      this.downloadService,
-      this.downloader
-    );
+    this.providerService = new ProviderService(this.providerManager);
 
     /* controller */
     [
       new LibraryController(this.libraryService),
       new ProviderController(this.providerService),
-      new DownloadController(this.downloadService),
       new SystemController(),
     ].forEach((controller) => {
       bind(this.app, controller);
