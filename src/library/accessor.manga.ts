@@ -16,25 +16,25 @@ export class MangaAccessor {
   }
 
   async getOutline(): Promise<Entity.MangaOutline> {
-    const mangaOutline: Entity.MangaOutline = {
+    let outline: Entity.MangaOutline = {
       id: this.id,
       updateTime: await this.getUpdateTime(),
       hasNewMark: await this.hasNewMark(),
       metadata: await this.getMetadataOutline(),
     };
-    return mangaOutline;
+    if (await this.hasSource()) outline.source = await this.getSource();
+    return outline;
   }
 
   async getDetail(): Promise<Entity.MangaDetail> {
-    let mangaDetail: Entity.MangaDetail = {
+    let detail: Entity.MangaDetail = {
       id: this.id,
       updateTime: await this.getUpdateTime(),
       metadata: await this.getMetadataDetail(),
       collections: await this.getCollections(),
     };
-    if (await this.hasSource)
-      mangaDetail.source = await this.getSource();
-    return mangaDetail;
+    if (await this.hasSource()) detail.source = await this.getSource();
+    return detail;
   }
 
   /* thumb */
@@ -124,28 +124,29 @@ export class MangaAccessor {
   }
 
   /* metadata */
-  private getMetadataOutline(): Promise<Entity.MetadataOutline> {
-    const filepath = path.join(this.dir, 'metadata.json');
-    return fs.readJSON(filepath).then((json) => {
-      // TODO: check json schema
-      if (json === undefined) return {};
-      return json;
-    });
+  private getMetadataPath() {
+    return path.join(this.dir, 'metadata.json');
   }
 
-  private getMetadataDetail(): Promise<Entity.MetadataDetail> {
-    const filepath = path.join(this.dir, 'metadata.json');
-    return fs.readJSON(filepath).then((json) => {
-      // TODO: check json schema
-      if (json === undefined) return {};
-      return json;
-    });
+  private async getMetadataOutline(): Promise<Entity.MetadataOutline> {
+    // TODO: check json schema
+    const filepath = this.getMetadataPath();
+    let json = await fs.readJSON(filepath);
+    if (json === undefined) json = {};
+    return json as unknown as Entity.MetadataOutline;
+  }
+
+  private async getMetadataDetail(): Promise<Entity.MetadataDetail> {
+    // TODO: check json schema
+    const filepath = this.getMetadataPath();
+    let json = await fs.readJSON(filepath);
+    if (json === undefined) json = {};
+    return json as unknown as Entity.MetadataDetail;
   }
 
   async setMetadata(metadata: Entity.MetadataDetail) {
-    const matedataPath = path.join(this.dir, 'metadata.json');
-    await fs.writeJSON(matedataPath, metadata);
-    return this;
+    const filepath = this.getMetadataPath();
+    await fs.writeJSON(filepath, metadata);
   }
 
   /* collection */

@@ -1,4 +1,5 @@
 import { Status } from './manga_status';
+import { Source } from './source';
 
 export interface MetadataOutline {
   title?: string;
@@ -11,6 +12,7 @@ export interface MangaOutline {
   thumb?: string;
   updateTime?: number;
   hasNewMark?: boolean;
+  source?: Source;
 
   metadata: MetadataOutline;
 }
