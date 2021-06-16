@@ -33,7 +33,8 @@ export class LibraryService {
   async createManga(
     mangaId: string,
     providerId: string,
-    sourceMangaId: string
+    sourceMangaId: string,
+    shouldDeleteAfterUpdated: boolean
   ) {
     await this.assureNoManga(mangaId);
     if (this.providerManager.getProvider(providerId) !== undefined)
@@ -45,6 +46,7 @@ export class LibraryService {
     await manga.setSource({
       providerId,
       mangaId: sourceMangaId,
+      shouldDeleteAfterUpdated,
       state: 'waiting',
     });
     this.downloader.start();
@@ -71,7 +73,8 @@ export class LibraryService {
   async createMangaSource(
     mangaId: string,
     providerId: string,
-    sourceMangaId: string
+    sourceMangaId: string,
+    shouldDeleteAfterUpdated: boolean
   ) {
     const manga = await this.assureManga(mangaId);
     if (await manga.hasSource())
@@ -83,6 +86,7 @@ export class LibraryService {
     await manga.setSource({
       providerId,
       mangaId: sourceMangaId,
+      shouldDeleteAfterUpdated,
       state: 'waiting',
     });
     this.downloader.start();
@@ -92,9 +96,9 @@ export class LibraryService {
     // TODO : There may be uncompleted chapters
     const manga = await this.assureManga(mangaId);
     if (!(await manga.hasSource()))
-      throw new NotFoundError(`Manga:${mangaId} subscription not found`);
+      throw new NotFoundError(`Manga:${mangaId} source not found`);
     await this.downloader.cancel(mangaId);
-    await manga.deleteSubscription();
+    await manga.deleteSource();
   }
 
   async syncMangaSource(mangaId: string) {
@@ -161,7 +165,7 @@ export class LibraryService {
   }
 
   async syncAllMangaSource() {
-    logger.info('Update subscription');
+    logger.info('Update source');
     const mangaIds = await this.library.listMangaId();
     for (const mangaId of mangaIds) {
       try {
@@ -175,7 +179,7 @@ export class LibraryService {
           }
         }
       } catch (e) {
-        logger.warn(`Error in update ${mangaId} subscription`);
+        logger.warn(`Error in update ${mangaId} source`);
       }
     }
     this.downloader.start();

@@ -35,12 +35,17 @@ export class Downloader {
         this.currentDownloadTask = download(provider, manga, source.mangaId);
         const isCompleted = await this.currentDownloadTask.promise;
         if (isCompleted) {
-          source.state = 'updated';
+          if (source.shouldDeleteAfterUpdated) {
+            await manga.deleteSource();
+          } else {
+            source.state = 'updated';
+            await manga.setSource(source);
+          }
         } else {
           source.state = 'error';
           source.message = 'Some chapter incomplete';
+          await manga.setSource(source);
         }
-        await manga.setSource(source);
       } catch (e) {
         if (e instanceof AsyncTaskCancelError) {
           logger.info(`Download is canceled`);
@@ -67,7 +72,7 @@ export class Downloader {
 
       const provider = this.providerManager.getProvider(source.providerId);
       if (provider === undefined) {
-        logger.warn(`Manga ${mangaId}: subscription has unsupport provider.`);
+        logger.warn(`Manga ${mangaId}: source has unsupport provider.`);
         source.state = 'error';
         source.message = 'unsupport provider';
         await manga.setSource(source);

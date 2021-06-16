@@ -38,9 +38,15 @@ export class LibraryController {
     @Res() res: Response,
     @BodyField('mangaId') mangaId: string,
     @BodyField('providerId') providerId: string,
-    @BodyField('sourceMangaId') sourceMangaId: string
+    @BodyField('sourceMangaId') sourceMangaId: string,
+    @BodyField('shouldDeleteAfterUpdated') shouldDeleteAfterUpdated: boolean
   ) {
-    await this.service.createManga(mangaId, providerId, sourceMangaId);
+    await this.service.createManga(
+      mangaId,
+      providerId,
+      sourceMangaId,
+      shouldDeleteAfterUpdated
+    );
     return res.status(200);
   }
 
@@ -71,9 +77,15 @@ export class LibraryController {
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
     @BodyField('providerId') providerId: string,
-    @BodyField('sourceMangaId') sourceMangaId: string
+    @BodyField('sourceMangaId') sourceMangaId: string,
+    @BodyField('shouldDeleteAfterUpdated') shouldDeleteAfterUpdated: boolean
   ) {
-    await this.service.createMangaSource(mangaId, providerId, sourceMangaId);
+    await this.service.createMangaSource(
+      mangaId,
+      providerId,
+      sourceMangaId,
+      shouldDeleteAfterUpdated
+    );
     return res.status(200);
   }
 

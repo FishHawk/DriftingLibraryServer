@@ -31,7 +31,7 @@ export interface MangaDetail {
   id: string;
   thumb?: string;
   updateTime?: number;
-  subscription?: Source;
+  source?: Source;
 
   metadata: MetadataDetail;
   collections: Collection[];

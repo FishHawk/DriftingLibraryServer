@@ -33,7 +33,7 @@ export class MangaAccessor {
       collections: await this.getCollections(),
     };
     if (await this.hasSource)
-      mangaDetail.subscription = await this.getSource();
+      mangaDetail.source = await this.getSource();
     return mangaDetail;
   }
 
@@ -95,7 +95,7 @@ export class MangaAccessor {
     if (await fs.isFileExist(markPath)) await fs.unlink(markPath);
   }
 
-  /* subscription */
+  /* source */
   private getSourcePath() {
     return path.join(this.dir, 'source.json');
   }
@@ -118,7 +118,7 @@ export class MangaAccessor {
     return this;
   }
 
-  async deleteSubscription() {
+  async deleteSource() {
     const filepath = this.getSourcePath();
     await fs.unlink(filepath);
   }
