@@ -52,7 +52,6 @@ export class LibraryService {
     const manga = await this.assureManga(mangaId);
     if (!(await manga.hasSubscription()))
       throw new NotFoundError(`Manga:${mangaId} subscription not found`);
-    await manga.removeSyncMark();
     await this.downloader.cancel(mangaId);
     await manga.deleteSubscription();
   }
@@ -61,7 +60,9 @@ export class LibraryService {
     const manga = await this.assureManga(mangaId);
 
     if (await manga.hasSubscription()) {
-      manga.addSyncMark();
+      const subscription = await manga.getSubscription();
+      subscription.state = 'waiting';
+      manga.setSubscription(subscription);
       this.downloader.start();
     }
   }

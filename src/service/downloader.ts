@@ -26,37 +26,32 @@ export class Downloader {
   private async downloadLoop() {
     while (true) {
       /* fetch next download desc */
-      const manga = await this.findNext();
-      if (manga === undefined) break;
-
-      const subscription = await manga.getSubscription();
-      const provider = this.providerManager.getProvider(
-        subscription.providerId
-      );
-      if (provider === undefined) {
-        logger.warn(`Subscription: unsupport provider, auto remove.`);
-        await manga.deleteSubscription();
-        await manga.removeSyncMark();
-        continue;
-      }
+      const task = await this.findNext();
+      if (task === undefined) break;
 
       try {
         this.currentDownloadTask = download(
-          provider,
-          manga,
-          subscription.mangaId
+          task.provider,
+          task.manga,
+          task.subscription.mangaId
         );
         const isCompleted = await this.currentDownloadTask.promise;
-        await manga.removeSyncMark();
-        if (!isCompleted) {
-          // TODO : set error state
+        if (isCompleted) {
+          task.subscription.state = 'updated';
+          task.subscription.message = '';
+        } else {
+          task.subscription.state = 'error';
+          task.subscription.message = 'unknown error';
         }
+        await task.manga.setSubscription(task.subscription);
       } catch (e) {
         if (e instanceof AsyncTaskCancelError) {
           logger.info(`Download is canceled`);
         } else {
           logger.error(`Download error: ${e.stack}`);
-          // TODO : set error state
+          task.subscription.state = 'error';
+          task.subscription.message = 'unknown error';
+          await task.manga.setSubscription(task.subscription);
         }
       } finally {
         this.currentDownloadTask = undefined;
@@ -67,8 +62,24 @@ export class Downloader {
   private async findNext() {
     const mangaIds = await this.library.listMangaId();
     for (const mangaId of mangaIds) {
-      const manga = this.library.getManga(mangaId);
-      if ((await manga).hasSyncMark()) return manga;
+      const manga = await this.library.getManga(mangaId);
+      if (!(await manga.hasSubscription())) continue;
+
+      const subscription = await manga.getSubscription();
+      if (subscription.state !== 'waiting') continue;
+
+      const provider = this.providerManager.getProvider(
+        subscription.providerId
+      );
+      if (provider === undefined) {
+        logger.warn(`Manga ${mangaId}: subscription has unsupport provider.`);
+        subscription.state = 'error';
+        subscription.message = 'unsupport provider';
+        await manga.setSubscription(subscription);
+        continue;
+      }
+
+      return { manga, provider, subscription };
     }
     return undefined;
   }
