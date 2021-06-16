@@ -45,9 +45,6 @@ export default class Provider extends ProviderAdapter {
   }
 
   async requestPopular(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.popular))
-      return undefined;
-
     const type = Constant.rankType[option.type].value;
     const range = Constant.rankRange[option.range].value;
     return this.api
@@ -56,9 +53,6 @@ export default class Provider extends ProviderAdapter {
   }
 
   async requestLatest(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.latest))
-      return undefined;
-
     const type = Constant.latestType[option.type].value;
     return this.api
       .getLatest(page - 1, type)
@@ -66,9 +60,6 @@ export default class Provider extends ProviderAdapter {
   }
 
   async requestCategory(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.category))
-      return undefined;
-
     const genre = Constant.classifyGenre[option.genre].value;
     const reader = Constant.classifyReader[option.reader].value;
     const status = Constant.classifyStatus[option.status].value;

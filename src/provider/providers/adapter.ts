@@ -36,31 +36,31 @@ export abstract class ProviderAdapter implements ProviderDetail {
     return { ...this.getInfo(), optionModels: this.optionModels };
   }
 
-  protected static checkOptionIntegrity(option: Option, model: OptionModel) {
+  abstract getIcon(): Image;
+
+  abstract search(page: number, keywords: string): Promise<MangaOutline[]>;
+
+  static checkOption(option: Option, model: OptionModel) {
     for (const key in model) {
       if (!(option[key] in model[key])) return false;
     }
     return true;
   }
 
-  abstract getIcon(): Image;
-
-  abstract search(page: number, keywords: string): Promise<MangaOutline[]>;
-
   abstract requestPopular(
     page: number,
     filters: Option
-  ): Promise<MangaOutline[] | undefined>;
+  ): Promise<MangaOutline[]>;
 
   abstract requestLatest(
     page: number,
     filters: Option
-  ): Promise<MangaOutline[] | undefined>;
+  ): Promise<MangaOutline[]>;
 
   abstract requestCategory(
     page: number,
     filters: Option
-  ): Promise<MangaOutline[] | undefined>;
+  ): Promise<MangaOutline[]>;
 
   abstract requestMangaDetail(mangaId: string): Promise<MangaDetail>;
 

@@ -45,9 +45,6 @@ export default class Provider extends ProviderAdapter {
   }
 
   async requestPopular(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.popular))
-      return undefined;
-
     const type = Constant.homeHotType[option.type].value;
     if (page > 1) return [];
     return this.api.getHomeHot(type).then(Parser.parsePopularResponse);
@@ -60,9 +57,6 @@ export default class Provider extends ProviderAdapter {
   }
 
   async requestCategory(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.category))
-      return undefined;
-
     const style = Constant.classStyle[option.style].value;
     const area = Constant.classArea[option.area].value;
     const isFinish = Constant.classIsFinish[option.isFinish].value;

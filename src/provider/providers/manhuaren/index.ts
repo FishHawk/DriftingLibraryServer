@@ -45,9 +45,6 @@ export default class Provider extends ProviderAdapter {
   }
 
   async requestPopular(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.popular))
-      return undefined;
-
     const type = Constant.rankType[option.type].value;
     return this.api
       .getRank(page, type)
@@ -55,24 +52,18 @@ export default class Provider extends ProviderAdapter {
   }
 
   async requestLatest(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.latest))
-      return undefined;
-
     const type = option.type;
     if (type === 0)
       return this.api
         .getUpdate(page)
         .then((res) => Parser.parseMangaOutlines(res.data.response.mangas));
-    if (type === 1)
+    else
       return this.api
         .getRelease(page)
         .then((res) => Parser.parseMangaOutlines(res.data.response.mangas));
   }
 
   async requestCategory(page: number, option: Option) {
-    if (!Provider.checkOptionIntegrity(option, this.optionModels.category))
-      return undefined;
-
     const { subId, subType } = Constant.categoryType[option.type];
     const sort = Constant.categorySort[option.sort].value;
     return this.api

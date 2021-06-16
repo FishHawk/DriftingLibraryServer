@@ -1,5 +1,6 @@
 import { ProviderManager } from '../provider/manager';
-import { NotFoundError } from './exception';
+import { OptionModel, ProviderAdapter } from '../provider/providers/adapter';
+import { BadRequestError, NotFoundError } from './exception';
 
 export class ProviderService {
   constructor(private readonly providerManager: ProviderManager) {}
@@ -26,10 +27,8 @@ export class ProviderService {
   }
 
   async listPopularManga(providerId: string, page: number, option: any) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
     const provider = this.assureProvider(providerId);
+    option = this.checkOption(option, provider.optionModels.popular);
     const mangas = await provider.requestPopular(page, option);
     if (mangas === undefined)
       throw new NotFoundError(`Provider:${providerId} popular manga not found`);
@@ -37,10 +36,8 @@ export class ProviderService {
   }
 
   async listLatestManga(providerId: string, page: number, option: any) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
     const provider = this.assureProvider(providerId);
+    option = this.checkOption(option, provider.optionModels.latest);
     const mangas = await provider.requestLatest(page, option);
     if (mangas === undefined)
       throw new NotFoundError(`Provider:${providerId} latest manga not found`);
@@ -48,10 +45,8 @@ export class ProviderService {
   }
 
   async listCategoryManga(providerId: string, page: number, option: any) {
-    for (const key in option) {
-      option[key] = Number.parseInt(option[key]);
-    }
     const provider = this.assureProvider(providerId);
+    option = this.checkOption(option, provider.optionModels.category);
     const mangas = await provider.requestCategory(page, option);
     if (mangas === undefined)
       throw new NotFoundError(
@@ -85,5 +80,14 @@ export class ProviderService {
     if (provider === undefined)
       throw new NotFoundError(`Provider:${providerId} not found`);
     return provider;
+  }
+
+  private checkOption(option: any, model: OptionModel) {
+    for (const key in option) {
+      option[key] = Number.parseInt(option[key]);
+    }
+    if (ProviderAdapter.checkOption(option, model))
+      throw new BadRequestError(`Illegal option`);
+    return option;
   }
 }
