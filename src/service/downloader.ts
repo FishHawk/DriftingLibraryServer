@@ -31,32 +31,33 @@ export class Downloader {
       const { manga, provider, source } = task;
 
       /* download */
+      let errorMessage: string | undefined = undefined;
       try {
         this.currentDownloadTask = download(provider, manga, source.mangaId);
         const isCompleted = await this.currentDownloadTask.promise;
-        if (isCompleted) {
-          if (source.shouldDeleteAfterUpdated) {
-            await manga.deleteSource();
-          } else {
-            source.state = 'updated';
-            await manga.setSource(source);
-          }
-        } else {
-          source.state = 'error';
-          source.message = 'Some chapter incomplete';
-          await manga.setSource(source);
-        }
+        if (!isCompleted) errorMessage = 'Some chapter incomplete';
       } catch (e) {
         if (e instanceof AsyncTaskCancelError) {
           logger.info(`Download is canceled`);
+          errorMessage = 'Update cancelled';
         } else {
           logger.error(`Download error: ${e.stack}`);
-          source.state = 'error';
-          source.message = 'unknown error';
-          await task.manga.setSource(source);
+          errorMessage = 'Unknown error';
         }
-      } finally {
-        this.currentDownloadTask = undefined;
+      }
+      this.currentDownloadTask = undefined;
+
+      /* update source */
+      if (!(await this.library.isMangaExist(manga.id))) continue;
+      try {
+        if (errorMessage === undefined) source.state = 'updated';
+        else source.state = 'error';
+        source.message = errorMessage;
+
+        if (source.shouldDeleteAfterUpdated) await manga.deleteSource();
+        else await manga.setSource(source);
+      } catch (e) {
+        logger.error(`Download error when update source: ${e.stack}`);
       }
     }
   }
