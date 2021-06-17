@@ -86,7 +86,7 @@ export class ProviderService {
     for (const key in option) {
       option[key] = Number.parseInt(option[key]);
     }
-    if (ProviderAdapter.checkOption(option, model))
+    if (!ProviderAdapter.checkOption(option, model))
       throw new BadRequestError(`Illegal option`);
     return option;
   }

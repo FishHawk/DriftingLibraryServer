@@ -37,7 +37,7 @@ export class LibraryService {
     shouldDeleteAfterUpdated: boolean
   ) {
     await this.assureNoManga(mangaId);
-    if (this.providerManager.getProvider(providerId) !== undefined)
+    if (this.providerManager.getProvider(providerId) === undefined)
       throw new BadRequestError(`Provider ${providerId} not support`);
 
     await this.library.createManga(mangaId);
@@ -80,7 +80,7 @@ export class LibraryService {
     if (await manga.hasSource())
       throw new ConflictError(`Manga:${mangaId} source already exist`);
 
-    if (this.providerManager.getProvider(providerId) !== undefined)
+    if (this.providerManager.getProvider(providerId) === undefined)
       throw new BadRequestError(`Provider ${providerId} not support`);
 
     await manga.setSource({
