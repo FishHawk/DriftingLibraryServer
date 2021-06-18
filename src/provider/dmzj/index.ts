@@ -1,7 +1,7 @@
 import path from 'path';
 
-import { Option, ProviderAdapter } from '../adapter';
-import * as fs from '../../../util/fs';
+import { Option, ProviderAdapter } from '@provider/adapter';
+import * as fs from '@util/fs';
 
 import Api from './api';
 import Constant from './constant';

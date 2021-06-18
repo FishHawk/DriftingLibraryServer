@@ -1,5 +1,5 @@
-import { MangaOutline, MangaDetail } from '../../library/entity';
-import { Image } from '../../util/fs/image';
+import { MangaOutline, MangaDetail } from '@library/entity';
+import { Image } from '@util/fs/image';
 
 export type OptionModel = Record<string, string[]>;
 export type Option = Record<string, number>;

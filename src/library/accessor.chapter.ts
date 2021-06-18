@@ -1,6 +1,6 @@
 import path from 'path';
 
-import * as fs from '../util/fs';
+import * as fs from '@util/fs';
 
 export class ChapterAccessor {
   constructor(private readonly dir: string) {}

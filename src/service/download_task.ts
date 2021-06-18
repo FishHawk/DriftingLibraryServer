@@ -1,10 +1,10 @@
-import { logger } from '../logger';
-import { ChapterAccessor } from '../library/accessor.chapter';
-import { MangaAccessor } from '../library/accessor.manga';
-import { ProviderAdapter } from '../provider/providers/adapter';
-import settings from '../settings';
-import { pool } from '../util/async/async_pool';
-import { getBasename } from '../util/fs';
+import { logger } from '@logger';
+import { ChapterAccessor } from '@library/accessor.chapter';
+import { MangaAccessor } from '@library/accessor.manga';
+import { ProviderAdapter } from '@provider/adapter';
+import settings from '@settings';
+import { pool } from '@util/async/async_pool';
+import { getBasename } from '@util/fs';
 
 export class AsyncTaskCancelError extends Error {
   constructor() {
@@ -37,12 +37,7 @@ export function download(
 
   return {
     mangaId,
-    promise: downloadManga(
-      provider,
-      accessor,
-      mangaId,
-      cancelIfNeed
-    ),
+    promise: downloadManga(provider, accessor, mangaId, cancelIfNeed),
     cancel,
   };
 }
@@ -135,10 +130,11 @@ async function downloadChapter(
   const tasks = imageUrls
     .map((url, index) => ({ filename: index.toString(), url }))
     .filter((it) => !existImages.includes(it.filename))
-    .map((it) => () =>
-      provider
-        .requestImage(it.url)
-        .then((image) => accessor.writeImage(it.filename, image))
+    .map(
+      (it) => () =>
+        provider
+          .requestImage(it.url)
+          .then((image) => accessor.writeImage(it.filename, image))
     );
 
   const concurrent = settings.downloadConcurrent;

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 
-import { ProviderService } from '../service/service.provider';
+import { ProviderService } from '@service/service.provider';
 
 import { Controller } from './decorator/controller';
 import { Res, Param, Query } from './decorator/parameter';

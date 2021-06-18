@@ -9,6 +9,20 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@*": [
+        "./src/*",
+        "./dist/*"
+      ],
+      // "@config/*": ["src/config/*"],
+      // "@controllers/*": ["src/controllers/*"],
+      // "@middlewares/*": ["src/middlewares/*"],
+      // "@models/*": ["src/models/*"],
+      // "@routes/*": ["src/routes/*"],
+      // "@types/*": ["src/types/*"],
+      // "@utils/*": ["src/utils/*"]
+    },
   },
   "include": [
     "src/**/*.ts"

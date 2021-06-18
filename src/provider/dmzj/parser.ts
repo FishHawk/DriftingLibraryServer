@@ -1,4 +1,4 @@
-import * as Entity from '../../../library/entity';
+import * as Entity from '@library/entity';
 
 function parseMangaStatus(json: any): Entity.Status {
   if (json === '已完结') return Entity.Status.Completed;

@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import * as Entity from '../../../library/entity';
+import * as Entity from '@library/entity';
 
 function parseStatus(status: any): Entity.Status {
   if (status === 0) return Entity.Status.Ongoing;

@@ -1,7 +1,8 @@
 import { Response } from 'express';
 import multer from 'multer';
 
-import { Image } from '../util/fs';
+import { LibraryService } from '@service/service.library';
+import { Image } from '@util/fs';
 
 import { Controller } from './decorator/controller';
 import { UseBefore } from './decorator/middleware';
@@ -13,8 +14,7 @@ import {
   ImageFile,
   BodyField,
 } from './decorator/parameter';
-import { Get, Delete, Put, Post, Patch } from './decorator/verb';
-import { LibraryService } from '../service/service.library';
+import { Get, Delete, Put, Post } from './decorator/verb';
 
 const upload = multer({ storage: multer.memoryStorage() });
 

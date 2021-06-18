@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { readJSON } from '../util/fs';
+import { readJSON } from '@util/fs';
 import { Filter, MatchEntry } from './filter';
 import { MangaAccessor } from './accessor.manga';
 

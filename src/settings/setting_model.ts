@@ -1,5 +1,5 @@
-import { isNumber, isString, Sanitizer } from '../util/validator/sanitizer';
-import { validateNumber, Validator } from '../util/validator/validator';
+import { isNumber, isString, Sanitizer } from '@util/validator/sanitizer';
+import { validateNumber, Validator } from '@util/validator/validator';
 
 export type Settings = {
   downloadConcurrent: number;

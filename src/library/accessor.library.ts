@@ -1,7 +1,7 @@
 import path from 'path';
 
-import * as fs from '../util/fs';
-import { validateString } from '../util/validator/validator';
+import * as fs from '@util/fs';
+import { validateString } from '@util/validator/validator';
 
 import { MangaAccessor } from './accessor.manga';
 import { searchLibrary } from './search';

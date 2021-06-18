@@ -1,7 +1,7 @@
 import moment from 'moment';
 import decompress from 'decompress';
 
-import * as Entity from '../../../library/entity';
+import * as Entity from '@library/entity';
 
 function generateHashKey(mangaId: string, chapterId: string) {
   const m = Number.parseInt(mangaId);

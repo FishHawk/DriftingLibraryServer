@@ -1,6 +1,6 @@
-import { logger } from '../logger';
-import { LibraryAccessor } from '../library/accessor.library';
-import { ProviderManager } from '../provider/manager';
+import { logger } from '@logger';
+import { LibraryAccessor } from '@library/accessor.library';
+import { ProviderManager } from '@provider/manager';
 
 import { AsyncTaskCancelError, download, DownloadTask } from './download_task';
 

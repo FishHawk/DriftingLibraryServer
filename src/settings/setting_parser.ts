@@ -1,6 +1,6 @@
-import { logger } from '../logger';
-import { Sanitizer } from '../util/validator/sanitizer';
-import { Validator } from '../util/validator/validator';
+import { logger } from '@logger';
+import { Sanitizer } from '@util/validator/sanitizer';
+import { Validator } from '@util/validator/validator';
 
 import { SettingModel, settingModel, Settings } from './setting_model';
 

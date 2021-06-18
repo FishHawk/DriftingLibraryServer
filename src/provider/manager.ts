@@ -1,9 +1,9 @@
-import settings from '../settings';
+import settings from '@settings';
 
-import { ProviderAdapter } from './providers/adapter';
-import ProviderBilibili from './providers/bilibili';
-import ProviderDmzj from './providers/dmzj';
-import ProviderManhuaren from './providers/manhuaren';
+import { ProviderAdapter } from './adapter';
+import ProviderBilibili from './bilibili';
+import ProviderDmzj from './dmzj';
+import ProviderManhuaren from './manhuaren';
 
 export class ProviderManager {
   readonly providers: Record<string, ProviderAdapter> = {};

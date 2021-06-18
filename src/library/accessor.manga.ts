@@ -1,7 +1,7 @@
 import path from 'path';
 
-import * as fs from '../util/fs';
-import { validateString } from '../util/validator/validator';
+import * as fs from '@util/fs';
+import { validateString } from '@util/validator/validator';
 
 import * as Entity from './entity';
 import { ChapterAccessor } from './accessor.chapter';

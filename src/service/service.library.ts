@@ -1,13 +1,13 @@
 import { Job, scheduleJob } from 'node-schedule';
 
-import * as Entity from '../library/entity';
-import { LibraryAccessor } from '../library/accessor.library';
-import { Image } from '../util/fs';
-import { logger } from '../logger';
+import { logger } from '@logger';
+import * as Entity from '@library/entity';
+import { LibraryAccessor } from '@library/accessor.library';
+import { ProviderManager } from '@provider/manager';
+import { Image } from '@util/fs';
 
 import { BadRequestError, ConflictError, NotFoundError } from './exception';
 import { Downloader } from './downloader';
-import { ProviderManager } from '../provider/manager';
 
 export class LibraryService {
   private job!: Job;

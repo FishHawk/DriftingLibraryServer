@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 
-import * as fsu from '../util/fs';
+import * as fsu from '@util/fs';
 
 import { defaultSettings } from './setting_model';
 import { parseInputSettings } from './setting_parser';

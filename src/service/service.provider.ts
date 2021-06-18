@@ -1,5 +1,6 @@
-import { ProviderManager } from '../provider/manager';
-import { OptionModel, ProviderAdapter } from '../provider/providers/adapter';
+import { ProviderManager } from '@provider/manager';
+import { OptionModel, ProviderAdapter } from '@provider/adapter';
+
 import { BadRequestError, NotFoundError } from './exception';
 
 export class ProviderService {
