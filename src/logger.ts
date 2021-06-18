@@ -12,13 +12,9 @@ const timestamp = winston.format((info, opts) => {
 
 export const logger = winston.createLogger({
   level: 'info',
+  format: winston.format.combine(timestamp(), format),
   transports: [
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    }),
-    new winston.transports.File({
-      format: winston.format.combine(timestamp(), format),
-      filename: 'log/info.log',
-    }),
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'log/run.log' }),
   ],
 });
