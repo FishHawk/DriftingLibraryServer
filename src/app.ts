@@ -1,22 +1,19 @@
 import path from 'path';
 import express from 'express';
 
-import { logger } from './logger';
-
-import { LibraryController } from './controller/controller.library';
-import { ProviderController } from './controller/controller.provider';
-import { SystemController } from './controller/controller.system';
-import { bind } from './controller/decorator/bind';
-
-import { logMiddleware } from './controller/middleware.log';
-import { errorHandleMiddleware } from './controller/middleware.error_handle';
-
-import { SettingLoader } from './settings';
-import { LibraryAccessor } from './library/accessor.library';
-import { ProviderManager } from './provider/manager';
-import { LibraryService } from './service/service.library';
-import { ProviderService } from './service/service.provider';
-import { Downloader } from './service/downloader';
+import { logger } from '@logger';
+import { SettingLoader } from '@settings';
+import { LibraryAccessor } from '@library/accessor.library';
+import { ProviderManager } from '@provider/manager';
+import { LibraryService, ProviderService, Downloader } from '@service';
+import {
+  bind,
+  LibraryController,
+  ProviderController,
+  SystemController,
+  errorHandleMiddleware,
+  logMiddleware,
+} from '@controller';
 
 export class App {
   private readonly app = express();
