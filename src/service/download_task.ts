@@ -5,6 +5,7 @@ import { ProviderAdapter } from '@provider/adapter';
 import settings from '@settings';
 import { pool } from '@util/async/async_pool';
 import { getBasename } from '@util/fs';
+import { Status } from '@library/entity';
 
 export class AsyncTaskCancelError extends Error {
   constructor() {
@@ -15,9 +16,14 @@ export class AsyncTaskCancelError extends Error {
   }
 }
 
+export interface DownloadResult {
+  isAllUpdated: boolean;
+  isCompleted: boolean;
+}
+
 export interface DownloadTask {
   mangaId: string;
-  promise: Promise<boolean>;
+  promise: Promise<DownloadResult>;
   cancel: (id: string) => void;
 }
 
@@ -92,7 +98,10 @@ async function downloadManga(
       }
     }
   }
-  return !hasChapterError;
+  return {
+    isAllUpdated: !hasChapterError,
+    isCompleted: detail.metadata.status == Status.Completed,
+  };
 }
 
 async function downloadMangaDetail(

@@ -34,7 +34,7 @@ export class LibraryService {
     mangaId: string,
     providerId: string,
     sourceMangaId: string,
-    shouldDeleteAfterUpdated: boolean
+    keepAfterCompleted: boolean
   ) {
     await this.assureNoManga(mangaId);
     if (this.providerManager.getProvider(providerId) === undefined)
@@ -46,7 +46,7 @@ export class LibraryService {
     await manga.setSource({
       providerId,
       mangaId: sourceMangaId,
-      shouldDeleteAfterUpdated,
+      keepAfterCompleted,
       state: 'waiting',
     });
     this.downloader.start();
@@ -74,7 +74,7 @@ export class LibraryService {
     mangaId: string,
     providerId: string,
     sourceMangaId: string,
-    shouldDeleteAfterUpdated: boolean
+    keepAfterCompleted: boolean
   ) {
     const manga = await this.assureManga(mangaId);
     if (await manga.hasSource())
@@ -86,7 +86,7 @@ export class LibraryService {
     await manga.setSource({
       providerId,
       mangaId: sourceMangaId,
-      shouldDeleteAfterUpdated,
+      keepAfterCompleted,
       state: 'waiting',
     });
     this.downloader.start();
