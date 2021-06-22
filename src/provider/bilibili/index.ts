@@ -72,7 +72,7 @@ export default class Provider extends ProviderAdapter {
       .getComicDetail(mangaId)
       .then((res) => Parser.parseMangaDetail(res.data.data))
       .then((detail) => {
-        detail.providerId = this.id;
+        detail.provider = this.getInfo();
         return detail;
       });
   }
