@@ -20,7 +20,16 @@ Android：https://github.com/FishHawk/DriftingLibraryAndroid
 
 ## 快速开始
 
-### 编译
+### Docker
+
+```bash
+docker build https://github.com/FishHawk/DriftingLibraryServer.git -t manga:latest
+docker run -d -p 8080:8080 --name=manga --restart=always -v /home/wh/manga:/data manga:latest
+```
+
+### App
+
+#### 编译
 
 ```bash
 cd DriftingLibraryServer
@@ -28,7 +37,7 @@ npm install
 npm run build
 ```
 
-### 运行
+#### 运行
 
 ```bash
 export APP_PORT=8080                  # 服务器端口号，应当在1024到65535之间，例如8080。
