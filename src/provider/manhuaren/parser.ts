@@ -1,11 +1,11 @@
 import moment from 'moment';
 
-import * as Entity from '@library/entity';
+import * as Entity from '@data';
 
-function parseStatus(status: any): Entity.Status {
-  if (status === 0) return Entity.Status.Ongoing;
-  else if (status === 1) return Entity.Status.Completed;
-  else return Entity.Status.Unknown;
+function parseStatus(status: any): Entity.MangaStatus {
+  if (status === 0) return Entity.MangaStatus.Ongoing;
+  else if (status === 1) return Entity.MangaStatus.Completed;
+  else return Entity.MangaStatus.Unknown;
 }
 
 function parseUpdateTime(time: any): number | undefined {

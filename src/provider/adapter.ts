@@ -1,16 +1,10 @@
-import { MangaOutline, MangaDetail } from '@library/entity';
+import * as Model from '@data';
 import { Image } from '@util/fs/image';
 
 export type OptionModel = Record<string, string[]>;
 export type Option = Record<string, number>;
 
-export interface ProviderInfo {
-  readonly id: string;
-  readonly name: string;
-  readonly lang: string;
-}
-
-export interface ProviderDetail extends ProviderInfo {
+export interface ProviderDetail extends Model.ProviderInfo {
   readonly optionModels: {
     popular: OptionModel;
     latest: OptionModel;
@@ -29,7 +23,14 @@ export abstract class ProviderAdapter implements ProviderDetail {
     category: OptionModel;
   };
 
-  getInfo(): ProviderInfo {
+  static checkOption(option: Option, model: OptionModel) {
+    for (const key in model) {
+      if (!(option[key] in model[key])) return false;
+    }
+    return true;
+  }
+
+  getInfo(): Model.ProviderInfo {
     return { id: this.id, name: this.name, lang: this.lang };
   }
   getDetail(): ProviderDetail {
@@ -38,31 +39,27 @@ export abstract class ProviderAdapter implements ProviderDetail {
 
   abstract getIcon(): Image;
 
-  abstract search(page: number, keywords: string): Promise<MangaOutline[]>;
-
-  static checkOption(option: Option, model: OptionModel) {
-    for (const key in model) {
-      if (!(option[key] in model[key])) return false;
-    }
-    return true;
-  }
+  abstract search(
+    page: number,
+    keywords: string
+  ): Promise<Model.MangaOutline[]>;
 
   abstract requestPopular(
     page: number,
     filters: Option
-  ): Promise<MangaOutline[]>;
+  ): Promise<Model.MangaOutline[]>;
 
   abstract requestLatest(
     page: number,
     filters: Option
-  ): Promise<MangaOutline[]>;
+  ): Promise<Model.MangaOutline[]>;
 
   abstract requestCategory(
     page: number,
     filters: Option
-  ): Promise<MangaOutline[]>;
+  ): Promise<Model.MangaOutline[]>;
 
-  abstract requestMangaDetail(mangaId: string): Promise<MangaDetail>;
+  abstract requestMangaDetail(mangaId: string): Promise<Model.MangaDetail>;
 
   abstract requestChapterContent(
     mangaId: string,

@@ -1,7 +1,7 @@
 import moment from 'moment';
 import decompress from 'decompress';
 
-import * as Entity from '@library/entity';
+import * as Model from '@data';
 
 function generateHashKey(mangaId: string, chapterId: string) {
   const m = Number.parseInt(mangaId);
@@ -12,20 +12,20 @@ function generateHashKey(mangaId: string, chapterId: string) {
   return n;
 }
 
-function parseMangaStatus(json: any): Entity.Status {
-  if (json === 0) return Entity.Status.Ongoing;
-  else if (json === 1) return Entity.Status.Completed;
-  else return Entity.Status.Unknown;
+function parseMangaStatus(json: any): Model.MangaStatus {
+  if (json === 0) return Model.MangaStatus.Ongoing;
+  else if (json === 1) return Model.MangaStatus.Completed;
+  else return Model.MangaStatus.Unknown;
 }
 
-function parseSearchResponse(res: any): Entity.MangaOutline[] {
+function parseSearchResponse(res: any): Model.MangaOutline[] {
   return res.data.data.list.map((it: any) => {
-    const metadata: Entity.MetadataOutline = {
+    const metadata: Model.MetadataOutline = {
       title: it.org_title,
       authors: it.author_name,
       status: parseMangaStatus(it.is_finish),
     };
-    const outline: Entity.MangaOutline = {
+    const outline: Model.MangaOutline = {
       id: it.id,
       thumb: it.vertical_cover,
       updateTime: undefined,
@@ -35,14 +35,14 @@ function parseSearchResponse(res: any): Entity.MangaOutline[] {
   });
 }
 
-function parsePopularResponse(res: any): Entity.MangaOutline[] {
+function parsePopularResponse(res: any): Model.MangaOutline[] {
   return res.data.data.map((it: any) => {
-    const metadata: Entity.MetadataOutline = {
+    const metadata: Model.MetadataOutline = {
       title: it.title,
       authors: it.author,
       status: parseMangaStatus(it.is_finish),
     };
-    const outline: Entity.MangaOutline = {
+    const outline: Model.MangaOutline = {
       id: it.comic_id,
       thumb: it.vertical_cover,
       metadata,
@@ -51,12 +51,12 @@ function parsePopularResponse(res: any): Entity.MangaOutline[] {
   });
 }
 
-function parseLatestResponse(res: any): Entity.MangaOutline[] {
+function parseLatestResponse(res: any): Model.MangaOutline[] {
   return res.data.data.list.map((it: any) => {
-    const metadata: Entity.MetadataOutline = {
+    const metadata: Model.MetadataOutline = {
       title: it.title,
     };
-    const outline: Entity.MangaOutline = {
+    const outline: Model.MangaOutline = {
       id: it.comic_id,
       thumb: it.vertical_cover,
       metadata,
@@ -65,13 +65,13 @@ function parseLatestResponse(res: any): Entity.MangaOutline[] {
   });
 }
 
-function parseCategoryResponse(res: any): Entity.MangaOutline[] {
+function parseCategoryResponse(res: any): Model.MangaOutline[] {
   return res.data.data.map((it: any) => {
-    const metadata: Entity.MetadataOutline = {
+    const metadata: Model.MetadataOutline = {
       title: it.title,
       status: parseMangaStatus(it.is_finish),
     };
-    const outline: Entity.MangaOutline = {
+    const outline: Model.MangaOutline = {
       id: it.season_id,
       thumb: it.vertical_cover,
       metadata,
@@ -80,14 +80,14 @@ function parseCategoryResponse(res: any): Entity.MangaOutline[] {
   });
 }
 
-function parseMangaDetail(json: any): Entity.MangaDetail {
+function parseMangaDetail(json: any): Model.MangaDetail {
   // parse metadata
-  const tags: Entity.Tag[] = [];
+  const tags: Model.Tag[] = [];
   if (json.styles.length > 0) {
     tags.push({ key: '', value: json.styles });
   }
 
-  const metadata: Entity.MetadataDetail = {
+  const metadata: Model.MetadataDetail = {
     title: json.title,
     authors: json.author_name,
     status: parseMangaStatus(json.is_finish),
@@ -101,7 +101,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
     chapters: json.ep_list
       .map((it: any) => {
         const prefix = it.is_locked ? '[X] ' : '';
-        const chapter: Entity.Chapter = {
+        const chapter: Model.Chapter = {
           id: it.id,
           name: prefix + it.short_title,
           title: prefix + it.title,
@@ -112,7 +112,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
   };
 
   // parse detail
-  const detail: Entity.MangaDetail = {
+  const detail: Model.MangaDetail = {
     id: json.id,
     thumb: json.vertical_cover,
     updateTime: moment(json.release_time, 'YYYY年MM月DD日').valueOf(),

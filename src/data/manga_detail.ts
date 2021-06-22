@@ -1,5 +1,5 @@
-import { Status } from './manga_status';
-import { Source } from './source';
+import { MangaStatus } from './manga_status';
+import { MangaSource } from './manga_source';
 
 export interface Chapter {
   readonly id: string;
@@ -20,7 +20,7 @@ export interface Tag {
 export interface MetadataDetail {
   title?: string;
   authors?: string[];
-  status?: Status;
+  status?: MangaStatus;
 
   description?: string;
   tags?: Tag[];
@@ -31,7 +31,7 @@ export interface MangaDetail {
   id: string;
   thumb?: string;
   updateTime?: number;
-  source?: Source;
+  source?: MangaSource;
 
   metadata: MetadataDetail;
   collections: Collection[];

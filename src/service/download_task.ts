@@ -1,3 +1,4 @@
+import { MangaStatus } from '@data';
 import { logger } from '@logger';
 import { ChapterAccessor } from '@library/accessor.chapter';
 import { MangaAccessor } from '@library/accessor.manga';
@@ -5,7 +6,6 @@ import { ProviderAdapter } from '@provider/adapter';
 import settings from '@settings';
 import { pool } from '@util/async/async_pool';
 import { getBasename } from '@util/fs';
-import { Status } from '@library/entity';
 
 export class AsyncTaskCancelError extends Error {
   constructor() {
@@ -100,7 +100,7 @@ async function downloadManga(
   }
   return {
     isAllUpdated: !hasChapterError,
-    isCompleted: detail.metadata.status == Status.Completed,
+    isCompleted: detail.metadata.status == MangaStatus.Completed,
   };
 }
 

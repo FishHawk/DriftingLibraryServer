@@ -1,4 +1,4 @@
-export interface Source {
+export interface MangaSource {
   providerId: string;
   mangaId: string;
   keepAfterCompleted: boolean;

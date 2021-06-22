@@ -15,13 +15,6 @@
         "./src/*",
         "./dist/*"
       ],
-      // "@config/*": ["src/config/*"],
-      // "@controllers/*": ["src/controllers/*"],
-      // "@middlewares/*": ["src/middlewares/*"],
-      // "@models/*": ["src/models/*"],
-      // "@routes/*": ["src/routes/*"],
-      // "@types/*": ["src/types/*"],
-      // "@utils/*": ["src/utils/*"]
     },
   },
   "include": [

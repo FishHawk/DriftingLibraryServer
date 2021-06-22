@@ -1,4 +1,4 @@
-import { Tag } from './entity/manga_detail';
+import { Tag } from '@data/manga_detail';
 
 class MatchPattern {
   readonly key: string;

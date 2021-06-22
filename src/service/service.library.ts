@@ -1,7 +1,7 @@
 import { Job, scheduleJob } from 'node-schedule';
 
+import * as Model from '@data';
 import { logger } from '@logger';
-import * as Entity from '@library/entity';
 import { LibraryAccessor } from '@library/accessor.library';
 import { ProviderManager } from '@provider/manager';
 import { Image } from '@util/fs';
@@ -65,7 +65,7 @@ export class LibraryService {
     await this.library.deleteManga(mangaId);
   }
 
-  async updateMangaMetadata(mangaId: string, metadata: Entity.MetadataDetail) {
+  async updateMangaMetadata(mangaId: string, metadata: Model.MetadataDetail) {
     const manga = await this.assureManga(mangaId);
     await manga.setMetadata(metadata);
   }

@@ -1,19 +1,19 @@
-import * as Entity from '@library/entity';
+import * as Model from '@data';
 
-function parseMangaStatus(json: any): Entity.Status {
-  if (json === '已完结') return Entity.Status.Completed;
-  else if (json === '连载中') return Entity.Status.Ongoing;
-  else return Entity.Status.Unknown;
+function parseMangaStatus(json: any): Model.MangaStatus {
+  if (json === '已完结') return Model.MangaStatus.Completed;
+  else if (json === '连载中') return Model.MangaStatus.Ongoing;
+  else return Model.MangaStatus.Unknown;
 }
 
-function parseMangaOutlines(json: any): Entity.MangaOutline[] {
+function parseMangaOutlines(json: any): Model.MangaOutline[] {
   return json.map((it: any) => {
-    const metadata: Entity.MetadataOutline = {
+    const metadata: Model.MetadataOutline = {
       title: it.title,
       authors: it.authors.split('/'),
       status: parseMangaStatus(it.status),
     };
-    const outline: Entity.MangaOutline = {
+    const outline: Model.MangaOutline = {
       id: it.id || it.comic_id,
       thumb: it.cover,
       updateTime: it.last_updatetime * 1000,
@@ -23,17 +23,17 @@ function parseMangaOutlines(json: any): Entity.MangaOutline[] {
   });
 }
 
-function parseMangaDetail(json: any): Entity.MangaDetail {
+function parseMangaDetail(json: any): Model.MangaDetail {
   // parse metadata
   const authors = json.authors.map((it: any) => it.tag_name);
   const status = parseMangaStatus(json.status[0].tag_name);
 
-  const tags: Entity.Tag[] = [];
+  const tags: Model.Tag[] = [];
   if (json.types.length > 0) {
     tags.push({ key: '', value: json.types.map((it: any) => it.tag_name) });
   }
 
-  const metadata: Entity.MetadataDetail = {
+  const metadata: Model.MetadataDetail = {
     title: json.title,
     authors,
     status,
@@ -42,10 +42,10 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
   };
 
   // parse collections
-  const collections: Entity.Collection[] = json.chapters.map((it: any) => {
+  const collections: Model.Collection[] = json.chapters.map((it: any) => {
     const chapters = it.data
       .map((it: any) => {
-        const chapter: Entity.Chapter = {
+        const chapter: Model.Chapter = {
           id: it.chapter_id,
           name: it.chapter_title,
           title: '',
@@ -53,14 +53,14 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
         return chapter;
       })
       .reverse();
-    const collection: Entity.Collection = {
+    const collection: Model.Collection = {
       id: it.title,
       chapters,
     };
     return collection;
   });
 
-  const detail: Entity.MangaDetail = {
+  const detail: Model.MangaDetail = {
     id: json.id,
     thumb: json.cover,
     updateTime: json.last_updatetime * 1000,
