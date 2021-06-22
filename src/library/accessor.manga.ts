@@ -31,7 +31,7 @@ export class MangaAccessor {
       id: this.id,
       updateTime: await this.getUpdateTime(),
       metadata: await this.getMetadataDetail(),
-      collections: await this.getCollections(),
+      ...(await this.getCollections()),
     };
     if (await this.hasSource()) detail.source = await this.getSource();
     return detail;
@@ -150,7 +150,7 @@ export class MangaAccessor {
   }
 
   /* collection */
-  private async getCollections(): Promise<Model.Collection[]> {
+  private async getCollections() {
     const parseChapterId = (id: string): Model.Chapter => {
       const sep = ' ';
       const sepPosition = id.indexOf(sep);
@@ -187,13 +187,21 @@ export class MangaAccessor {
         collections.push(collection);
       }
 
-      return collections;
+      return { collections };
     } else {
+      const chapterAccessor = await this.getChapter('', '');
+      const preview = await chapterAccessor!!.listImage();
+
+      // empty
+      if (preview.length === 0) return { collections: [] };
+
       // depth 1
-      // TODO: add preview
       const chapter: Model.Chapter = { id: '', name: '', title: '' };
       const collection: Model.Collection = { id: '', chapters: [chapter] };
-      return [collection];
+      return {
+        collections: [collection],
+        preview: preview.slice(0, 20),
+      };
     }
   }
 
