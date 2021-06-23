@@ -15,7 +15,7 @@ function parseMangaOutlines(json: any): Model.MangaOutline[] {
     };
     const outline: Model.MangaOutline = {
       id: it.id || it.comic_id,
-      thumb: it.cover,
+      cover: it.cover,
       updateTime: it.last_updatetime * 1000,
       metadata: metadata,
     };
@@ -62,7 +62,7 @@ function parseMangaDetail(json: any): Model.MangaDetail {
 
   const detail: Model.MangaDetail = {
     id: json.id,
-    thumb: json.cover,
+    cover: json.cover,
     updateTime: json.last_updatetime * 1000,
     metadata: metadata,
     collections,

@@ -116,17 +116,17 @@ export class LibraryService {
     this.downloader.start();
   }
 
-  async getMangaThumb(mangaId: string) {
+  async getMangaCover(mangaId: string) {
     const manga = await this.assureManga(mangaId);
-    const thumb = await manga.getThumb();
-    if (thumb === undefined)
-      throw new NotFoundError(`Manga:${mangaId} thumb not found`);
-    return thumb;
+    const cover = await manga.getCover();
+    if (cover === undefined)
+      throw new NotFoundError(`Manga:${mangaId} cover not found`);
+    return cover;
   }
 
-  async updateMangaThumb(mangaId: string, thumb: Image) {
+  async updateMangaCover(mangaId: string, cover: Image) {
     const manga = await this.assureManga(mangaId);
-    await manga.setThumb(thumb);
+    await manga.setCover(cover);
   }
 
   async getChapter(mangaId: string, collectionId: string, chapterId: string) {

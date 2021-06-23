@@ -115,10 +115,10 @@ async function downloadMangaDetail(
   cancelIfNeed();
   await accessor.setMetadata(detail.metadata);
 
-  if (detail.thumb !== undefined) {
-    const thumb = await provider.requestImage(detail.thumb);
+  if (detail.cover !== undefined) {
+    const cover = await provider.requestImage(detail.cover);
     cancelIfNeed();
-    await accessor.setThumb(thumb);
+    await accessor.setCover(cover);
   }
 
   return detail;

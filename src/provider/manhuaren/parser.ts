@@ -32,7 +32,7 @@ function parseMangaOutlines(json: any): Entity.MangaOutline[] {
     };
     const outline: Entity.MangaOutline = {
       id: it.mangaId,
-      thumb: it.mangaCoverimageUrl,
+      cover: it.mangaCoverimageUrl,
       updateTime: parseUpdateTime(it.mangaNewestTime),
       metadata: metadata,
     };
@@ -41,15 +41,15 @@ function parseMangaOutlines(json: any): Entity.MangaOutline[] {
 }
 
 function parseMangaDetail(json: any): Entity.MangaDetail {
-  let thumb = json.mangaPicimageUrl;
-  // let thumb = json.mangaCoverimageUrl;
+  let cover = json.mangaPicimageUrl;
+  // let cover = json.mangaCoverimageUrl;
   if (
-    thumb === undefined ||
-    thumb === '' ||
-    thumb === 'http://mhfm5.tel.cdndm5.com/tag/category/nopic.jpg'
+    cover === undefined ||
+    cover === '' ||
+    cover === 'http://mhfm5.tel.cdndm5.com/tag/category/nopic.jpg'
   )
-    thumb = json.mangaPicimageUrl;
-  if (thumb === undefined || thumb === '') thumb = json.shareIcon;
+    cover = json.mangaPicimageUrl;
+  if (cover === undefined || cover === '') cover = json.shareIcon;
 
   // parse tag
   const tags: Entity.Tag[] = [];
@@ -83,7 +83,7 @@ function parseMangaDetail(json: any): Entity.MangaDetail {
   // parse detail
   const detail: Entity.MangaDetail = {
     id: json.mangaId.toString(),
-    thumb: thumb,
+    cover: cover,
     updateTime: parseUpdateTime(json.mangaNewestTime),
     metadata: metadata,
     collections: collections,

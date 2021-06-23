@@ -178,7 +178,7 @@ export const ImageFile = (): ParameterDecorator => {
   return (target, key, index): void => {
     const extractor = (req: Request) => {
       if (req.file === undefined)
-        throw new BadRequestError('Illegal argument: thumb file');
+        throw new BadRequestError('Illegal argument: cover file');
 
       const image = Image.fromMime(
         req.file.mimetype,
@@ -186,7 +186,7 @@ export const ImageFile = (): ParameterDecorator => {
       );
 
       if (image === undefined)
-        throw new BadRequestError('Illegal argument: thumb file');
+        throw new BadRequestError('Illegal argument: cover file');
       return image;
     };
 

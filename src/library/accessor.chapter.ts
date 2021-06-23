@@ -7,7 +7,7 @@ export class ChapterAccessor {
 
   async listImage() {
     return (await fs.listImageFile(this.dir, 'natural')).filter(
-      (filename) => fs.getBasename(filename) !== 'thumb'
+      (filename) => fs.getBasename(filename) !== 'cover'
     );
   }
   readImage(filename: string) {

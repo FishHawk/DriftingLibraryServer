@@ -37,36 +37,36 @@ export class MangaAccessor {
     return detail;
   }
 
-  /* thumb */
-  async getThumb() {
+  /* cover */
+  async getCover() {
     const imageFiles = await fs.listImageFile(this.dir);
-    const thumbFiles = imageFiles.filter(
-      (filename) => fs.getBasename(filename) === 'thumb'
+    const coverFiles = imageFiles.filter(
+      (filename) => fs.getBasename(filename) === 'cover'
     );
 
-    let thumbFilename;
-    if (thumbFiles.length > 0) thumbFilename = thumbFiles[0];
-    else if (imageFiles.length > 0) thumbFilename = imageFiles[0];
+    let coverFilename;
+    if (coverFiles.length > 0) coverFilename = coverFiles[0];
+    else if (imageFiles.length > 0) coverFilename = imageFiles[0];
     else return undefined;
 
-    const imagePath = path.join(this.dir, thumbFilename);
+    const imagePath = path.join(this.dir, coverFilename);
     return fs.Image.fromExt(
-      fs.getExtension(thumbFilename),
+      fs.getExtension(coverFilename),
       fs.createReadStream(imagePath)
     );
   }
 
-  async setThumb(thumb: fs.Image) {
-    // delete old thumb
+  async setCover(cover: fs.Image) {
+    // delete old cover
     await Promise.all(
       (await fs.listImageFile(this.dir))
-        .filter((filename) => fs.getBasename(filename) === 'thumb')
+        .filter((filename) => fs.getBasename(filename) === 'cover')
         .map((filename) => fs.unlink(path.join(this.dir, filename)))
     );
 
-    // save new thumb
-    const thumbPath = path.join(this.dir, `thumb.${thumb.ext}`);
-    await thumb.pipe(fs.createWriteStream(thumbPath));
+    // save new cover
+    const coverbPath = path.join(this.dir, `cover.${cover.ext}`);
+    await cover.pipe(fs.createWriteStream(coverbPath));
     return this;
   }
 

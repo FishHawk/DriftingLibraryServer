@@ -30,7 +30,7 @@ export interface MetadataDetail {
 export interface MangaDetail {
   provider?: ProviderInfo;
   id: string;
-  thumb?: string;
+  cover?: string;
   updateTime?: number;
 
   metadata: MetadataDetail;

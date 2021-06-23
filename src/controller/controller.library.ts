@@ -107,20 +107,20 @@ export class LibraryController {
     return res.status(200);
   }
 
-  @Get('/mangas/:mangaId/thumb')
-  async getMangaThumb(@Res() res: Response, @Param('mangaId') mangaId: string) {
-    const thumb = await this.service.getMangaThumb(mangaId);
-    return thumb.pipe(res.type(thumb.mime));
+  @Get('/mangas/:mangaId/cover')
+  async getMangaCover(@Res() res: Response, @Param('mangaId') mangaId: string) {
+    const cover = await this.service.getMangaCover(mangaId);
+    return cover.pipe(res.type(cover.mime));
   }
 
-  @UseBefore(upload.single('thumb'))
-  @Put('/mangas/:mangaId/thumb')
-  async updateMangaThumb(
+  @UseBefore(upload.single('cover'))
+  @Put('/mangas/:mangaId/cover')
+  async updateMangaCover(
     @Res() res: Response,
     @Param('mangaId') mangaId: string,
-    @ImageFile() thumb: Image
+    @ImageFile() cover: Image
   ) {
-    await this.service.updateMangaThumb(mangaId, thumb);
+    await this.service.updateMangaCover(mangaId, cover);
     return res.status(200);
   }
 

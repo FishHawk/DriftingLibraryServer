@@ -27,7 +27,7 @@ function parseSearchResponse(res: any): Model.MangaOutline[] {
     };
     const outline: Model.MangaOutline = {
       id: it.id,
-      thumb: it.vertical_cover,
+      cover: it.vertical_cover,
       updateTime: undefined,
       metadata,
     };
@@ -44,7 +44,7 @@ function parsePopularResponse(res: any): Model.MangaOutline[] {
     };
     const outline: Model.MangaOutline = {
       id: it.comic_id,
-      thumb: it.vertical_cover,
+      cover: it.vertical_cover,
       metadata,
     };
     return outline;
@@ -58,7 +58,7 @@ function parseLatestResponse(res: any): Model.MangaOutline[] {
     };
     const outline: Model.MangaOutline = {
       id: it.comic_id,
-      thumb: it.vertical_cover,
+      cover: it.vertical_cover,
       metadata,
     };
     return outline;
@@ -73,7 +73,7 @@ function parseCategoryResponse(res: any): Model.MangaOutline[] {
     };
     const outline: Model.MangaOutline = {
       id: it.season_id,
-      thumb: it.vertical_cover,
+      cover: it.vertical_cover,
       metadata,
     };
     return outline;
@@ -114,7 +114,7 @@ function parseMangaDetail(json: any): Model.MangaDetail {
   // parse detail
   const detail: Model.MangaDetail = {
     id: json.id,
-    thumb: json.vertical_cover,
+    cover: json.vertical_cover,
     updateTime: moment(json.release_time, 'YYYY年MM月DD日').valueOf(),
     metadata,
     collections: [collection],
