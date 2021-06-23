@@ -5,8 +5,10 @@ import * as fs from '@util/fs';
 export class ChapterAccessor {
   constructor(private readonly dir: string) {}
 
-  listImage() {
-    return fs.listImageFile(this.dir, 'natural');
+  async listImage() {
+    return (await fs.listImageFile(this.dir, 'natural')).filter(
+      (filename) => fs.getBasename(filename) !== 'thumb'
+    );
   }
   readImage(filename: string) {
     const imagePath = path.join(this.dir, filename);
