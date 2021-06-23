@@ -36,5 +36,5 @@ export interface MangaDetail {
   metadata: MetadataDetail;
   source?: MangaSource;
   collections: Collection[];
-  preview?: string[]
+  preview?: string[];
 }

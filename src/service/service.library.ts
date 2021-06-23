@@ -129,13 +129,9 @@ export class LibraryService {
     await manga.setThumb(thumb);
   }
 
-  async getChapter(
-    mangaId: string,
-    collectionId: string | undefined,
-    chapterId: string | undefined
-  ) {
+  async getChapter(mangaId: string, collectionId: string, chapterId: string) {
     const manga = await this.assureManga(mangaId);
-    const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
+    const chapter = await manga.getChapter(collectionId, chapterId);
     if (chapter === undefined)
       throw new NotFoundError(
         `Chapter:${mangaId}/${collectionId}/${chapterId} not found`
@@ -145,12 +141,12 @@ export class LibraryService {
 
   async getImage(
     mangaId: string,
-    collectionId: string | undefined,
-    chapterId: string | undefined,
+    collectionId: string,
+    chapterId: string,
     imageId: string
   ) {
     const manga = await this.assureManga(mangaId);
-    const chapter = await manga.getChapter(collectionId ?? '', chapterId ?? '');
+    const chapter = await manga.getChapter(collectionId, chapterId);
     if (chapter === undefined)
       throw new NotFoundError(
         `Chapter:${mangaId}/${collectionId}/${chapterId} not found`

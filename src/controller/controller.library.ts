@@ -134,8 +134,8 @@ export class LibraryController {
   ) {
     const content = await this.service.getChapter(
       mangaId,
-      collectionId,
-      chapterId
+      collectionId ?? '',
+      chapterId ?? ''
     );
     return res.json(content);
   }
@@ -151,8 +151,8 @@ export class LibraryController {
   ) {
     const image = await this.service.getImage(
       mangaId,
-      collectionId,
-      chapterId,
+      collectionId ?? '',
+      chapterId ?? '',
       imageId
     );
     return image.pipe(res.type(image.mime));
