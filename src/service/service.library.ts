@@ -1,7 +1,7 @@
 import { Job, scheduleJob } from 'node-schedule';
 
 import * as Model from '@data';
-import { logger } from '@logger';
+import logger from '@logger';
 import { LibraryAccessor } from '@library/accessor.library';
 import { ProviderManager } from '@provider/manager';
 import { Image } from '@util/fs';

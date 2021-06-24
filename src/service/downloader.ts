@@ -1,4 +1,4 @@
-import { logger } from '@logger';
+import logger from '@logger';
 import { LibraryAccessor } from '@library/accessor.library';
 import { ProviderManager } from '@provider/manager';
 

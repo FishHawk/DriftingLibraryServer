@@ -1,9 +1,9 @@
+import config from '@config';
+import logger from '@logger';
 import { MangaStatus } from '@data';
-import { logger } from '@logger';
 import { ChapterAccessor } from '@library/accessor.chapter';
 import { MangaAccessor } from '@library/accessor.manga';
 import { ProviderAdapter } from '@provider/adapter';
-import settings from '@settings';
 import { pool } from '@util/async/async_pool';
 import { getBasename } from '@util/fs';
 
@@ -146,7 +146,7 @@ async function downloadChapter(
           .then((image) => accessor.writeImage(it.filename, image))
     );
 
-  const concurrent = settings.downloadConcurrent;
+  const concurrent = config.downloader.concurrent;
   let hasImageError = false;
   for await (const it of pool(tasks, concurrent)) {
     cancelIfNeed();

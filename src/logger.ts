@@ -10,7 +10,7 @@ const timestamp = winston.format((info, opts) => {
   return info;
 });
 
-export const logger = winston.createLogger({
+const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(timestamp(), format),
   transports: [
@@ -18,3 +18,5 @@ export const logger = winston.createLogger({
     new winston.transports.File({ filename: 'log/run.log' }),
   ],
 });
+
+export default logger;

@@ -1,4 +1,4 @@
-import settings from '@settings';
+import config from '@config';
 
 import { ProviderAdapter } from './adapter';
 import ProviderBilibili from './bilibili';
@@ -13,8 +13,9 @@ export class ProviderManager {
     this.registerProvider(new ProviderManhuaren());
 
     const providerBilibili = new ProviderBilibili();
-    if (settings.bilibiliCookie)
-      providerBilibili.setCookie(settings.bilibiliCookie);
+
+    if (config.bilibili.cookie)
+      providerBilibili.setCookie(config.bilibili.cookie);
     this.registerProvider(providerBilibili);
   }
 
