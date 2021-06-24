@@ -12,7 +12,7 @@ import {
   SystemController,
   errorHandleMiddleware,
   logMiddleware,
-} from '@controller';
+} from '@api';
 
 export class App {
   private readonly libraryDir = config.app.libraryDir;
