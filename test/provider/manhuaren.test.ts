@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import Provider from '../../src/provider/providers/manhuaren';
+import Provider from '../../src/provider/manhuaren';
 import { saveImageFile } from './util';
 
 describe('Provider test: manhuaren', function () {

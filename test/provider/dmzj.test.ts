@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import Provider from '../../src/provider/providers/dmzj';
+import Provider from '../../src/provider/dmzj';
 import { saveImageFile } from './util';
 
 describe('Provider test: dmzj', function () {

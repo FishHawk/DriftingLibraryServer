@@ -1,6 +1,5 @@
 import { assert } from 'chai';
-import { Readable } from 'stream';
-import Provider from '../../src/provider/providers/bilibili';
+import Provider from '../../src/provider/bilibili';
 import { saveImageFile } from './util';
 
 describe('Provider test: bilibili', function () {
