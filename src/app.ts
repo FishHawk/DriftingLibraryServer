@@ -10,6 +10,7 @@ import {
   LibraryController,
   ProviderController,
   SystemController,
+  cacheControlMiddleware,
   errorHandleMiddleware,
   logMiddleware,
 } from '@api';
@@ -61,7 +62,8 @@ export class App {
       bind(this.app, controller);
     });
 
-    /* error handle middleware */
+    /* middleware */
+    this.app.use(cacheControlMiddleware);
     this.app.use(errorHandleMiddleware);
     return this;
   }
