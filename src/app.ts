@@ -37,6 +37,7 @@ export class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(logMiddleware);
+    this.app.use(cacheControlMiddleware);
 
     /* component */
     this.libraryAccessor = new LibraryAccessor(this.libraryDir);
@@ -63,7 +64,6 @@ export class App {
     });
 
     /* middleware */
-    this.app.use(cacheControlMiddleware);
     this.app.use(errorHandleMiddleware);
     return this;
   }
