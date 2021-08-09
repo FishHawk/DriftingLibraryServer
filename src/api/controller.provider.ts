@@ -3,8 +3,10 @@ import { Response } from 'express';
 import { ProviderService } from '@service/service.provider';
 
 import { Controller } from './decorator/controller';
+import { UseBefore } from './decorator/middleware';
 import { Res, Param, Query } from './decorator/parameter';
 import { Get } from './decorator/verb';
+import { cacheControl } from './middleware.cache_control';
 
 @Controller('/providers')
 export class ProviderController {
@@ -108,6 +110,7 @@ export class ProviderController {
     return res.json(chapter);
   }
 
+  @UseBefore(cacheControl(5 * 24 * 60))
   @Get('/:providerId/images/:url')
   async getImage(
     @Res() res: Response,

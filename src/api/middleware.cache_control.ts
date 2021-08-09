@@ -1,15 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 
-export const cacheControlMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (req.method == 'GET') {
-    const period = 60 * 30;
+export function cacheControl(minute: number): RequestHandler {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const period = Math.round(minute * 60);
     res.set('Cache-control', `public, max-age=${period}`);
-  } else {
-    res.set('Cache-control', `no-store`);
-  }
-  next();
-};
+    next();
+  };
+}

@@ -10,7 +10,6 @@ import {
   LibraryController,
   ProviderController,
   SystemController,
-  cacheControlMiddleware,
   errorHandleMiddleware,
   logMiddleware,
 } from '@api';
@@ -37,7 +36,6 @@ export class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(logMiddleware);
-    this.app.use(cacheControlMiddleware);
 
     /* component */
     this.libraryAccessor = new LibraryAccessor(this.libraryDir);
