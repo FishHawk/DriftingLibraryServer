@@ -20,7 +20,7 @@ export class ProviderManager {
   }
 
   private registerProvider(provider: ProviderAdapter) {
-    this.providers[provider.id] = provider;
+    this.providers[provider.name] = provider;
   }
 
   getProvider(id: string): ProviderAdapter | undefined {

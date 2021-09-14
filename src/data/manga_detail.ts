@@ -1,6 +1,6 @@
 import { MangaStatus } from './manga_status';
 import { MangaSource } from './manga_source';
-import { ProviderInfo } from './provider_info';
+import { Provider } from './provider';
 
 export interface Chapter {
   readonly id: string;
@@ -28,7 +28,7 @@ export interface MetadataDetail {
 }
 
 export interface MangaDetail {
-  provider?: ProviderInfo;
+  provider?: Provider;
   id: string;
   cover?: string;
   updateTime?: number;

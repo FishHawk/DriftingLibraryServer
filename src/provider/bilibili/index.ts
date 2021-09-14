@@ -9,7 +9,6 @@ import Constant from './constant';
 import Parser from './parser';
 
 export default class Provider extends ProviderAdapter {
-  readonly id: string = 'bilibili';
   readonly name: string = '哔哩哔哩漫画';
   readonly lang: string = 'zh';
 

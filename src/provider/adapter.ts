@@ -4,7 +4,7 @@ import { Image } from '@util/fs/image';
 export type OptionModel = Record<string, string[]>;
 export type Option = Record<string, number>;
 
-export interface ProviderDetail extends Model.ProviderInfo {
+export interface ProviderDetail extends Model.Provider {
   readonly optionModels: {
     popular: OptionModel;
     latest: OptionModel;
@@ -13,7 +13,6 @@ export interface ProviderDetail extends Model.ProviderInfo {
 }
 
 export abstract class ProviderAdapter implements ProviderDetail {
-  abstract readonly id: string;
   abstract readonly name: string;
   abstract readonly lang: string;
 
@@ -30,8 +29,8 @@ export abstract class ProviderAdapter implements ProviderDetail {
     return true;
   }
 
-  getInfo(): Model.ProviderInfo {
-    return { id: this.id, name: this.name, lang: this.lang };
+  getInfo(): Model.Provider {
+    return { name: this.name, lang: this.lang };
   }
   getDetail(): ProviderDetail {
     return { ...this.getInfo(), optionModels: this.optionModels };

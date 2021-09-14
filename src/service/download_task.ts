@@ -64,7 +64,7 @@ async function downloadManga(
     return chapterAccessor;
   }
 
-  logger.info(`Download: ${provider.id}/${mangaId} -> ${accessor.id}`);
+  logger.info(`Download: ${provider.name}/${mangaId} -> ${accessor.id}`);
 
   const detail = await downloadMangaDetail(
     provider,
