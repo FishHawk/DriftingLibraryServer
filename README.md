@@ -1,4 +1,4 @@
-#DEPRECATED
+# DEPRECATED
 
 因为typescript不能满足项目的需要，该项目已经用kotlin重写了。新的项目地址为https://github.com/FishHawk/lisu.
 
