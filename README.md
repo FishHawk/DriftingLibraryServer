@@ -1,3 +1,7 @@
+#DEPRECATED
+
+因为typescript不能满足项目的需要，该项目已经用kotlin重写了。新的项目地址为https://github.com/FishHawk/lisu.
+
 # DriftingLibraryServer
 
 DriftingLibrary是一个免费的漫画库管理系统，该存储库包含DriftingLibrary后端服务器的代码。
